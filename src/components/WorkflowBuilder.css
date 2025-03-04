@@ -1,3 +1,60 @@
+.workflow-step {
+  transition: all 0.2s ease;
+  cursor: grab;
+  position: relative;
+}
+
+.workflow-step:active {
+  cursor: grabbing;
+}
+
+.workflow-step.opacity-50 {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  transform: scale(1.02);
+  z-index: 10;
+  background-color: #f9f9f9;
+  border: 2px dashed #006CA8;
+}
+
+.workflow-step:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.workflow-step .step-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+}
+
+.workflow-step .step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+  margin-right: 1rem;
+  font-weight: bold;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* Drag handle indicator */
+.workflow-step:before {
+  content: '⋮⋮';
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 1.25rem;
+  opacity: 0.5;
+}
+
+.workflow-step:hover:before {
+  opacity: 1;
+}
 /* General Styles */
 :root {
   --primary-color: #006CA8;

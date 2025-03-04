@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useDrag, useDrop } from 'react-dnd';
 
-const WorkflowStep = ({ step, index, onEdit, onDelete, onMove }) => {
+const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getStepTypeColor = () => {
@@ -494,8 +495,62 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, onMove }) => {
     }
   };
 
+    // Create a ref for the draggable element
+  const ref = useRef(null);
+  
+  // Set up the drop target
+  const [{ handlerId }, drop] = useDrop({
+    accept: 'WORKFLOW_STEP',
+    collect(monitor) {
+      return {
+        handlerId: monitor.getHandlerId(),
+      };
+    },
+    hover(item, monitor) {
+      if (!ref.current) return;
+      const dragIndex = item.index;
+      const hoverIndex = index;
+      
+      // Don't replace items with themselves
+      if (dragIndex === hoverIndex) return;
+      
+      // Calculate position of the hovering item
+      const hoverBoundingRect = ref.current.getBoundingClientRect();
+      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+      
+      // Dragging downwards
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
+      // Dragging upwards
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
+      
+      // Time to actually perform the action
+      moveStep(dragIndex, hoverIndex);
+      
+      // Update the index on the item
+      item.index = hoverIndex;
+    },
+  });
+  
+  // Set up the drag source
+  const [{ isDragging }, drag] = useDrag({
+    type: 'WORKFLOW_STEP',
+    item: () => ({ id: step.id, index }),
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+  
+  // Apply the drag and drop refs to the element
+  drag(drop(ref));
+
   return (
-    <div className={`workflow-step ${step.stepType?.toLowerCase() || ''}`}>
+    <div 
+      ref={ref} 
+      className={`workflow-step ${step.stepType?.toLowerCase() || ''} ${isDragging ? 'opacity-50' : ''}`}
+      data-handler-id={handlerId}
+    >
       <div className={`flex border-l-4 ${getStepTypeColor()} bg-white shadow-sm`}>
         <div className="step-header flex-grow">
           <div className="step-number">{index + 1}</div>
@@ -509,25 +564,6 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, onMove }) => {
         </div>
         
         <div className="step-controls p-2 flex items-start gap-1">
-          <button 
-            onClick={() => onMove(step.id, 'up')} 
-            className="text-gray-500 hover:bg-gray-100 p-1.5 rounded" 
-            title="Move Up"
-            disabled={index === 0}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
-          <button 
-            onClick={() => onMove(step.id, 'down')} 
-            className="text-gray-500 hover:bg-gray-100 p-1.5 rounded" 
-            title="Move Down"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
           <button 
             onClick={() => setIsExpanded(!isExpanded)} 
             className="text-gray-500 hover:bg-gray-100 p-1.5 rounded" 
