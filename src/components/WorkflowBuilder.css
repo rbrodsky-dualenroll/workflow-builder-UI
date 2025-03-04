@@ -4,6 +4,34 @@
   position: relative;
 }
 
+/* Conditional step styling */
+.conditional-step {
+  position: relative;
+  margin-left: 1.5rem;
+}
+
+.conditional-step::before {
+  content: '';
+  position: absolute;
+  left: -1.5rem;
+  top: 50%;
+  height: 2px;
+  width: 1.5rem;
+  background-color: #006CA8;
+  border-top: 2px dashed #006CA8;
+}
+
+.conditional-step::after {
+  content: '';
+  position: absolute;
+  left: -1.5rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #006CA8;
+  border-left: 2px dashed #006CA8;
+}
+
 .workflow-step:active {
   cursor: grabbing;
 }

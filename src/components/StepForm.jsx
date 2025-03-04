@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react';
 
-const StepForm = ({ initialData = {}, onSubmit, onCancel }) => {
+const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCondition }) => {
+  // Display scenario info if in a scenario other than main
+  const isConditionalScenario = scenarioId && scenarioId !== 'main';
+  
+  useEffect(() => {
+    // If we're in a conditional scenario, set the conditional flag by default
+    if (isConditionalScenario && !initialData.id) {
+      setFormData(prev => ({
+        ...prev,
+        conditional: true,
+        triggeringCondition: scenarioCondition || ''
+      }));
+    }
+  }, [isConditionalScenario, scenarioId, scenarioCondition, initialData]);
+
   const [formData, setFormData] = useState({
     stepType: 'Approval',
     title: '',
@@ -319,6 +333,18 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel }) => {
       </div>
 
       <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
+        {isConditionalScenario && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <h3 className="text-sm font-medium text-blue-800 mb-1">Conditional Scenario: {scenarioId}</h3>
+            <p className="text-xs text-blue-700">This step is part of the "{scenarioId}" scenario.</p>
+            {scenarioCondition && (
+              <p className="text-xs text-blue-700 mt-1">
+                <span className="font-medium">Scenario condition:</span> {scenarioCondition}
+              </p>
+            )}
+          </div>
+        )}
+        
         <div className="flex items-center mb-4">
           <input
             id="conditional"

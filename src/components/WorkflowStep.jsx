@@ -4,6 +4,9 @@ import { useDrag, useDrop } from 'react-dnd';
 const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Check if this step is part of a conditional scenario in master view
+  const isConditionalStep = step.conditional || (step.scenarioId && step.scenarioId !== 'main');
+
   const getStepTypeColor = () => {
     switch (step.stepType) {
       case 'Approval': return 'border-primary';
@@ -551,16 +554,26 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
       className={`workflow-step ${step.stepType?.toLowerCase() || ''} ${isDragging ? 'opacity-50' : ''}`}
       data-handler-id={handlerId}
     >
-      <div className={`flex border-l-4 ${getStepTypeColor()} bg-white shadow-sm`}>
+      <div className={`flex border-l-4 ${getStepTypeColor()} bg-white shadow-sm ${isConditionalStep ? 'border-l-dashed ml-4' : ''}`}>
         <div className="step-header flex-grow">
           <div className="step-number">{index + 1}</div>
-          <div className="flex items-center">
-            <div className="step-type font-medium">
+          <div className="flex flex-col md:flex-row md:items-center">
+            <div className="step-type font-medium flex items-center">
               {step.role ? `${step.role}: ` : ''}
               {step.title || `${step.stepType} Step`}
+              {isConditionalStep && step.triggeringCondition && (
+                <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">
+                  {step.triggeringCondition}
+                </span>
+              )}
             </div>
             {getSubworkflowBadge()}
           </div>
+          {isConditionalStep && step.scenarioCondition && (
+            <div className="mt-1 text-xs text-blue-600 pl-9">
+              <span className="font-medium">Scenario:</span> {step.scenarioCondition}
+            </div>
+          )}
         </div>
         
         <div className="step-controls p-2 flex items-start gap-1">
