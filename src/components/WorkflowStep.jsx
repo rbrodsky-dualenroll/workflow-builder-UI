@@ -44,6 +44,10 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, onMove }) => {
       instructor: "Dr. Johnson"
     };
 
+    // Get column count - tableColumns plus one for the action column
+    const columnCount = (step.tableColumns?.length || 4) + 1;
+    const gridColsClass = `grid-cols-${columnCount}`;
+
     return (
       <div className="workflow-step-preview bg-white rounded border border-gray-200">
         <div className="p-4">
@@ -57,23 +61,17 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, onMove }) => {
             {/* Information Table */}
             <div className="mb-4">
               {/* Table Header */}
-              <div className="grid grid-cols-4 gap-0">
-                <div className="bg-gray-600 text-white p-2 font-medium text-center">
-                  {step.tableColumns?.[0] || "Student Name"}
-                </div>
-                <div className="bg-gray-600 text-white p-2 font-medium text-center">
-                  {step.tableColumns?.[1] || "Course Number"}
-                </div>
-                <div className="bg-gray-600 text-white p-2 font-medium text-center">
-                  {step.tableColumns?.[2] || "CRN"}
-                </div>
-                <div className="bg-gray-600 text-white p-2 font-medium text-center">
-                  {step.tableColumns?.[3] || "Instructor"}
-                </div>
+              <div className={`grid ${gridColsClass} gap-0`}>
+                <div className="bg-gray-600 p-2"></div>
+                {(step.tableColumns || ['Student Name', 'Course Number', 'CRN', 'Instructor']).map((column, index) => (
+                  <div key={index} className="bg-gray-600 text-white p-2 font-medium text-center">
+                    {column}
+                  </div>
+                ))}
               </div>
               
               {/* Table Row */}
-              <div className="grid grid-cols-4 gap-0 bg-gray-100">
+              <div className={`grid ${gridColsClass} gap-0 bg-gray-100`}>
                 <div className="p-3 border-r border-gray-300">
                   {/* Action Options as Radio Buttons */}
                   <div className="space-y-2">
@@ -92,9 +90,32 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, onMove }) => {
                     ))}
                   </div>
                 </div>
-                <div className="p-3 text-center">{placeholder.courseNumber}</div>
-                <div className="p-3 text-center">{placeholder.crn}</div>
-                <div className="p-3 text-center">{placeholder.instructor}</div>
+                {(step.tableColumns || ['Student Name', 'Course Number', 'CRN', 'Instructor']).map((column, index) => {
+                  // Comprehensive sample data for placeholders
+                  const placeholderData = {
+                    'Student Name': 'Shelby Hyatt',
+                    'Course Number': 'MATH 101',
+                    'Course Title': 'Introduction to Statistics',
+                    'CRN': '4857',
+                    'Section': 'A01',
+                    'Instructor': 'Dr. Johnson',
+                    'Term': 'Fall 2023',
+                    'Credits': '3',
+                    'Status': 'Pending',
+                    'High School': 'Lincoln High School',
+                    'Hold Names': 'Financial Hold, Orientation Required',
+                    'Messages': 'Must resolve holds before registration',
+                    'Fee Amount': '$350.00',
+                    'Payment Status': 'Unpaid',
+                    'Grade': 'N/A'
+                  };
+                  
+                  return (
+                    <div key={index} className="p-3 text-center">
+                      {placeholderData[column] || `Sample ${column}`}
+                    </div>
+                  );
+                })}
               </div>
             </div>
             
@@ -242,10 +263,22 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, onMove }) => {
   };
   
   const renderCheckHoldsStep = () => {
+    // Sample data for placeholders
+    const placeholderData = {
+      'Hold Names': 'Financial Hold, Orientation Required',
+      'Messages': 'Must resolve holds before registration',
+      'Student Name': 'Shelby Hyatt',
+      'Section': 'A01',
+      'Grade': 'N/A'
+    };
+    
+    // Get the column names from the step or use defaults
+    const columnNames = step.tableColumns || ['Hold Names', 'Messages', 'Student Name', 'Section', 'Grade'];
+    
     return (
       <div className="workflow-step-preview bg-white rounded border border-gray-200">
         <div className="p-4">
-          <h3 className="text-lg font-bold mb-3">{step.role}: {step.title || 'Check Student Holds'}</h3>
+          <h3 className="text-lg font-bold mb-3">{step.role}: {step.title || 'Resolve holds'}</h3>
           
           <div className="border border-dashed border-gray-300 rounded-md p-5 mb-4">
             {step.description && (
@@ -253,20 +286,64 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, onMove }) => {
             )}
             
             <div className="bg-gray-50 border border-gray-300 rounded-md p-4 mb-4">
-              <h4 className="font-medium mb-2">System Hold Check</h4>
-              <p className="text-sm text-gray-700">
-                The system will automatically check for holds on the student's account. Hold codes to check: {step.holdCodes || '*any*'}
+              <h4 className="font-medium mb-2">Student Hold Check</h4>
+              <p className="text-sm text-gray-700 mb-4">
+                This student has the following holds: {'{HOLDS LISTED}'}
               </p>
               
-              <div className="mt-4 p-3 bg-gray-100 rounded-md">
-                <p className="text-xs text-gray-500">This step is processed automatically by the system.</p>
+              {/* Table with header column and data column */}
+              <div className="mb-4">
+                {/* Action buttons */}
+                <div className="mb-2">
+                  <div className="bg-gray-100 p-3 rounded-md">
+                    <div className="flex items-center mb-2">
+                      <input type="radio" id="proceed" name="holdAction" className="h-4 w-4" />
+                      <label htmlFor="proceed" className="ml-2 text-sm">Proceed Anyway</label>
+                    </div>
+                    <div className="flex items-center">
+                      <input type="radio" id="retry" name="holdAction" className="h-4 w-4" />
+                      <label htmlFor="retry" className="ml-2 text-sm">Retry</label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Header row */}
+                <div className="bg-gray-600 p-2 text-white font-medium text-center mb-px">
+                  {columnNames[0] || 'Hold Names'}
+                </div>
+                
+                {/* Data row 1 */}
+                <div className="bg-gray-100 p-3 text-center mb-2">
+                  {placeholderData[columnNames[0]] || `Financial Hold, Orientation Required`}
+                </div>
+                
+                {/* Additional column pairs */}
+                {columnNames.slice(1).map((column, index) => (
+                  <div key={index}>
+                    <div className="bg-gray-600 p-2 text-white font-medium text-center mb-px">
+                      {column}
+                    </div>
+                    <div className="bg-gray-100 p-3 text-center mb-2">
+                      {placeholderData[column] || `Sample ${column}`}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+            
+            {step.comments && step.comments.required && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Comments</label>
+                <div className="border border-gray-300 rounded-md p-3 bg-white text-gray-400 text-sm">
+                  Please provide any additional information about this decision.
+                </div>
+              </div>
+            )}
           </div>
           
           <div className="flex justify-center">
-            <button className="bg-gray-400 text-white font-medium py-2 px-4 rounded-md text-sm uppercase" disabled>
-              SYSTEM PROCESSED
+            <button className="bg-primary text-white font-medium py-2 px-4 rounded-md text-sm uppercase">
+              COMPLETE STEP
             </button>
           </div>
         </div>
