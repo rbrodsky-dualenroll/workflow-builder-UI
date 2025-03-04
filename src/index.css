@@ -1,0 +1,240 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary-foreground: 210 40% 98%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 215 20.2% 65.1%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-gray-50 text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+.workflow-step {
+  @apply relative mb-4 rounded-md bg-white shadow-card border border-gray-200 overflow-hidden;
+}
+
+.approval-step .step-header {
+  @apply border-l-4 border-primary;
+}
+
+.upload-step .step-header {
+  @apply border-l-4 border-secondary;
+}
+
+.information-step .step-header {
+  @apply border-l-4 border-yellow-400;
+}
+
+.step-header {
+  @apply flex items-center p-3 bg-gray-50 border-b border-gray-200;
+}
+
+.step-number {
+  @apply flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-semibold mr-3;
+}
+
+.step-type {
+  @apply flex-grow font-medium text-sm;
+}
+
+.step-subworkflow {
+  @apply text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-700 mr-2;
+}
+
+.step-controls {
+  @apply flex gap-1;
+}
+
+.step-controls button {
+  @apply p-1.5 text-gray-600 bg-white border border-gray-200 rounded;
+}
+
+.step-body {
+  @apply p-4;
+}
+
+.step-content {
+  @apply bg-white rounded-md;
+}
+
+.step-content h3 {
+  @apply text-lg font-semibold text-primary mb-2;
+}
+
+.step-details {
+  @apply flex flex-col gap-2;
+}
+
+.action-options .options-container {
+  @apply flex flex-wrap gap-2 mt-1;
+}
+
+.action-button {
+  @apply bg-accent text-primary border border-primary px-3 py-1.5 rounded text-sm;
+}
+
+.conditional-info, .feedback-info, .file-uploads, .information-displays {
+  @apply bg-accent/50 p-3 rounded text-sm border border-accent;
+}
+
+.form-section {
+  @apply border border-gray-200 rounded-md p-4 bg-gray-50 mb-4;
+}
+
+.form-section h3 {
+  @apply text-primary font-medium mb-3;
+}
+
+.form-group {
+  @apply mb-4;
+}
+
+.form-group label {
+  @apply block mb-1 font-medium text-sm;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md text-sm;
+}
+
+.form-group.checkbox {
+  @apply flex items-center;
+}
+
+.form-group.checkbox input {
+  @apply mr-2;
+}
+
+.form-array {
+  @apply mb-4;
+}
+
+.array-item {
+  @apply flex justify-between items-center p-2 bg-white border border-gray-200 rounded-md mb-1;
+}
+
+.remove-btn {
+  @apply bg-red-500 text-white px-2 py-1 rounded text-xs;
+}
+
+.form-array-add {
+  @apply flex gap-2 mb-4;
+}
+
+.form-array-add input {
+  @apply flex-grow px-3 py-2 border border-gray-300 rounded-md text-sm;
+}
+
+.form-actions {
+  @apply flex justify-end gap-2 mt-5;
+}
+
+.workflow-controls {
+  @apply flex gap-2;
+}
+
+.add-step-button {
+  @apply w-full mt-5 bg-green-600 text-white font-medium py-2 px-4 rounded;
+}
+
+.modal-backdrop {
+  @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
+}
+
+.modal {
+  @apply bg-white rounded-lg p-6 w-4/5 max-w-md shadow-lg;
+}
+
+.modal h2 {
+  @apply text-xl font-semibold text-primary border-b border-gray-200 pb-3 mb-4;
+}
+
+.modal-actions {
+  @apply flex justify-end gap-2 mt-5;
+}
+
+button, .button {
+  @apply bg-primary text-white border-none rounded px-4 py-2 cursor-pointer text-sm flex items-center justify-center;
+}
+
+.workflow-step-preview {
+  @apply bg-white rounded-md shadow-card border border-gray-200 p-4 mb-6;
+}
+
+.workflow-step-header {
+  @apply flex items-center justify-between mb-3 pb-3 border-b border-gray-200;
+}
+
+.workflow-step-title {
+  @apply font-semibold text-lg text-primary;
+}
+
+.workflow-step-role {
+  @apply text-sm bg-gray-100 px-2 py-1 rounded;
+}
+
+.workflow-step-body {
+  @apply space-y-4;
+}
+
+.workflow-form-element {
+  @apply mb-4;
+}
+
+.workflow-form-label {
+  @apply block text-sm font-medium mb-1;
+}
+
+.workflow-action-buttons {
+  @apply flex flex-wrap gap-2 my-4;
+}
+
+.workflow-action-btn {
+  @apply px-4 py-2 text-sm bg-white border border-gray-300 rounded;
+}
+
+.workflow-action-btn.primary {
+  @apply bg-primary text-white border-primary;
+}
+
+.workflow-action-btn.danger {
+  @apply bg-red-500 text-white border-red-500;
+}
+
+.workflow-complete-btn {
+  @apply mt-4 w-auto bg-primary text-white font-medium py-2 px-4 rounded text-sm uppercase;
+}
+
+.workflow-file-upload {
+  @apply border-2 border-dashed border-gray-300 rounded-md p-4 text-center;
+}
+
+.workflow-file-upload-label {
+  @apply cursor-pointer text-primary;
+}

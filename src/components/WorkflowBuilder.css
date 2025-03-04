@@ -1,0 +1,342 @@
+/* General Styles */
+:root {
+  --primary-color: #006CA8;
+  --secondary-color: #59B5E8;
+  --accent-color: #e9f2f7;
+  --success-color: #4CAF50;
+  --warning-color: #FFC107;
+  --danger-color: #F44336;
+  --dark-color: #333333;
+  --light-color: #f9f9f9;
+  --border-color: #ddd;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.workflow-builder {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Workflow Header */
+.workflow-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.workflow-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--primary-color);
+}
+
+.workflow-controls {
+  display: flex;
+  gap: 10px;
+}
+
+/* Buttons */
+button, .button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button:hover, .button:hover {
+  background-color: var(--secondary-color);
+}
+
+.add-step-button {
+  margin-top: 20px;
+  background-color: var(--success-color);
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.add-step-button:hover {
+  background-color: #45a049;
+}
+
+/* Step Styles */
+.workflow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.workflow-step {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background-color: white;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: var(--light-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  margin-right: 15px;
+  font-weight: bold;
+}
+
+.step-type {
+  flex-grow: 1;
+  font-weight: bold;
+}
+
+.step-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.step-controls button {
+  padding: 5px 8px;
+  background-color: transparent;
+  color: var(--dark-color);
+  border: 1px solid var(--border-color);
+}
+
+.step-controls button:hover {
+  background-color: var(--accent-color);
+}
+
+.step-body {
+  padding: 15px;
+}
+
+/* Specialized Step Styles */
+.approval-step .step-header {
+  border-left: 5px solid var(--primary-color);
+}
+
+.upload-step .step-header {
+  border-left: 5px solid var(--secondary-color);
+}
+
+.information-step .step-header {
+  border-left: 5px solid var(--warning-color);
+}
+
+/* Step Form */
+.step-form-container {
+  margin-top: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 20px;
+  background-color: white;
+  box-shadow: var(--shadow);
+}
+
+.step-form-container h2 {
+  margin-top: 0;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.step-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-section {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 15px;
+  background-color: var(--light-color);
+}
+
+.form-section h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+  font-size: 16px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: var(--dark-color);
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group.checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.form-group.checkbox input {
+  margin-right: 10px;
+}
+
+.form-group.checkbox label {
+  margin-bottom: 0;
+}
+
+/* Form Arrays */
+.form-array {
+  margin-bottom: 15px;
+}
+
+.array-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.remove-btn {
+  background-color: var(--danger-color);
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.remove-btn:hover {
+  background-color: #d32f2f;
+}
+
+.form-array-add {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.form-array-add input {
+  flex-grow: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Step Content */
+.step-content {
+  padding: 15px;
+  background-color: white;
+  border-radius: 4px;
+}
+
+.step-content h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+.step-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-options .options-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.action-button {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.conditional-info, .feedback-info, .file-uploads, .information-displays {
+  background-color: var(--accent-color);
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  border-radius: 4px;
+  padding: 20px;
+  width: 80%;
+  max-width: 500px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal h2 {
+  margin-top: 0;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
