@@ -40,17 +40,27 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
   };
 
   const renderApprovalStep = () => {
-    // Generate some placeholder data for the table
-    const placeholder = {
-      studentName: "Shelby Hyatt",
-      courseNumber: "Architectural Technology 342",
-      crn: "4857",
-      instructor: "Dr. Johnson"
+    // Get column names from the step or use defaults
+    const columnNames = step.tableColumns || ['Student Name', 'Course Number', 'CRN', 'Instructor'];
+    
+    // Sample data for placeholder display
+    const placeholderData = {
+      'Student Name': 'Shelby Hyatt',
+      'Course Number': 'MATH 101',
+      'Course Title': 'Introduction to Statistics',
+      'CRN': '4857',
+      'Section': 'A01',
+      'Instructor': 'Dr. Johnson',
+      'Term': 'Fall 2023',
+      'Credits': '3',
+      'Status': 'Pending',
+      'High School': 'Lincoln High School',
+      'Hold Names': 'Financial Hold, Orientation Required',
+      'Messages': 'Must resolve holds before registration',
+      'Fee Amount': '$350.00',
+      'Payment Status': 'Unpaid',
+      'Grade': 'N/A'
     };
-
-    // Get column count - tableColumns plus one for the action column
-    const columnCount = (step.tableColumns?.length || 4) + 1;
-    const gridColsClass = `grid-cols-${columnCount}`;
 
     return (
       <div className="workflow-step-preview bg-white rounded border border-gray-200">
@@ -63,64 +73,59 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
             )}
             
             {/* Information Table */}
-            <div className="mb-4">
-              {/* Table Header */}
-              <div className={`grid ${gridColsClass} gap-0`}>
-                <div className="bg-gray-600 p-2"></div>
-                {(step.tableColumns || ['Student Name', 'Course Number', 'CRN', 'Instructor']).map((column, index) => (
-                  <div key={index} className="bg-gray-600 text-white p-2 font-medium text-center">
-                    {column}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Table Row */}
-              <div className={`grid ${gridColsClass} gap-0 bg-gray-100`}>
-                <div className="p-3 border-r border-gray-300">
-                  {/* Action Options as Radio Buttons */}
-                  <div className="space-y-2">
-                    {step.actionOptions && step.actionOptions.map((option, idx) => (
-                      <div key={idx} className="flex items-center">
-                        <input 
-                          type="radio" 
-                          id={`option-${idx}`} 
-                          name="actionOption" 
-                          className="h-4 w-4"
-                        />
-                        <label htmlFor={`option-${idx}`} className="ml-2">
-                          {option.label}
-                        </label>
-                      </div>
+            <div className="mb-4 overflow-x-auto">
+              <table className="min-w-full border-collapse">
+                <thead>
+                  <tr>
+                    {/* Action column with no header */}
+                    <th className="bg-gray-600 p-2"></th>
+                    
+                    {/* Dynamic column headers */}
+                    {columnNames.map((column, index) => (
+                      <th key={index} className="bg-gray-600 text-white p-2 font-medium text-center border border-gray-700">
+                        {column}
+                      </th>
                     ))}
-                  </div>
-                </div>
-                {(step.tableColumns || ['Student Name', 'Course Number', 'CRN', 'Instructor']).map((column, index) => {
-                  // Comprehensive sample data for placeholders
-                  const placeholderData = {
-                    'Student Name': 'Shelby Hyatt',
-                    'Course Number': 'MATH 101',
-                    'Course Title': 'Introduction to Statistics',
-                    'CRN': '4857',
-                    'Section': 'A01',
-                    'Instructor': 'Dr. Johnson',
-                    'Term': 'Fall 2023',
-                    'Credits': '3',
-                    'Status': 'Pending',
-                    'High School': 'Lincoln High School',
-                    'Hold Names': 'Financial Hold, Orientation Required',
-                    'Messages': 'Must resolve holds before registration',
-                    'Fee Amount': '$350.00',
-                    'Payment Status': 'Unpaid',
-                    'Grade': 'N/A'
-                  };
-                  
-                  return (
-                    <div key={index} className="p-3 text-center">
-                      {placeholderData[column] || `Sample ${column}`}
-                    </div>
-                  );
-                })}
-              </div>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {/* Action buttons column */}
+                    <td className="p-3 border border-gray-300 bg-gray-100 align-top" style={{minWidth: '120px'}}>
+                      {/* Action Options as Radio Buttons */}
+                      <div className="space-y-2">
+                        {step.actionOptions && step.actionOptions.length > 0 ? (
+                          step.actionOptions.map((option, idx) => (
+                            <div key={idx} className="flex items-center">
+                              <input 
+                                type="radio" 
+                                id={`option-${idx}`} 
+                                name="actionOption" 
+                                className="h-4 w-4"
+                              />
+                              <label htmlFor={`option-${idx}`} className="ml-2 text-sm">
+                                {option.label}
+                              </label>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex items-center">
+                            <input type="radio" id="approve" name="actionOption" className="h-4 w-4" />
+                            <label htmlFor="approve" className="ml-2 text-sm">Approve</label>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    
+                    {/* Dynamic data cells */}
+                    {columnNames.map((column, index) => (
+                      <td key={index} className="p-3 text-center border border-gray-300 bg-gray-100">
+                        {placeholderData[column] || `Sample ${column}`}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
             </div>
             
             {step.comments && step.comments.required && (
