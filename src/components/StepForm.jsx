@@ -52,6 +52,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     { label: 'Decline', value: 'decline-no' },
     { label: 'Defer', value: 'defer' },
     { label: 'Send to High School for additional info', value: 'hs-info' },
+    { label: 'Send to Approver for additional info', value: 'approver-info' },
     { label: 'Send to Student for additional info', value: 'student-info' }
   ];
 
@@ -314,6 +315,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
             <option value="High School">High School</option>
             <option value="Student">Student</option>
             <option value="Parent">Parent</option>
+            <option value="Approver">Approver</option>
             <option value="System">System</option>
           </select>
         </div>
@@ -541,6 +543,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
                 <option value="Student">Student</option>
                 <option value="High School">High School</option>
                 <option value="College">College</option>
+                <option value="Approver">Approver</option>
               </select>
             </div>
 
