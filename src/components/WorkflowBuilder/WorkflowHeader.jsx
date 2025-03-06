@@ -7,11 +7,18 @@ const WorkflowHeader = ({
   workflowName, 
   onSave, 
   onImport,
+  onNew,
 }) => {
   return (
     <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
       <h1 className="text-2xl font-bold text-primary">{workflowName}</h1>
       <div className="flex gap-2">
+        <button
+          onClick={onNew}
+          className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm"
+        >
+          New Workflow
+        </button>
         <input 
           type="file" 
           id="import-workflow" 

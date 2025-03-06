@@ -11,7 +11,8 @@ const StepModal = ({
   initialData = {}, 
   onSubmit,
   scenarioId,
-  scenarioCondition
+  scenarioCondition,
+  onAddFeedbackStep
 }) => {
   if (!isOpen) return null;
 
@@ -49,6 +50,7 @@ const StepModal = ({
           onCancel={onClose}
           scenarioId={scenarioId}
           scenarioCondition={scenarioCondition}
+          onAddFeedbackStep={onAddFeedbackStep}
         />
       </div>
     </div>

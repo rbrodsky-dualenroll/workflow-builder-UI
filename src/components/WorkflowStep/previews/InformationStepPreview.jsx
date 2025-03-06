@@ -10,7 +10,9 @@ const InformationStepPreview = ({ step }) => {
       {step.informationDisplays && step.informationDisplays.length > 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
           {step.informationDisplays.map((info, idx) => (
-            <p key={idx} className="mb-2 last:mb-0">{info}</p>
+            <p key={idx} className="mb-2 last:mb-0">
+              {typeof info === 'string' ? info : info.content}
+            </p>
           ))}
         </div>
       )}

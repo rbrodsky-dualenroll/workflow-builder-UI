@@ -35,6 +35,7 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
       const hoverBoundingRect = ref.current.getBoundingClientRect();
       const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
       const clientOffset = monitor.getClientOffset();
+      if (!clientOffset) return;
       const hoverClientY = clientOffset.y - hoverBoundingRect.top;
       
       // Dragging downwards
@@ -53,7 +54,10 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
   // Set up the drag source
   const [{ isDragging }, drag] = useDrag({
     type: 'WORKFLOW_STEP',
-    item: () => ({ id: step.id, index }),
+    item: () => ({
+      id: step.id,
+      index
+    }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),

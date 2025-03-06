@@ -10,6 +10,7 @@ import InformationStepSection from './sections/InformationStepSection';
 import TableColumnsSection from './sections/TableColumnsSection';
 import CrnDisplaySection from './sections/CrnDisplaySection';
 import CommentsSection from './sections/CommentsSection';
+import FeedbackLoopsSection from './sections/FeedbackLoopsSection';
 import { 
   ProvideConsentSection, 
   CheckHoldsSection, 
@@ -17,7 +18,7 @@ import {
   ResolveIssueSection 
 } from './sections/SpecializedStepSections';
 
-const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCondition }) => {
+const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCondition, onAddFeedbackStep }) => {
   // Display scenario info if in a scenario other than main
   const isConditionalScenario = scenarioId && scenarioId !== 'main';
   const scenarioInfo = isConditionalScenario ? { id: scenarioId, condition: scenarioCondition } : null;
@@ -45,10 +46,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     fileUploads: [],
     informationDisplays: [],
     tableColumns: ['Student Name', 'Course Number', 'CRN', 'Instructor'],
-    feedbackLoops: {
-      recipient: '',
-      nextStep: ''
-    },
+    feedbackLoops: {},
     comments: {
       required: false,
       public: true
@@ -130,7 +128,22 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     const validationErrors = validateStep(formData);
     
     if (Object.keys(validationErrors).length === 0) {
-      onSubmit(formData);
+      // First submit the main step
+      const stepData = { ...formData };
+      
+      // Remove pendingFeedbackSteps from the form data for the main step
+      const pendingFeedbackSteps = stepData.pendingFeedbackSteps || [];
+      delete stepData.pendingFeedbackSteps;
+      
+      // Submit the main step
+      onSubmit(stepData);
+      
+      // Then create any pending feedback steps
+      if (onAddFeedbackStep && pendingFeedbackSteps.length > 0) {
+        pendingFeedbackSteps.forEach(feedbackStep => {
+          onAddFeedbackStep(feedbackStep);
+        });
+      }
     } else {
       setErrors(validationErrors);
     }
@@ -224,6 +237,15 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
           formData={formData} 
           handleChange={handleChange} 
           errors={errors} 
+        />
+      )}
+
+      {/* Feedback Loops - only for Approval steps */}
+      {formData.stepType === 'Approval' && (
+        <FeedbackLoopsSection 
+          formData={formData} 
+          setFormData={setFormData} 
+          onAddFeedbackStep={onAddFeedbackStep}
         />
       )}
 

@@ -10,9 +10,10 @@ const InformationStepSection = ({ formData, setFormData, errors = {} }) => {
   const addInfoDisplay = () => {
     if (tempInfoDisplay.trim() === '') return;
     
+    // Add as object with content property to match feedback loops structure
     setFormData({
       ...formData,
-      informationDisplays: [...(formData.informationDisplays || []), tempInfoDisplay]
+      informationDisplays: [...(formData.informationDisplays || []), { content: tempInfoDisplay }]
     });
     setTempInfoDisplay('');
   };
@@ -26,12 +27,17 @@ const InformationStepSection = ({ formData, setFormData, errors = {} }) => {
     });
   };
 
+  // Helper to get display text from either string or object
+  const getDisplayText = (display) => {
+    return typeof display === 'string' ? display : display.content;
+  };
+
   return (
     <Card title="Information Displays" className="bg-white mb-6">
       <div className="space-y-2 mb-4">
         {formData.informationDisplays?.map((display, index) => (
           <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md border border-gray-200">
-            <span className="text-sm">{display}</span>
+            <span className="text-sm">{getDisplayText(display)}</span>
             <button 
               type="button" 
               onClick={() => removeInfoDisplay(index)}

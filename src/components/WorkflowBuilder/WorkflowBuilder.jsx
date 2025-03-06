@@ -11,6 +11,7 @@ import WorkflowContent from './WorkflowContent';
 import StepModal from './modals/StepModal';
 import ScenarioModal from './modals/ScenarioModal';
 import SaveWorkflowModal from './modals/SaveWorkflowModal';
+import ConfirmationModal from './modals/ConfirmationModal';
 
 // Import utilities
 import { 
@@ -20,7 +21,7 @@ import {
   updateScenario as updateScenarioUtil
 } from './scenarioUtils';
 
-const WorkflowBuilderRefactored = () => {
+const WorkflowBuilder = () => {
   // Main state for scenarios and active scenario
   const [scenarios, setScenarios] = useState({
     main: {
@@ -41,6 +42,7 @@ const WorkflowBuilderRefactored = () => {
   const [editingStep, setEditingStep] = useState(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showScenarioModal, setShowScenarioModal] = useState(false);
+  const [showNewWorkflowModal, setShowNewWorkflowModal] = useState(false);
   
   // New scenario form state
   const [newScenarioName, setNewScenarioName] = useState('');
@@ -137,22 +139,24 @@ const WorkflowBuilderRefactored = () => {
   };
 
   const moveStep = (dragIndex, hoverIndex) => {
-    const currentSteps = scenarios[activeScenarioId].steps;
-    const draggedStep = currentSteps[dragIndex];
-    const updatedSteps = [...currentSteps];
-    
-    // Remove the dragged item
-    updatedSteps.splice(dragIndex, 1);
-    // Insert it at the new position
-    updatedSteps.splice(hoverIndex, 0, draggedStep);
-    
-    setScenarios(prevScenarios => ({
-      ...prevScenarios,
-      [activeScenarioId]: {
-        ...prevScenarios[activeScenarioId],
-        steps: updatedSteps
-      }
-    }));
+    setScenarios(prevScenarios => {
+      const currentSteps = prevScenarios[activeScenarioId].steps;
+      const draggedStep = {...currentSteps[dragIndex]};
+      const updatedSteps = [...currentSteps];
+      
+      // Remove the dragged item
+      updatedSteps.splice(dragIndex, 1);
+      // Insert it at the new position
+      updatedSteps.splice(hoverIndex, 0, draggedStep);
+      
+      return {
+        ...prevScenarios,
+        [activeScenarioId]: {
+          ...prevScenarios[activeScenarioId],
+          steps: updatedSteps
+        }
+      };
+    });
   };
   
   // Create a new scenario
@@ -204,6 +208,26 @@ const WorkflowBuilderRefactored = () => {
     setShowSaveModal(false);
   };
 
+  const handleNewWorkflow = () => {
+    // Show confirmation modal
+    setShowNewWorkflowModal(true);
+  };
+
+  const createNewWorkflow = () => {
+    // Reset to default state
+    setScenarios({
+      main: {
+        id: 'main',
+        name: 'Main Workflow',
+        condition: null,
+        steps: []
+      }
+    });
+    setActiveScenarioId('main');
+    setMasterView(false);
+    setWorkflowName('New Workflow');
+  };
+
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -213,6 +237,7 @@ const WorkflowBuilderRefactored = () => {
       try {
         const importedData = JSON.parse(e.target.result);
         
+        // Always reset to a fresh state before importing
         if (importedData.scenarios) {
           // New format with scenarios
           setScenarios(importedData.scenarios);
@@ -236,6 +261,9 @@ const WorkflowBuilderRefactored = () => {
         
         setActiveScenarioId('main');
         setMasterView(false);
+        
+        // Reset the file input to allow importing the same file again
+        event.target.value = '';
       } catch (error) {
         alert('Invalid workflow file');
       }
@@ -251,6 +279,7 @@ const WorkflowBuilderRefactored = () => {
           workflowName={workflowName}
           onSave={() => setShowSaveModal(true)}
           onImport={handleFileUpload}
+          onNew={handleNewWorkflow}
         />
         
         {/* Scenario manager */}
@@ -282,6 +311,7 @@ const WorkflowBuilderRefactored = () => {
           onSubmit={addStep}
           scenarioId={activeScenarioId}
           scenarioCondition={scenarios[activeScenarioId]?.condition}
+          onAddFeedbackStep={addStep}
         />
 
         {/* Edit Step Modal */}
@@ -294,6 +324,7 @@ const WorkflowBuilderRefactored = () => {
             onSubmit={updateStep}
             scenarioId={activeScenarioId}
             scenarioCondition={scenarios[activeScenarioId]?.condition}
+            onAddFeedbackStep={addStep}
           />
         )}
 
@@ -319,9 +350,20 @@ const WorkflowBuilderRefactored = () => {
           setWorkflowName={setWorkflowName}
           onSave={saveWorkflow}
         />
+
+        {/* New Workflow Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showNewWorkflowModal}
+          onClose={() => setShowNewWorkflowModal(false)}
+          onConfirm={createNewWorkflow}
+          title="Create New Workflow"
+          message="Are you sure you want to create a new workflow? Any unsaved changes will be lost."
+          confirmButtonText="Create New"
+          confirmButtonClass="bg-blue-600 hover:bg-blue-700"
+        />
       </div>
     </DndProvider>
   );
 };
 
-export default WorkflowBuilderRefactored;
+export default WorkflowBuilder;

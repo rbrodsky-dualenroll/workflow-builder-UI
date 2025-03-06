@@ -23,7 +23,7 @@ const WorkflowContent = ({
         <div className="space-y-4 mb-6">
           {workflow.map((step, index) => (
             <WorkflowStep 
-              key={step.id}
+              key={`${step.id}-${index}`}
               step={step}
               index={index}
               onEdit={() => onEditStep(step.id)}

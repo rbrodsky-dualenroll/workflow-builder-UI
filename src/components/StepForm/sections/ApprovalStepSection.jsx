@@ -9,14 +9,11 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
   const [tempActionOption, setTempActionOption] = useState({ label: '', value: '' });
   const [showActionTemplates, setShowActionTemplates] = useState(false);
   
-  // Template data for action options
+  // Template data for action options (removed feedback options)
   const commonActionOptionTemplates = [
     { label: 'Approve', value: 'approve-yes' },
     { label: 'Decline', value: 'decline-no' },
-    { label: 'Defer', value: 'defer' },
-    { label: 'Send to High School for additional info', value: 'hs-info' },
-    { label: 'Send to Approver for additional info', value: 'approver-info' },
-    { label: 'Send to Student for additional info', value: 'student-info' }
+    { label: 'Defer', value: 'defer' }
   ];
 
   const addActionOption = () => {
@@ -44,17 +41,6 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
     setFormData({
       ...formData,
       actionOptions: updatedOptions
-    });
-  };
-
-  const handleFeedbackChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      feedbackLoops: {
-        ...(formData.feedbackLoops || {}),
-        [name]: value
-      }
     });
   };
 
@@ -154,35 +140,6 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
         >
           Add Option
         </button>
-      </div>
-
-      <h3 className="text-md font-medium text-gray-800 mb-3 mt-6">Feedback Loops</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          label="Send feedback to"
-          name="recipient"
-          type="select"
-          value={formData.feedbackLoops?.recipient || ''}
-          onChange={handleFeedbackChange}
-          options={[
-            { value: '', label: 'None' },
-            { value: 'Student', label: 'Student' },
-            { value: 'High School', label: 'High School' },
-            { value: 'College', label: 'College' },
-            { value: 'Approver', label: 'Approver' },
-          ]}
-        />
-
-        {formData.feedbackLoops?.recipient && (
-          <FormField
-            label="Feedback Next Step"
-            name="nextStep"
-            type="text"
-            value={formData.feedbackLoops?.nextStep || ''}
-            onChange={handleFeedbackChange}
-            placeholder="Enter the next step name"
-          />
-        )}
       </div>
     </Card>
   );
