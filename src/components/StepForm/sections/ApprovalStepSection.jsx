@@ -97,17 +97,36 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
         {showActionTemplates && (
           <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {commonActionOptionTemplates.map((template, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => addActionTemplate(template)}
-                  className="text-left text-sm px-2 py-1 rounded flex items-center text-primary bg-white"
-                >
-                  <span className="w-4 h-4 mr-2 flex-shrink-0">+</span>
-                  {template.label}
-                </button>
-              ))}
+              {commonActionOptionTemplates
+                // Filter out templates that already exist in formData.actionOptions
+                .filter(template => 
+                  !formData.actionOptions?.some(option => 
+                    option.value === template.value || 
+                    option.label.toLowerCase() === template.label.toLowerCase()
+                  )
+                )
+                .map((template, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => addActionTemplate(template)}
+                    className="text-left text-sm px-2 py-1 rounded flex items-center text-primary bg-white"
+                  >
+                    <span className="w-4 h-4 mr-2 flex-shrink-0">+</span>
+                    {template.label}
+                  </button>
+                ))
+              }
+              {commonActionOptionTemplates.length > 0 && 
+               formData.actionOptions?.length > 0 && 
+               commonActionOptionTemplates.every(template => 
+                 formData.actionOptions.some(option => 
+                   option.value === template.value || 
+                   option.label.toLowerCase() === template.label.toLowerCase()
+                 )
+               ) && (
+                <p className="text-gray-500 text-sm col-span-2 italic">All common actions are already added</p>
+              )}
             </div>
           </div>
         )}

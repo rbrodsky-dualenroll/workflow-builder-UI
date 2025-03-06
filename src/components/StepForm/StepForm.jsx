@@ -25,6 +25,13 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
   // Form errors
   const [errors, setErrors] = useState({});
   
+  // Default action options for Approval steps
+  const defaultApprovalOptions = [
+    { label: 'Approve', value: 'approve-yes' },
+    { label: 'Decline', value: 'decline-no' },
+    { label: 'Defer', value: 'defer' }
+  ];
+
   // Default form data
   const defaultFormData = {
     stepType: 'Approval',
@@ -57,9 +64,21 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
   };
 
   // Initialize form data with defaults and any provided initialData
-  const [formData, setFormData] = useState({
-    ...defaultFormData,
-    ...initialData
+  const [formData, setFormData] = useState(() => {
+    const initialFormData = {
+      ...defaultFormData,
+      ...initialData
+    };
+    
+    // Add default action options for new Approval steps
+    if (
+      (!initialData.id || !initialData.actionOptions || initialData.actionOptions.length === 0) && 
+      (initialData.stepType === 'Approval' || !initialData.stepType)
+    ) {
+      initialFormData.actionOptions = [...defaultApprovalOptions];
+    }
+    
+    return initialFormData;
   });
 
   // Effect for conditional scenarios
@@ -87,10 +106,20 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
   // Handle changes to form fields
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
+    
+    // If changing step type to Approval and no action options exist, add defaults
+    if (name === 'stepType' && value === 'Approval' && (!formData.actionOptions || formData.actionOptions.length === 0)) {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value,
+        actionOptions: [...defaultApprovalOptions]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value
+      });
+    }
   };
 
   // Handle form submission
