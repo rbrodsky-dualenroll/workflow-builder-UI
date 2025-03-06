@@ -1,5 +1,6 @@
 import React from 'react';
 import PreviewContainer from './PreviewContainer';
+import CrnCell from './CrnCell';
 import { placeholderData } from '../stepUtils';
 
 /**
@@ -59,7 +60,11 @@ const ApprovalStepPreview = ({ step }) => {
               {/* Dynamic data cells */}
               {columnNames.map((column, index) => (
                 <td key={index} className="p-3 text-center border border-gray-300 bg-gray-100">
-                  {placeholderData[column] || `Sample ${column}`}
+                  <CrnCell 
+                    columnName={column} 
+                    step={step} 
+                    value={placeholderData[column] || `Sample ${column}`} 
+                  />
                 </td>
               ))}
             </tr>

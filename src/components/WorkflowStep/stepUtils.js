@@ -51,3 +51,32 @@ export const placeholderData = {
   'Payment Status': 'Unpaid',
   'Grade': 'N/A'
 };
+
+/**
+ * Additional data for CRN display fields
+ */
+export const crnDisplayData = {
+  'time': 'MWF 10:00-10:50 AM',
+  'days': 'MWF',
+  'location': 'Main Campus Room 103',
+  'instructor': 'Dr. Johnson',
+  'available_seats': '12 of 30',
+  'campus': 'Main Campus',
+  'delivery': 'In Person'
+};
+
+/**
+ * Get label for CRN display field
+ */
+export const getCrnDisplayLabel = (field) => {
+  const labels = {
+    'time': 'Meeting Time',
+    'days': 'Meeting Days',
+    'location': 'Location',
+    'instructor': 'Instructor',
+    'available_seats': 'Available Seats',
+    'campus': 'Campus',
+    'delivery': 'Delivery Method'
+  };
+  return labels[field] || field;
+};

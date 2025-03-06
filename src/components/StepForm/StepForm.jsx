@@ -8,6 +8,7 @@ import ApprovalStepSection from './sections/ApprovalStepSection';
 import UploadStepSection from './sections/UploadStepSection';
 import InformationStepSection from './sections/InformationStepSection';
 import TableColumnsSection from './sections/TableColumnsSection';
+import CrnDisplaySection from './sections/CrnDisplaySection';
 import CommentsSection from './sections/CommentsSection';
 import { 
   ProvideConsentSection, 
@@ -125,11 +126,19 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
 
       {/* Table Columns - not for Information steps */}
       {formData.stepType !== 'Information' && (
-        <TableColumnsSection 
-          formData={formData} 
-          setFormData={setFormData} 
-          errors={errors} 
-        />
+        <>
+          <TableColumnsSection 
+            formData={formData} 
+            setFormData={setFormData} 
+            errors={errors} 
+          />
+          
+          {/* CRN Display Settings - only shown when CRN column is present */}
+          <CrnDisplaySection 
+            formData={formData} 
+            setFormData={setFormData} 
+          />
+        </>
       )}
 
       {/* Step-specific sections */}
