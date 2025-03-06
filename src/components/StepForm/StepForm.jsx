@@ -47,10 +47,14 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     informationDisplays: [],
     tableColumns: ['Student Name', 'Course Number', 'CRN', 'Instructor'],
     feedbackLoops: {},
+    pendingFeedbackSteps: [], // Array to store pending feedback steps
     comments: {
       required: false,
       public: true
     },
+    // CRN Display settings
+    showCrnInfo: false,
+    crnDisplay: [],
     // Fields for CheckHolds step
     holdCodes: '',
     // Fields for RegisterViaApi step
@@ -96,7 +100,8 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     if (initialData && Object.keys(initialData).length > 0) {
       setFormData({
         ...defaultFormData,
-        ...initialData
+        ...initialData,
+        pendingFeedbackSteps: [] // Always reset pending feedback steps
       });
     }
   }, [initialData]);
@@ -109,7 +114,10 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     if (name === 'stepType') {
       let updatedFormData = {
         ...formData,
-        [name]: value
+        [name]: value,
+        // Reset CRN display settings on step type change
+        showCrnInfo: false,
+        crnDisplay: []
       };
       
       // If changing step type to Approval and no action options exist, add defaults
@@ -146,17 +154,23 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
       // First submit the main step
       const stepData = { ...formData };
       
-      // Remove pendingFeedbackSteps from the form data for the main step
-      const pendingFeedbackSteps = stepData.pendingFeedbackSteps || [];
+      // Remove the pendingFeedbackSteps array from main step data
+      const pendingFeedbackSteps = [...(stepData.pendingFeedbackSteps || [])];
       delete stepData.pendingFeedbackSteps;
       
       // Submit the main step
       onSubmit(stepData);
       
-      // Then create any pending feedback steps
+      // Then submit each feedback step as an independent step
       if (onAddFeedbackStep && pendingFeedbackSteps.length > 0) {
+        // Create all feedback steps as independent steps
         pendingFeedbackSteps.forEach(feedbackStep => {
-          onAddFeedbackStep(feedbackStep);
+          const uniqueFeedbackStep = { 
+            ...feedbackStep,
+            // Ensure a unique ID for each feedback step
+            id: feedbackStep.id || `feedback_step_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          };
+          onAddFeedbackStep(uniqueFeedbackStep);
         });
       }
     } else {

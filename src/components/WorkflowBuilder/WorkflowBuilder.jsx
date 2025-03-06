@@ -13,159 +13,90 @@ import ScenarioModal from './modals/ScenarioModal';
 import SaveWorkflowModal from './modals/SaveWorkflowModal';
 import ConfirmationModal from './modals/ConfirmationModal';
 
-// Import utilities
-import { 
-  getMergedWorkflow, 
-  createScenario as createScenarioUtil, 
-  deleteScenario as deleteScenarioUtil,
-  updateScenario as updateScenarioUtil
-} from './scenarioUtils';
+// Import custom hooks
+import useWorkflowState from './hooks/useWorkflowState';
+import useModalState from './hooks/useModalState';
+
+// Import operations
+import { addStep, updateStep, deleteStep, deleteFeedbackStep, moveStep } from './WorkflowOperations';
+import { createScenario, deleteScenario, getMergedWorkflow } from './ScenarioOperations';
+import { saveWorkflow, importWorkflow } from './FileOperations';
 
 const WorkflowBuilder = () => {
-  // Main state for scenarios and active scenario
-  const [scenarios, setScenarios] = useState({
-    main: {
-      id: 'main',
-      name: 'Main Workflow',
-      condition: null,
-      steps: []
-    }
-  });
-  const [activeScenarioId, setActiveScenarioId] = useState('main');
-  const [masterView, setMasterView] = useState(false);
+  // Get workflow state from custom hook
+  const { 
+    scenarios, 
+    setScenarios, 
+    activeScenarioId, 
+    setActiveScenarioId, 
+    masterView, 
+    setMasterView, 
+    workflowName, 
+    setWorkflowName,
+    workflow  // This is calculated from the scenarios and active/master view
+  } = useWorkflowState(getMergedWorkflow);
   
-  // UI state
-  const [workflowName, setWorkflowName] = useState('New Workflow');
+  // Get modal state from custom hook
+  const {
+    isAddingStep,
+    setIsAddingStep,
+    editingStep,
+    setEditingStep,
+    showSaveModal,
+    setShowSaveModal,
+    showScenarioModal,
+    setShowScenarioModal,
+    showNewWorkflowModal,
+    setShowNewWorkflowModal,
+    newScenarioName,
+    setNewScenarioName,
+    newScenarioCondition,
+    setNewScenarioCondition,
+    baseScenarioId,
+    setBaseScenarioId
+  } = useModalState();
   
-  // Modal states
-  const [isAddingStep, setIsAddingStep] = useState(false);
-  const [editingStep, setEditingStep] = useState(null);
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showScenarioModal, setShowScenarioModal] = useState(false);
-  const [showNewWorkflowModal, setShowNewWorkflowModal] = useState(false);
-  
-  // New scenario form state
-  const [newScenarioName, setNewScenarioName] = useState('');
-  const [newScenarioCondition, setNewScenarioCondition] = useState('');
-  const [baseScenarioId, setBaseScenarioId] = useState('main');
-  
-  // Helper to get current workflow based on active scenario
-  const workflow = masterView 
-    ? getMergedWorkflow(scenarios) 
-    : scenarios[activeScenarioId]?.steps || [];
-
-  const addStep = (stepData) => {
-    const newStep = {
-      id: Date.now().toString(),
-      ...stepData
-    };
-    
-    setScenarios(prevScenarios => ({
-      ...prevScenarios,
-      [activeScenarioId]: {
-        ...prevScenarios[activeScenarioId],
-        steps: [...prevScenarios[activeScenarioId].steps, newStep]
-      }
-    }));
+  // Handler for adding a new step
+  const handleAddStep = (stepData) => {
+    addStep(stepData, activeScenarioId, setScenarios);
     setIsAddingStep(false);
   };
-
-  const updateStep = (stepData) => {
-    // Get the step we're editing
-    const step = scenarios[activeScenarioId].steps.find(s => s.id === editingStep);
-    
-    if (activeScenarioId === 'main') {
-      // Updating a step in the main workflow - update it in all scenarios
-      const updatedScenarios = { ...scenarios };
-      
-      // Update in main scenario
-      updatedScenarios.main.steps = updatedScenarios.main.steps.map(s => 
-        s.id === editingStep ? { ...s, ...stepData } : s
-      );
-      
-      // Update in other scenarios if they have the same step (not already customized)
-      Object.keys(updatedScenarios).forEach(scenarioId => {
-        if (scenarioId === 'main') return;
-        
-        updatedScenarios[scenarioId].steps = updatedScenarios[scenarioId].steps.map(s => 
-          s.id === editingStep ? { ...s, ...stepData } : s
-        );
-      });
-      
-      setScenarios(updatedScenarios);
-    } else {
-      // Updating a step in a conditional scenario - create a new conditional version
-      const newStepId = `${editingStep}_${activeScenarioId}`;
-      const updatedStep = { ...stepData, id: newStepId, originalStepId: editingStep };
-      
-      // Replace the step in this scenario only
-      setScenarios(prevScenarios => {
-        const scenarioSteps = [...prevScenarios[activeScenarioId].steps];
-        const stepIndex = scenarioSteps.findIndex(s => s.id === editingStep);
-        
-        if (stepIndex !== -1) {
-          scenarioSteps[stepIndex] = updatedStep;
-        }
-        
-        return {
-          ...prevScenarios,
-          [activeScenarioId]: {
-            ...prevScenarios[activeScenarioId],
-            steps: scenarioSteps
-          }
-        };
-      });
-    }
-    
+  
+  // Handler for updating a step
+  const handleUpdateStep = (stepData) => {
+    updateStep(stepData, editingStep, activeScenarioId, scenarios, setScenarios);
     setEditingStep(null);
   };
-
-  const deleteStep = (stepId) => {
-    setScenarios(prevScenarios => {
-      const updatedScenarios = { ...prevScenarios };
-      
-      if (activeScenarioId === 'main') {
-        // If deleting from main, remove from all scenarios
-        Object.keys(updatedScenarios).forEach(scenarioId => {
-          updatedScenarios[scenarioId].steps = updatedScenarios[scenarioId].steps.filter(step => step.id !== stepId);
-        });
-      } else {
-        // If deleting from a scenario, only remove from that scenario
-        updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.filter(step => step.id !== stepId);
-      }
-      
-      return updatedScenarios;
-    });
-  };
-
-  const moveStep = (dragIndex, hoverIndex) => {
-    setScenarios(prevScenarios => {
-      const currentSteps = prevScenarios[activeScenarioId].steps;
-      const draggedStep = {...currentSteps[dragIndex]};
-      const updatedSteps = [...currentSteps];
-      
-      // Remove the dragged item
-      updatedSteps.splice(dragIndex, 1);
-      // Insert it at the new position
-      updatedSteps.splice(hoverIndex, 0, draggedStep);
-      
-      return {
-        ...prevScenarios,
-        [activeScenarioId]: {
-          ...prevScenarios[activeScenarioId],
-          steps: updatedSteps
-        }
-      };
-    });
+  
+  // Handler for deleting a step
+  const handleDeleteStep = (stepId) => {
+    // Check if this is a feedback step
+    const stepToDelete = scenarios[activeScenarioId].steps.find(step => step.id === stepId);
+    
+    if (stepToDelete && stepToDelete.isFeedbackStep) {
+      deleteFeedbackStep(stepId, activeScenarioId, setScenarios);
+    } else {
+      deleteStep(stepId, activeScenarioId, setScenarios);
+    }
   };
   
-  // Create a new scenario
+  // Handler for moving a step
+  const handleMoveStep = (dragIndex, hoverIndex) => {
+    moveStep(dragIndex, hoverIndex, activeScenarioId, setScenarios);
+  };
+  
+  // Handler for creating a new scenario
   const handleCreateScenario = () => {
     if (!newScenarioName.trim()) return;
     
-    setScenarios(prevScenarios => 
-      createScenarioUtil(prevScenarios, baseScenarioId, newScenarioName, newScenarioCondition)
+    const updatedScenarios = createScenario(
+      scenarios, 
+      baseScenarioId, 
+      newScenarioName, 
+      newScenarioCondition
     );
+    
+    setScenarios(updatedScenarios);
     
     // Get the new scenario ID (needed to set active scenario)
     const newScenarioId = `scenario_${Date.now()}`;
@@ -177,42 +108,31 @@ const WorkflowBuilder = () => {
     setMasterView(false);
   };
   
-  // Delete a scenario
+  // Handler for deleting a scenario
   const handleDeleteScenario = (scenarioId) => {
     if (scenarioId === 'main') return; // Cannot delete main scenario
     
-    setScenarios(prevScenarios => deleteScenarioUtil(prevScenarios, scenarioId));
+    const updatedScenarios = deleteScenario(scenarios, scenarioId);
+    setScenarios(updatedScenarios);
     
     if (activeScenarioId === scenarioId) {
       setActiveScenarioId('main');
     }
   };
 
-  const saveWorkflow = () => {
-    // Save the entire scenarios object
-    const workflowJson = JSON.stringify({
-      name: workflowName,
-      scenarios
-    }, null, 2);
-    
-    // Create a blob and download it
-    const blob = new Blob([workflowJson], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${workflowName.replace(/\s+/g, '-').toLowerCase()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
+  // Handler for saving the workflow
+  const handleSaveWorkflow = () => {
+    saveWorkflow(workflowName, scenarios);
     setShowSaveModal(false);
   };
 
+  // Handler for creating a new workflow
   const handleNewWorkflow = () => {
     // Show confirmation modal
     setShowNewWorkflowModal(true);
   };
 
+  // Handler for confirming a new workflow
   const createNewWorkflow = () => {
     // Reset to default state
     setScenarios({
@@ -226,49 +146,22 @@ const WorkflowBuilder = () => {
     setActiveScenarioId('main');
     setMasterView(false);
     setWorkflowName('New Workflow');
+    setShowNewWorkflowModal(false);
   };
 
+  // Handler for importing a workflow
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        
-        // Always reset to a fresh state before importing
-        if (importedData.scenarios) {
-          // New format with scenarios
-          setScenarios(importedData.scenarios);
-          if (importedData.name) {
-            setWorkflowName(importedData.name);
-          } else {
-            setWorkflowName(file.name.replace('.json', '').replace(/-/g, ' '));
-          }
-        } else {
-          // Old format with just a workflow array
-          setScenarios({
-            main: {
-              id: 'main',
-              name: 'Main Workflow',
-              condition: null,
-              steps: importedData
-            }
-          });
-          setWorkflowName(file.name.replace('.json', '').replace(/-/g, ' '));
-        }
-        
-        setActiveScenarioId('main');
-        setMasterView(false);
-        
+    importWorkflow(file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView)
+      .then(() => {
         // Reset the file input to allow importing the same file again
         event.target.value = '';
-      } catch (error) {
-        alert('Invalid workflow file');
-      }
-    };
-    reader.readAsText(file);
+      })
+      .catch(error => {
+        alert(error.message);
+      });
   };
 
   return (
@@ -297,8 +190,8 @@ const WorkflowBuilder = () => {
         <WorkflowContent 
           workflow={workflow}
           onEditStep={setEditingStep}
-          onDeleteStep={deleteStep}
-          moveStep={moveStep}
+          onDeleteStep={handleDeleteStep}
+          moveStep={handleMoveStep}
           onAddStep={() => setIsAddingStep(true)}
           masterView={masterView}
         />
@@ -308,10 +201,10 @@ const WorkflowBuilder = () => {
           isOpen={isAddingStep}
           onClose={() => setIsAddingStep(false)}
           title="Add New Step"
-          onSubmit={addStep}
+          onSubmit={handleAddStep}
           scenarioId={activeScenarioId}
           scenarioCondition={scenarios[activeScenarioId]?.condition}
-          onAddFeedbackStep={addStep}
+          onAddFeedbackStep={handleAddStep}
         />
 
         {/* Edit Step Modal */}
@@ -321,10 +214,10 @@ const WorkflowBuilder = () => {
             onClose={() => setEditingStep(null)}
             title="Edit Step"
             initialData={scenarios[activeScenarioId]?.steps.find(step => step.id === editingStep)}
-            onSubmit={updateStep}
+            onSubmit={handleUpdateStep}
             scenarioId={activeScenarioId}
             scenarioCondition={scenarios[activeScenarioId]?.condition}
-            onAddFeedbackStep={addStep}
+            onAddFeedbackStep={handleAddStep}
           />
         )}
 
@@ -348,7 +241,7 @@ const WorkflowBuilder = () => {
           onClose={() => setShowSaveModal(false)}
           workflowName={workflowName}
           setWorkflowName={setWorkflowName}
-          onSave={saveWorkflow}
+          onSave={handleSaveWorkflow}
         />
 
         {/* New Workflow Confirmation Modal */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Card from '../../common/Card';
 import FormField from '../../common/FormField';
 
@@ -45,38 +45,76 @@ const CrnDisplaySection = ({ formData, setFormData }) => {
     }
   };
 
+  // Toggle for showing additional CRN information
+  const handleShowCrnInfoToggle = (e) => {
+    const { checked } = e.target;
+    
+    setFormData({
+      ...formData,
+      showCrnInfo: checked,
+      // If toggling off, clear the crnDisplay array
+      crnDisplay: checked ? (formData.crnDisplay || []) : []
+    });
+  };
+
   return (
     <Card title="CRN Display Settings" className="bg-white mb-6">
-      <p className="text-sm text-gray-600 mb-3">
-        Select additional information to display alongside the CRN:
-      </p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {availableFields.map((field) => (
-          <div key={field.value} className="flex items-center">
-            <input
-              type="checkbox"
-              id={`crn-display-${field.value}`}
-              name={field.value}
-              checked={(formData.crnDisplay || []).includes(field.value)}
-              onChange={handleCrnDisplayChange}
-              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-            />
-            <label 
-              htmlFor={`crn-display-${field.value}`} 
-              className="ml-2 text-sm text-gray-700"
-            >
-              {field.label}
-            </label>
-          </div>
-        ))}
-      </div>
-      
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-md">
-        <p className="text-xs text-blue-700">
-          Selected fields will be displayed underneath the CRN in the table. This helps users see important details about each section without additional clicks.
+      <div className="mb-4">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="show-crn-info"
+            name="showCrnInfo"
+            checked={formData.showCrnInfo || false}
+            onChange={handleShowCrnInfoToggle}
+            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+          />
+          <label 
+            htmlFor="show-crn-info" 
+            className="ml-2 text-sm font-medium text-gray-700"
+          >
+            Additional Section CRN Information?
+          </label>
+        </div>
+        <p className="text-xs text-gray-500 mt-1 ml-6">
+          Enable to display additional information alongside the CRN column
         </p>
       </div>
+      
+      {formData.showCrnInfo && (
+        <>
+          <p className="text-sm text-gray-600 mb-3">
+            Select additional information to display alongside the CRN:
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {availableFields.map((field) => (
+              <div key={field.value} className="flex items-center">
+                <input
+                  type="checkbox"
+                  id={`crn-display-${field.value}`}
+                  name={field.value}
+                  checked={(formData.crnDisplay || []).includes(field.value)}
+                  onChange={handleCrnDisplayChange}
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                />
+                <label 
+                  htmlFor={`crn-display-${field.value}`} 
+                  className="ml-2 text-sm text-gray-700"
+                >
+                  {field.label}
+                </label>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-md">
+            <p className="text-xs text-blue-700">
+              Selected fields will be displayed underneath the CRN in the table. This helps users see important details about each section without additional clicks.
+            </p>
+          </div>
+        </>
+      )}
     </Card>
   );
 };

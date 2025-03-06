@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Card from '../../common/Card';
 import FormField from '../../common/FormField';
+import { createFeedbackStep, validateFeedbackStep } from '../../../utils/feedbackStepUtils';
 
 /**
  * FeedbackLoopsSection component for managing multiple feedback loops
@@ -11,8 +12,8 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
     nextStep: ''
   });
   
-  // Track pending feedback steps that need to be created when the parent step is saved
-  const [pendingFeedbackSteps, setPendingFeedbackSteps] = useState([]);
+  // Track validation errors for the new feedback form
+  const [feedbackErrors, setFeedbackErrors] = useState({});
   
   // Available recipient roles
   const recipientOptions = [
@@ -20,32 +21,36 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
     { value: 'High School', label: 'High School' },
     { value: 'College', label: 'College' },
     { value: 'Approver', label: 'Approver' },
+    { value: 'Parent', label: 'Parent' },
   ];
   
   // Add a new feedback loop
   const addFeedbackLoop = () => {
-    if (!newFeedback.recipient || !newFeedback.nextStep.trim()) {
-      return; // Don't add empty feedback loops
+    // Validate the form
+    const errors = validateFeedbackStep(newFeedback);
+    
+    if (Object.keys(errors).length > 0) {
+      setFeedbackErrors(errors);
+      return;
     }
+    
+    // Clear any previous errors
+    setFeedbackErrors({});
     
     // Create a unique ID for the feedback loop
     const feedbackId = `feedback_${Date.now()}`;
     
-    // Add the feedback step data to the pending list
-    const newFeedbackStep = {
-      stepType: 'Information',
-      title: newFeedback.nextStep.trim(),
-      role: newFeedback.recipient,
-      description: `Additional information step created for feedback from ${formData.title || 'previous step'}`,
-      informationDisplays: [
-        { content: 'Please provide additional information to continue the process.' }
-      ]
-    };
+    // Create the feedback step using our utility function
+    const newFeedbackStep = createFeedbackStep({
+      recipientRole: newFeedback.recipient,
+      stepTitle: newFeedback.nextStep.trim(),
+      requestingRole: formData.role,
+      parentStepTitle: formData.title || 'Requesting Step',
+      feedbackId: feedbackId,
+      parentStepId: formData.id || `pending_${Date.now()}`
+    });
     
-    // Store this feedback step for later creation
-    setPendingFeedbackSteps([...pendingFeedbackSteps, newFeedbackStep]);
-    
-    // Track pending feedback steps in formData so they get submitted with the form
+    // Add the feedback relationship to the parent step
     setFormData({
       ...formData,
       pendingFeedbackSteps: [...(formData.pendingFeedbackSteps || []), newFeedbackStep],
@@ -70,9 +75,15 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
     const updatedFeedbackLoops = { ...(formData.feedbackLoops || {}) };
     delete updatedFeedbackLoops[feedbackId];
     
+    // Remove from pendingFeedbackSteps using the unique feedbackId
+    const updatedPendingSteps = (formData.pendingFeedbackSteps || []).filter(step => 
+      step.feedbackId !== feedbackId
+    );
+    
     setFormData({
       ...formData,
-      feedbackLoops: updatedFeedbackLoops
+      feedbackLoops: updatedFeedbackLoops,
+      pendingFeedbackSteps: updatedPendingSteps
     });
   };
   
@@ -82,10 +93,13 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
   );
   
   return (
-    <Card title="Feedback Loops" className="bg-white mb-6">
-      <p className="text-sm text-gray-600 mb-3">
-        Create information steps that will be triggered when specific conditions are met
-      </p>
+    <Card title="Feedback Loops (Optional)" className="bg-white mb-6">
+      <div className="bg-blue-50 p-3 rounded-md border border-blue-100 mb-4">
+        <p className="text-sm text-blue-700">
+          Feedback loops create additional steps when the user needs to request more information from another participant.
+          These steps will automatically include document upload capabilities and return actions.
+        </p>
+      </div>
       
       {/* List of existing feedback loops */}
       {feedbackLoops.length > 0 && (
@@ -119,9 +133,10 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
       
       {/* Form for adding a new feedback loop */}
       <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+        <h4 className="text-sm font-medium mb-2">Add New Feedback Loop (Optional)</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
           <FormField
-            label="Send feedback to"
+            label="Send feedback to *"
             name="recipient"
             type="select"
             value={newFeedback.recipient}
@@ -130,15 +145,17 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
               { value: '', label: 'Select recipient...' }, 
               ...recipientOptions
             ]}
+            error={feedbackErrors.recipient}
           />
           
           <FormField
-            label="Feedback Step Name"
+            label="Feedback Step Name *"
             name="nextStep"
             type="text"
             value={newFeedback.nextStep}
             onChange={(e) => setNewFeedback({ ...newFeedback, nextStep: e.target.value })}
             placeholder="Enter step name (e.g., Provide Additional Information)"
+            error={feedbackErrors.nextStep}
           />
         </div>
         
@@ -156,8 +173,8 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
       
       <div className="mt-3 text-xs text-gray-500">
         <p>
-          Adding a feedback loop will automatically create an Information step with the specified name.
-          This step will be assigned to the selected role.
+          Adding a feedback loop will automatically create a Document Upload step with the specified name.
+          This step will include required comments and an action to return to {formData.role}.
         </p>
       </div>
     </Card>
