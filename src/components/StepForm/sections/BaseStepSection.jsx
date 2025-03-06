@@ -28,6 +28,7 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
     { value: 'Student', label: 'Student' },
     { value: 'Parent', label: 'Parent' },
     { value: 'Approver', label: 'Approver' },
+    { value: 'Dean', label: 'Dean' },
     { value: 'System', label: 'System' },
   ];
 

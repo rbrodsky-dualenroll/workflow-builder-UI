@@ -26,6 +26,7 @@ export const ProvideConsentSection = ({ formData, handleChange, errors = {} }) =
         ]}
         error={errors.consentType}
       />
+      
     </Card>
   );
 };

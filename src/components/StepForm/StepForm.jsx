@@ -105,13 +105,28 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
-    // If changing step type to Approval and no action options exist, add defaults
-    if (name === 'stepType' && value === 'Approval' && (!formData.actionOptions || formData.actionOptions.length === 0)) {
-      setFormData({
+    // For step type changes, handle special cases
+    if (name === 'stepType') {
+      let updatedFormData = {
         ...formData,
-        [name]: type === 'checkbox' ? checked : value,
-        actionOptions: [...defaultApprovalOptions]
-      });
+        [name]: value
+      };
+      
+      // If changing step type to Approval and no action options exist, add defaults
+      if (value === 'Approval' && (!formData.actionOptions || formData.actionOptions.length === 0)) {
+        updatedFormData.actionOptions = [...defaultApprovalOptions];
+      }
+      
+      // If changing to ProvideConsent, clear action options and other unnecessary fields
+      if (value === 'ProvideConsent') {
+        updatedFormData.actionOptions = [];
+        updatedFormData.comments = {
+          required: false,
+          public: true
+        };
+      }
+      
+      setFormData(updatedFormData);
     } else {
       setFormData({
         ...formData,
@@ -166,8 +181,8 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
         errors={errors} 
       />
 
-      {/* Table Columns - not for Information steps */}
-      {formData.stepType !== 'Information' && (
+      {/* Table Columns - not for Information or Consent steps */}
+      {formData.stepType !== 'Information' && formData.stepType !== 'ProvideConsent' && (
         <>
           <TableColumnsSection 
             formData={formData} 
@@ -249,12 +264,14 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
         />
       )}
 
-      {/* Comments Section */}
-      <CommentsSection 
-        formData={formData} 
-        setFormData={setFormData} 
-        errors={errors} 
-      />
+      {/* Comments Section - not for Consent steps */}
+      {formData.stepType !== 'ProvideConsent' && (
+        <CommentsSection 
+          formData={formData} 
+          setFormData={setFormData} 
+          errors={errors} 
+        />
+      )}
 
       {/* Form Buttons */}
       <div className="flex justify-end gap-3 pt-4">
