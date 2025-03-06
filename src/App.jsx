@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import WorkflowBuilder from './components/WorkflowBuilder'
+import WorkflowBuilder from './components/WorkflowBuilder/WorkflowBuilder'
 
 function App() {
   return (

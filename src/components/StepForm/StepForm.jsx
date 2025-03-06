@@ -1,0 +1,219 @@
+import { useState, useEffect } from 'react';
+import { validateStep } from '../../utils/workflowUtils';
+
+// Import all section components
+import BaseStepSection from './sections/BaseStepSection';
+import ConditionalSection from './sections/ConditionalSection';
+import ApprovalStepSection from './sections/ApprovalStepSection';
+import UploadStepSection from './sections/UploadStepSection';
+import InformationStepSection from './sections/InformationStepSection';
+import TableColumnsSection from './sections/TableColumnsSection';
+import CommentsSection from './sections/CommentsSection';
+import { 
+  ProvideConsentSection, 
+  CheckHoldsSection, 
+  RegisterViaApiSection, 
+  ResolveIssueSection 
+} from './sections/SpecializedStepSections';
+
+const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCondition }) => {
+  // Display scenario info if in a scenario other than main
+  const isConditionalScenario = scenarioId && scenarioId !== 'main';
+  const scenarioInfo = isConditionalScenario ? { id: scenarioId, condition: scenarioCondition } : null;
+  
+  // Form errors
+  const [errors, setErrors] = useState({});
+  
+  // Default form data
+  const defaultFormData = {
+    stepType: 'Approval',
+    title: '',
+    role: 'College',
+    subworkflow: 'Per Course',
+    description: '',
+    conditional: false,
+    triggeringCondition: '',
+    actionOptions: [],
+    fileUploads: [],
+    informationDisplays: [],
+    tableColumns: ['Student Name', 'Course Number', 'CRN', 'Instructor'],
+    feedbackLoops: {
+      recipient: '',
+      nextStep: ''
+    },
+    comments: {
+      required: false,
+      public: true
+    },
+    // Fields for CheckHolds step
+    holdCodes: '',
+    // Fields for RegisterViaApi step
+    apiEndpoint: '',
+    // Fields for ProvideConsent step
+    consentType: 'all',
+    // Fields for ResolveIssue step
+    issueType: '',
+  };
+
+  // Initialize form data with defaults and any provided initialData
+  const [formData, setFormData] = useState({
+    ...defaultFormData,
+    ...initialData
+  });
+
+  // Effect for conditional scenarios
+  useEffect(() => {
+    // If we're in a conditional scenario, set the conditional flag by default for new steps
+    if (isConditionalScenario && !initialData.id) {
+      setFormData(prev => ({
+        ...prev,
+        conditional: true,
+        triggeringCondition: scenarioCondition || ''
+      }));
+    }
+  }, [isConditionalScenario, scenarioId, scenarioCondition, initialData]);
+
+  // Effect to update form data when initialData changes
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      setFormData({
+        ...defaultFormData,
+        ...initialData
+      });
+    }
+  }, [initialData]);
+
+  // Handle changes to form fields
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value
+    });
+  };
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validate the form
+    const validationErrors = validateStep(formData);
+    
+    if (Object.keys(validationErrors).length === 0) {
+      onSubmit(formData);
+    } else {
+      setErrors(validationErrors);
+    }
+  };
+
+  return (
+    <form className="space-y-6" onSubmit={handleSubmit}>
+      {/* Base Step Information */}
+      <BaseStepSection 
+        formData={formData} 
+        handleChange={handleChange} 
+        errors={errors} 
+      />
+
+      {/* Conditional Logic */}
+      <ConditionalSection 
+        formData={formData} 
+        handleChange={handleChange} 
+        scenarioInfo={scenarioInfo}
+        errors={errors} 
+      />
+
+      {/* Table Columns - not for Information steps */}
+      {formData.stepType !== 'Information' && (
+        <TableColumnsSection 
+          formData={formData} 
+          setFormData={setFormData} 
+          errors={errors} 
+        />
+      )}
+
+      {/* Step-specific sections */}
+      {formData.stepType === 'Approval' && (
+        <ApprovalStepSection 
+          formData={formData} 
+          setFormData={setFormData} 
+          errors={errors} 
+        />
+      )}
+
+      {formData.stepType === 'Upload' && (
+        <UploadStepSection 
+          formData={formData} 
+          setFormData={setFormData} 
+          errors={errors} 
+        />
+      )}
+
+      {formData.stepType === 'Information' && (
+        <InformationStepSection 
+          formData={formData} 
+          setFormData={setFormData} 
+          errors={errors} 
+        />
+      )}
+
+      {formData.stepType === 'ProvideConsent' && (
+        <ProvideConsentSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          errors={errors} 
+        />
+      )}
+
+      {formData.stepType === 'CheckHolds' && (
+        <CheckHoldsSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          errors={errors} 
+        />
+      )}
+
+      {formData.stepType === 'RegisterViaApi' && (
+        <RegisterViaApiSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          errors={errors} 
+        />
+      )}
+
+      {formData.stepType === 'ResolveIssue' && (
+        <ResolveIssueSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          errors={errors} 
+        />
+      )}
+
+      {/* Comments Section */}
+      <CommentsSection 
+        formData={formData} 
+        setFormData={setFormData} 
+        errors={errors} 
+      />
+
+      {/* Form Buttons */}
+      <div className="flex justify-end gap-3 pt-4">
+        <button 
+          type="button" 
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit"
+          className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-md"
+        >
+          Save Step
+        </button>
+      </div>
+    </form>
+  );
+};
+
+export default StepForm;
