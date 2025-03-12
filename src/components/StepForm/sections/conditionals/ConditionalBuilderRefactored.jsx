@@ -177,33 +177,17 @@ const ConditionalBuilderRefactored = ({
   };
   
   return (
-    <div className="p-4 border border-gray-200 rounded-md bg-gray-50 mb-4">
-      <div className="flex justify-between mb-2">
-        <h4 className="text-sm font-medium">Condition Rule</h4>
-        {onDelete && (
-          <button 
-            type="button" 
-            onClick={onDelete}
-            className="text-red-500 hover:text-red-700"
-            aria-label="Delete condition"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-        )}
-      </div>
-      
+    <div className="border border-gray-200 rounded-md bg-gray-50 mb-4">
       {/* Condition description */}
-      <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800">
+      <div className="mb-4 p-2 bg-blue-50 border-b border-blue-200 text-sm text-blue-800">
         {getConditionDescription()}
       </div>
       
-      <div className="grid grid-cols-1 gap-4 mb-4">
+      <div className="grid grid-cols-1 gap-3 p-4 pt-0">
         {/* Entity and Property Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <FormField
-            label="What entity are you checking?"
+            label="Entity"
             name="entity"
             type="select"
             value={localCondition.entity || ''}
@@ -213,7 +197,7 @@ const ConditionalBuilderRefactored = ({
           />
           
           <FormField
-            label="What property are you checking?"
+            label="Property"
             name="property"
             type="select"
             value={localCondition.property || ''}
@@ -225,9 +209,9 @@ const ConditionalBuilderRefactored = ({
         </div>
         
         {/* Comparison and Value */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <FormField
-            label="What comparison should be made?"
+            label="Comparison"
             name="comparison"
             type="select"
             value={localCondition.comparison}
@@ -236,27 +220,16 @@ const ConditionalBuilderRefactored = ({
           />
           
           <FormField
-            label="What value to compare against?"
+            label="Value"
             name="value"
             type="text"
             value={localCondition.value || ''}
             onChange={handleChange}
             disabled={isValueDisabled}
-            placeholder={isValueDisabled ? "Not needed for this comparison" : "e.g., High School, 18, 3.0"}
-            helpText={isValueDisabled ? 'Value not needed for this comparison type' : 'Value to compare against'}
+            placeholder={isValueDisabled ? "Not needed" : "e.g., High School, 18, 3.0"}
+            helpText={isValueDisabled ? 'Not needed for this comparison' : null}
           />
         </div>
-        
-        {/* Fields to set */}
-        <FormField
-          label="What workflow fields should be set to true when this condition is met?"
-          name="fieldsString"
-          type="text"
-          value={localCondition.fields?.join(', ') || ''}
-          onChange={handleFieldsChange}
-          placeholder="e.g., capacity_override, high_school_location_processing"
-          helpText="Comma-separated list of fields to set to true when condition is met"
-        />
       </div>
     </div>
   );

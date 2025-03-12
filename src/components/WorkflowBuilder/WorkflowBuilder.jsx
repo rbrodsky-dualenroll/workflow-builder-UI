@@ -279,7 +279,7 @@ const WorkflowBuilder = () => {
           onUpdate={handleUpdateWorkflowConditions}
           usageStats={getConditionUsageStats()}
           initialCondition={conditionToAdd}
-          title={conditionToAdd ? "Save as Workflow Condition" : "Manage Workflow Conditions"}
+          title={"Add New Conditional"}
         />
 
         {/* Create Scenario Modal */}
