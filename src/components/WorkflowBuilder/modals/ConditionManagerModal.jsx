@@ -20,7 +20,7 @@ const ConditionManagerModal = ({
   const [newCondition, setNewCondition] = useState({ 
     entity: '', 
     property: '', 
-    comparison: '==', 
+    comparison: '', 
     value: '', 
     fields: [] 
   });
@@ -44,7 +44,7 @@ const ConditionManagerModal = ({
       setNewCondition({ 
         entity: '', 
         property: '', 
-        comparison: '==', 
+        comparison: '', 
         value: '', 
         fields: [] 
       });
@@ -74,7 +74,8 @@ const ConditionManagerModal = ({
   // Check if condition is valid for saving
   const isValidCondition = newConditionName.trim() && 
     newCondition.entity && 
-    newCondition.property;
+    newCondition.property && 
+    newCondition.comparison;
 
   return (
     <Modal 
@@ -108,38 +109,37 @@ const ConditionManagerModal = ({
           onUpdate={setNewCondition}
         />
         
-        {/* Preview section (optional) */}
-        {newCondition.entity && newCondition.property && (
-          <div className="mt-3 border-t border-gray-200 pt-3">
-            <h4 className="text-sm font-medium mb-2">Condition Preview:</h4>
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded text-xs">
-              <pre className="whitespace-pre-wrap text-blue-700">
-                {formatConditionForDisplay(newCondition)}
-              </pre>
-            </div>
-          </div>
-        )}
       </div>
       
-      <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-lg border-t border-gray-200">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            handleAddNewCondition();
-          }}
-          className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-md text-sm ml-2"
-          disabled={!isValidCondition}
-        >
-          Save Condition
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
-        >
-          Cancel
-        </button>
+      <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-col rounded-b-lg border-t border-gray-200">
+        <div className="sm:flex sm:flex-row-reverse">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              handleAddNewCondition();
+            }}
+            className={`px-4 py-2 ${isValidCondition ? 'bg-primary hover:bg-primary-600' : 'bg-gray-300 cursor-not-allowed'} text-white rounded-md text-sm ml-2`}
+            disabled={!isValidCondition}
+          >
+            Save Condition
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+        </div>
+        {!isValidCondition && (
+          <div className="mt-2 text-xs text-red-600">
+            {!newConditionName.trim() ? 'Please provide a condition name. ' : ''}
+            {!newCondition.entity ? 'Please select an entity. ' : ''}
+            {!newCondition.property ? 'Please select a property. ' : ''}
+            {!newCondition.comparison ? 'Please select a comparison. ' : ''}
+          </div>
+        )}
       </div>
     </Modal>
   );

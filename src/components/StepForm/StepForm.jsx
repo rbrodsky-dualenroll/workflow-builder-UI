@@ -257,7 +257,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
   };
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit} id="stepForm">
+    <form className="space-y-0" onSubmit={handleSubmit} id="stepForm">
       {/* Base Step Information */}
       <BaseStepSection 
         formData={formData} 

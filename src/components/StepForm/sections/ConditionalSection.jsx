@@ -129,7 +129,7 @@ const ConditionalSection = ({
             const newCondition = { 
               entity: '', 
               property: '', 
-              comparison: '==', 
+              comparison: '', 
               value: '', 
               fields: [] 
             };

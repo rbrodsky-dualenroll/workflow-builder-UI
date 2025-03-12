@@ -6,14 +6,17 @@ import FormField from '../../../common/FormField';
  * Focuses on entity/property selection rather than method names
  */
 const ConditionalBuilderRefactored = ({ 
-  condition = { entity: '', property: '', comparison: '==', value: '', fields: [] },
+  condition = { entity: '', property: '', comparison: '', value: '', fields: [] },
   onUpdate,
   onDelete
 }) => {
   const [localCondition, setLocalCondition] = useState(condition);
+  const [showCustomProperty, setShowCustomProperty] = useState(false);
+  const [customProperty, setCustomProperty] = useState('');
   
   // Available entities to check
   const entityOptions = [
+    { value: '', label: '-- Select an entity --' },
     { value: 'student', label: 'Student' },
     { value: 'course', label: 'Course' },
     { value: 'section', label: 'Course Section' },
@@ -71,6 +74,7 @@ const ConditionalBuilderRefactored = ({
   
   // Available comparison operators
   const comparisonOptions = [
+    { value: '', label: '-- Select a comparison --' },
     { value: '==', label: 'Equals (==)' },
     { value: '!=', label: 'Not equals (!=)' },
     { value: '>', label: 'Greater than (>)' },
@@ -87,6 +91,16 @@ const ConditionalBuilderRefactored = ({
   // Initialize state from props and update when props change
   useEffect(() => {
     setLocalCondition(condition);
+    
+    // Check if the property is not in the predefined list, treat it as custom
+    if (condition.entity && condition.property) {
+      const entityProps = propertyOptions[condition.entity] || [];
+      const isCustom = !entityProps.some(prop => prop.value === condition.property);
+      setShowCustomProperty(isCustom);
+      if (isCustom) {
+        setCustomProperty(condition.property);
+      }
+    }
   }, [condition]);
   
   // Handle entity change
@@ -97,6 +111,59 @@ const ConditionalBuilderRefactored = ({
       ...localCondition,
       entity: newEntity,
       property: '' // Reset property when entity changes
+    };
+    
+    setLocalCondition(updatedCondition);
+    setShowCustomProperty(false);
+    setCustomProperty('');
+    
+    if (onUpdate) {
+      onUpdate(updatedCondition);
+    }
+  };
+  
+  // Handle property selection change
+  const handlePropertyChange = (e) => {
+    const value = e.target.value;
+    
+    // Check if custom property is selected
+    if (value === 'custom') {
+      setShowCustomProperty(true);
+      
+      // Don't update condition yet, wait for custom property input
+      const updatedCondition = {
+        ...localCondition,
+        property: '' // Temporarily clear property until custom value is entered
+      };
+      
+      setLocalCondition(updatedCondition);
+      return;
+    }
+    
+    // Normal property selection
+    setShowCustomProperty(false);
+    setCustomProperty('');
+    
+    const updatedCondition = {
+      ...localCondition,
+      property: value
+    };
+    
+    setLocalCondition(updatedCondition);
+    
+    if (onUpdate) {
+      onUpdate(updatedCondition);
+    }
+  };
+  
+  // Handle custom property input change
+  const handleCustomPropertyChange = (e) => {
+    const value = e.target.value;
+    setCustomProperty(value);
+    
+    const updatedCondition = {
+      ...localCondition,
+      property: value
     };
     
     setLocalCondition(updatedCondition);
@@ -145,7 +212,18 @@ const ConditionalBuilderRefactored = ({
   const isValueDisabled = ['present', 'blank', 'true', 'false'].includes(localCondition.comparison);
   
   // Get property options for current entity
-  const currentPropertyOptions = localCondition.entity ? propertyOptions[localCondition.entity] || [] : [];
+  const getPropertyOptions = () => {
+    if (!localCondition.entity) return [{ value: '', label: '-- Select entity first --' }];
+    
+    const options = propertyOptions[localCondition.entity] || [];
+    return [
+      { value: '', label: '-- Select a property --' }, 
+      ...options,
+      { value: 'custom', label: '🔧 Custom property...' }
+    ];
+  };
+  
+  const currentPropertyOptions = getPropertyOptions();
   
   // Generate the human-readable description of the condition
   const getConditionDescription = () => {
@@ -155,7 +233,12 @@ const ConditionalBuilderRefactored = ({
     let propertyLabel = '';
     
     if (localCondition.entity && localCondition.property) {
-      propertyLabel = currentPropertyOptions.find(p => p.value === localCondition.property)?.label || localCondition.property;
+      if (showCustomProperty) {
+        propertyLabel = customProperty;
+      } else {
+        const entityProps = propertyOptions[localCondition.entity] || [];
+        propertyLabel = entityProps.find(p => p.value === localCondition.property)?.label || localCondition.property;
+      }
     } else if (localCondition.property) {
       propertyLabel = localCondition.property;
     }
@@ -196,16 +279,29 @@ const ConditionalBuilderRefactored = ({
             placeholder="Select entity type"
           />
           
-          <FormField
-            label="Property"
-            name="property"
-            type="select"
-            value={localCondition.property || ''}
-            onChange={handleChange}
-            options={currentPropertyOptions}
-            placeholder={localCondition.entity ? "Select property" : "Select entity first"}
-            disabled={!localCondition.entity}
-          />
+          <div>
+            <FormField
+              label="Property"
+              name="property"
+              type="select"
+              value={showCustomProperty ? 'custom' : (localCondition.property || '')}
+              onChange={handlePropertyChange}
+              options={currentPropertyOptions}
+              disabled={!localCondition.entity}
+            />
+            
+            {showCustomProperty && (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  value={customProperty}
+                  onChange={handleCustomPropertyChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  placeholder="Enter custom property"
+                />
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Comparison and Value */}
