@@ -1,5 +1,6 @@
 import React from 'react';
 import { getStepTypeColor } from './stepUtils';
+import ConditionalDisplay from './ConditionalDisplay';
 
 /**
  * Header component for workflow steps
@@ -40,9 +41,9 @@ const StepHeader = ({
           <div className="step-type font-medium flex items-center">
             {step.role ? `${step.role}: ` : ''}
             {step.title || `${step.stepType} Step`}
-            {isConditionalStep && step.triggeringCondition && (
+            {isConditionalStep && (
               <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">
-                {step.triggeringCondition}
+                Conditional
               </span>
             )}
           </div>
@@ -51,6 +52,12 @@ const StepHeader = ({
         {isConditionalStep && step.scenarioCondition && (
           <div className="mt-1 text-xs text-blue-600 pl-9">
             <span className="font-medium">Scenario:</span> {step.scenarioCondition}
+          </div>
+        )}
+        
+        {step.conditional && step.triggeringCondition && (
+          <div className="pl-9">
+            <ConditionalDisplay conditionValue={step.triggeringCondition} />
           </div>
         )}
       </div>

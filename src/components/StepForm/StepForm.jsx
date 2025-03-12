@@ -18,7 +18,7 @@ import {
   ResolveIssueSection 
 } from './sections/SpecializedStepSections';
 
-const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCondition, onAddFeedbackStep }) => {
+const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCondition, onAddFeedbackStep, workflowConditions = {}, onManageWorkflowConditions }) => {
   // Display scenario info if in a scenario other than main
   const isConditionalScenario = scenarioId && scenarioId !== 'main';
   const scenarioInfo = isConditionalScenario ? { id: scenarioId, condition: scenarioCondition } : null;
@@ -42,6 +42,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     description: '',
     conditional: false,
     triggeringCondition: '',
+    workflowCondition: '',
     actionOptions: [],
     fileUploads: [],
     informationDisplays: [],
@@ -80,13 +81,22 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
       initialFormData.actionOptions = [...defaultApprovalOptions];
     }
     
+    // Ensure conditional is properly initialized as a boolean
+    initialFormData.conditional = Boolean(initialFormData.conditional);
+    
     return initialFormData;
   });
+  
+  // Log form state on render - useful for debugging
+  useEffect(() => {
+    console.log('Form data updated:', formData);
+  }, [formData]);
 
   // Effect for conditional scenarios
   useEffect(() => {
     // If we're in a conditional scenario, set the conditional flag by default for new steps
     if (isConditionalScenario && !initialData.id) {
+      // Force a re-render by creating a brand new object
       setFormData(prev => ({
         ...prev,
         conditional: true,
@@ -98,6 +108,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
   // Effect to update form data when initialData changes
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
+      // Force a re-render by creating a brand new object
       setFormData({
         ...defaultFormData,
         ...initialData,
@@ -109,6 +120,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
   // Handle changes to form fields
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    console.log(`Field change: ${name} = ${type === 'checkbox' ? checked : value}`);
     
     // For step type changes, handle special cases
     if (name === 'stepType') {
@@ -135,20 +147,44 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
       }
       
       setFormData(updatedFormData);
-    } else {
-      setFormData({
+    } else if (name === 'conditional') {
+      // Special handling for conditional checkbox
+      console.log('Setting conditional to:', checked);
+      console.log('Previous form data:', formData);
+      
+      // Create completely new object to ensure state update
+      const updatedFormData = {
         ...formData,
+        conditional: checked
+      };
+      
+      // If unchecking, also clear related fields
+      if (!checked) {
+        updatedFormData.triggeringCondition = '';
+        updatedFormData.workflowCondition = '';
+      }
+      
+      console.log('Updated form data:', updatedFormData);
+      // Force a re-render by creating a brand new object
+      setFormData({...updatedFormData});
+    } else {
+      // Force a re-render by creating a brand new object
+      setFormData(prev => ({
+        ...prev,
         [name]: type === 'checkbox' ? checked : value
-      });
+      }));
     }
   };
 
   // Handle form submission
   const handleSubmit = (e) => {
+    // Always prevent default form submission behavior
     e.preventDefault();
+    console.log('Form submission attempt');
     
     // Validate the form
     const validationErrors = validateStep(formData);
+    console.log('Validation errors:', validationErrors);
     
     if (Object.keys(validationErrors).length === 0) {
       // First submit the main step
@@ -159,6 +195,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
       delete stepData.pendingFeedbackSteps;
       
       // Submit the main step
+      console.log('Submitting step data:', stepData);
       onSubmit(stepData);
       
       // Then submit each feedback step as an independent step
@@ -178,8 +215,49 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     }
   };
 
+  // Direct save handler for save button
+  const handleSaveClick = () => {
+    console.log('Save button clicked');
+    console.log('Current form data:', formData);
+    
+    const validationErrors = validateStep(formData);
+    console.log('Validation errors:', validationErrors);
+    
+    if (Object.keys(validationErrors).length === 0) {
+      try {
+        // First submit the main step
+        const stepData = { ...formData };
+        
+        // Remove the pendingFeedbackSteps array from main step data
+        const pendingFeedbackSteps = [...(stepData.pendingFeedbackSteps || [])];
+        delete stepData.pendingFeedbackSteps;
+        
+        // Submit the main step
+        console.log('Submitting step data:', stepData);
+        onSubmit(stepData);
+        
+        // Then submit each feedback step as an independent step
+        if (onAddFeedbackStep && pendingFeedbackSteps.length > 0) {
+          // Create all feedback steps as independent steps
+          pendingFeedbackSteps.forEach(feedbackStep => {
+            const uniqueFeedbackStep = { 
+              ...feedbackStep,
+              // Ensure a unique ID for each feedback step
+              id: feedbackStep.id || `feedback_step_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            };
+            onAddFeedbackStep(uniqueFeedbackStep);
+          });
+        }
+      } catch (error) {
+        console.error('Error submitting form:', error);
+      }
+    } else {
+      setErrors(validationErrors);
+    }
+  };
+
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form className="space-y-6" onSubmit={handleSubmit} id="stepForm">
       {/* Base Step Information */}
       <BaseStepSection 
         formData={formData} 
@@ -193,6 +271,8 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
         handleChange={handleChange} 
         scenarioInfo={scenarioInfo}
         errors={errors} 
+        workflowConditions={workflowConditions}
+        onManageWorkflowConditions={onManageWorkflowConditions}
       />
 
       {/* Table Columns - not for Information or Consent steps */}
@@ -297,7 +377,8 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
           Cancel
         </button>
         <button 
-          type="submit"
+          type="button"
+          onClick={handleSaveClick}
           className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-md"
         >
           Save Step

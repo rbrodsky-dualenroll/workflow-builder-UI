@@ -5,11 +5,12 @@
 /**
  * Save workflow to a JSON file
  */
-export const saveWorkflow = (workflowName, scenarios) => {
-  // Save the entire scenarios object
+export const saveWorkflow = (workflowName, scenarios, workflowConditions = {}) => {
+  // Save the entire scenarios object and conditions
   const workflowJson = JSON.stringify({
     name: workflowName,
-    scenarios
+    scenarios,
+    conditions: workflowConditions
   }, null, 2);
   
   // Create a blob and download it
@@ -28,7 +29,7 @@ export const saveWorkflow = (workflowName, scenarios) => {
 /**
  * Import workflow from a file
  */
-export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView) => {
+export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions) => {
   return new Promise((resolve, reject) => {
     if (!file) {
       reject(new Error('No file provided'));
@@ -48,6 +49,11 @@ export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveSce
             setWorkflowName(importedData.name);
           } else {
             setWorkflowName(file.name.replace('.json', '').replace(/-/g, ' '));
+          }
+          
+          // Import conditions if available
+          if (importedData.conditions && setWorkflowConditions) {
+            setWorkflowConditions(importedData.conditions);
           }
         } else {
           // Old format with just a workflow array

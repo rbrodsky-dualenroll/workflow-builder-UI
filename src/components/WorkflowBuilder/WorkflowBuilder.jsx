@@ -12,6 +12,7 @@ import StepModal from './modals/StepModal';
 import ScenarioModal from './modals/ScenarioModal';
 import SaveWorkflowModal from './modals/SaveWorkflowModal';
 import ConfirmationModal from './modals/ConfirmationModal';
+import ConditionManagerModal from './modals/ConditionManagerModal';
 
 // Import custom hooks
 import useWorkflowState from './hooks/useWorkflowState';
@@ -36,6 +37,11 @@ const WorkflowBuilder = () => {
     workflow  // This is calculated from the scenarios and active/master view
   } = useWorkflowState(getMergedWorkflow);
   
+  // Workflow conditions state
+  const [workflowConditions, setWorkflowConditions] = useState({});
+  const [showConditionModal, setShowConditionModal] = useState(false);
+  const [conditionToAdd, setConditionToAdd] = useState(null);
+  
   // Get modal state from custom hook
   const {
     isAddingStep,
@@ -55,6 +61,41 @@ const WorkflowBuilder = () => {
     baseScenarioId,
     setBaseScenarioId
   } = useModalState();
+  
+  // Collect usage stats for conditions
+  const getConditionUsageStats = () => {
+    const stats = {};
+    
+    // Initialize all conditions with empty arrays
+    Object.keys(workflowConditions).forEach(condition => {
+      stats[condition] = [];
+    });
+    
+    // Collect usage stats from all scenarios
+    Object.values(scenarios).forEach(scenario => {
+      scenario.steps.forEach(step => {
+        if (step.conditional && step.workflowCondition && workflowConditions[step.workflowCondition]) {
+          if (!stats[step.workflowCondition]) {
+            stats[step.workflowCondition] = [];
+          }
+          stats[step.workflowCondition].push(step.id);
+        }
+      });
+    });
+    
+    return stats;
+  };
+  
+  // Handler for updating workflow conditions
+  const handleUpdateWorkflowConditions = (updatedConditions) => {
+    setWorkflowConditions(updatedConditions);
+  };
+  
+  // Handler for managing workflow conditions from a step
+  const handleManageWorkflowConditions = (condition) => {
+    setConditionToAdd(condition);
+    setShowConditionModal(true);
+  };
   
   // Handler for adding a new step
   const handleAddStep = (stepData) => {
@@ -122,7 +163,8 @@ const WorkflowBuilder = () => {
 
   // Handler for saving the workflow
   const handleSaveWorkflow = () => {
-    saveWorkflow(workflowName, scenarios);
+    // Save both the workflow structure and conditions
+    saveWorkflow(workflowName, scenarios, workflowConditions);
     setShowSaveModal(false);
   };
 
@@ -146,6 +188,7 @@ const WorkflowBuilder = () => {
     setActiveScenarioId('main');
     setMasterView(false);
     setWorkflowName('New Workflow');
+    setWorkflowConditions({});
     setShowNewWorkflowModal(false);
   };
 
@@ -154,7 +197,7 @@ const WorkflowBuilder = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    importWorkflow(file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView)
+    importWorkflow(file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions)
       .then(() => {
         // Reset the file input to allow importing the same file again
         event.target.value = '';
@@ -205,6 +248,8 @@ const WorkflowBuilder = () => {
           scenarioId={activeScenarioId}
           scenarioCondition={scenarios[activeScenarioId]?.condition}
           onAddFeedbackStep={handleAddStep}
+          workflowConditions={workflowConditions}
+          onManageWorkflowConditions={handleManageWorkflowConditions}
         />
 
         {/* Edit Step Modal */}
@@ -218,8 +263,24 @@ const WorkflowBuilder = () => {
             scenarioId={activeScenarioId}
             scenarioCondition={scenarios[activeScenarioId]?.condition}
             onAddFeedbackStep={handleAddStep}
+            workflowConditions={workflowConditions}
+            onManageWorkflowConditions={handleManageWorkflowConditions}
           />
         )}
+        
+        {/* Condition Manager Modal */}
+        <ConditionManagerModal
+          isOpen={showConditionModal}
+          onClose={() => {
+            setShowConditionModal(false);
+            setConditionToAdd(null);
+          }}
+          conditions={workflowConditions}
+          onUpdate={handleUpdateWorkflowConditions}
+          usageStats={getConditionUsageStats()}
+          initialCondition={conditionToAdd}
+          title={conditionToAdd ? "Save as Workflow Condition" : "Manage Workflow Conditions"}
+        />
 
         {/* Create Scenario Modal */}
         <ScenarioModal 

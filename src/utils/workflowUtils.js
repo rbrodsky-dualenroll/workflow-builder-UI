@@ -1,4 +1,5 @@
 // Utility functions for the workflow builder
+import { parseConditionals, validateConditionals } from './conditionalUtils';
 
 /**
  * Generate a unique ID for a step
@@ -30,6 +31,26 @@ export const validateStep = (formData) => {
   
   if (formData.stepType === "Upload" && formData.fileUploads.length === 0) {
     errors.fileUploads = "At least one file upload is required";
+  }
+  
+  // Validate conditionals if the step is conditional
+  if (formData.conditional) {
+    // Check if triggeringCondition is provided
+    const hasConditions = formData.triggeringCondition && formData.triggeringCondition.trim() !== '';
+    
+    if (!hasConditions) {
+      errors.triggeringCondition = "Conditions are required when step is marked as conditional";
+    } else {
+      // Validate triggeringCondition format
+      try {
+        const conditions = parseConditionals(formData.triggeringCondition);
+        if (!validateConditionals(conditions)) {
+          errors.triggeringCondition = "Invalid conditional format. Check all fields are properly set.";
+        }
+      } catch (e) {
+        errors.triggeringCondition = "Invalid conditional format: " + e.message;
+      }
+    }
   }
   
   return errors;
