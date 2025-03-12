@@ -41,7 +41,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     subworkflow: 'Per Course',
     description: '',
     conditional: false,
-    workflowCondition: '',
+    workflowCondition: [],
     actionOptions: [],
     fileUploads: [],
     informationDisplays: [],
@@ -171,7 +171,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
       
       // If unchecking, also clear related fields
       if (!checked) {
-        updatedFormData.workflowCondition = '';
+        updatedFormData.workflowCondition = [];
       }
       
       console.log('Updated form data:', updatedFormData);
@@ -182,6 +182,12 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
       setFormData(prev => ({
         ...prev,
         role: 'System' // Force this to be System
+      }));
+    } else if (name === 'workflowCondition' && type === 'array') {
+      // Special case for array values
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
       }));
     } else {
       // Force a re-render by creating a brand new object

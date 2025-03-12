@@ -131,7 +131,7 @@ Each step type has unique configuration options:
   "subworkflow": "Once Ever | Per Year | Per Term | Per Course",
   "description": "Description of this step",
   "conditional": true | false,
-  "workflowCondition": "named-condition-reference",
+  "workflowCondition": ["condition-name-1", "condition-name-2"],
   
   // Type-specific properties
   

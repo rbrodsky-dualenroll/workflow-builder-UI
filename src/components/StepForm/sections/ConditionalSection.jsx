@@ -18,27 +18,42 @@ const ConditionalSection = ({
   // Configure state for our conditionals
   // Note: No longer need to track conditions array since we're only using workflowCondition
   
+  // Ensure formData.workflowCondition is always an array
+  const workflowConditionArray = Array.isArray(formData?.workflowCondition) 
+    ? formData.workflowCondition 
+    : (formData?.workflowCondition ? [formData.workflowCondition] : []);
+  
   // Handle condition selection from workflow conditions
   const handleConditionSelect = (conditionName) => {
-    // Toggle the condition on/off if it's already selected
-    const newValue = formData?.workflowCondition === conditionName ? '' : conditionName;
+    // Check if condition is already selected
+    const isAlreadySelected = workflowConditionArray.includes(conditionName);
+    let newValue;
     
-    // Update formData with conditional=true and the selected condition
+    if (isAlreadySelected) {
+      // If already selected, remove it
+      newValue = workflowConditionArray.filter(name => name !== conditionName);
+    } else {
+      // If not selected, add it to the array
+      newValue = [...workflowConditionArray, conditionName];
+    }
+    
+    // Update conditional flag based on whether any conditions are selected
+    const hasConditions = newValue.length > 0;
     handleChange({
       target: {
         name: 'conditional',
-        value: newValue !== '',
+        value: hasConditions,
         type: 'checkbox',
-        checked: newValue !== ''
+        checked: hasConditions
       }
     });
     
-    // Update the workflowCondition field
+    // Update the workflowCondition field with the array
     handleChange({
       target: {
         name: 'workflowCondition',
         value: newValue,
-        type: 'text'
+        type: 'array'
       }
     });
   };
@@ -71,7 +86,7 @@ const ConditionalSection = ({
                 <input
                   id={`condition-${conditionName}`}
                   type="checkbox"
-                  checked={formData?.workflowCondition === conditionName}
+                  checked={formData?.workflowCondition && workflowConditionArray.includes(conditionName)}
                   onChange={() => handleConditionSelect(conditionName)}
                   className="h-4 w-4 mt-1 text-primary focus:ring-primary border-gray-300 rounded"
                 />

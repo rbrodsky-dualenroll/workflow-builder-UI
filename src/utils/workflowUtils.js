@@ -34,9 +34,9 @@ export const validateStep = (formData) => {
   
   // Validate conditionals if the step is conditional
   if (formData.conditional) {
-    // Must have a named workflow condition
-    if (!formData.workflowCondition || formData.workflowCondition.trim() === '') {
-      errors.workflowCondition = "A workflow condition must be selected when step is marked as conditional";
+    // Must have at least one named workflow condition
+    if (!formData.workflowCondition || !Array.isArray(formData.workflowCondition) || formData.workflowCondition.length === 0) {
+      errors.workflowCondition = "At least one workflow condition must be selected when step is marked as conditional";
     }
   }
   
