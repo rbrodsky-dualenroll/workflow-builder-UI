@@ -48,7 +48,7 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
     <CollapsibleCard 
       title="Action Options" 
       className="bg-white mb-6"
-      defaultCollapsed={false} // Not collapsed by default since this is primary functionality for approval steps
+      defaultCollapsed={true} 
       id="action-options-section"
     >
       <p className="text-sm text-gray-600 mb-3">These will appear as radio button choices in the step:</p>

@@ -11,7 +11,7 @@ const CollapsibleCard = ({
   bodyClassName = '',
   footer,
   footerClassName = '',
-  defaultCollapsed = false,
+  defaultCollapsed = true,
   id
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
