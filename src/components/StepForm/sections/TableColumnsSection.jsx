@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Card from '../../common/Card';
+import CollapsibleCard from '../../common/CollapsibleCard';
 
 /**
  * Table columns section for step forms
@@ -56,7 +56,12 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
   };
 
   return (
-    <Card title="Table Columns" className="bg-white mb-6">
+    <CollapsibleCard 
+      title="Table Columns" 
+      className="bg-white mb-6" 
+      defaultCollapsed={true}
+      id="table-columns-section"
+    >
       <p className="text-sm text-gray-600 mb-3">Define what information columns will appear in the step table:</p>
       
       <div className="space-y-2 mb-4">
@@ -124,7 +129,7 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
           Add Column
         </button>
       </div>
-    </Card>
+    </CollapsibleCard>
   );
 };
 

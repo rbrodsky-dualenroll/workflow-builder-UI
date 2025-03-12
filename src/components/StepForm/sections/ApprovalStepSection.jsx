@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import FormField from '../../common/FormField';
-import Card from '../../common/Card';
+import CollapsibleCard from '../../common/CollapsibleCard';
 
 /**
  * Approval step section for step forms
@@ -45,7 +45,12 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
   };
 
   return (
-    <Card title="Action Options" className="bg-white mb-6">
+    <CollapsibleCard 
+      title="Action Options" 
+      className="bg-white mb-6"
+      defaultCollapsed={false} // Not collapsed by default since this is primary functionality for approval steps
+      id="action-options-section"
+    >
       <p className="text-sm text-gray-600 mb-3">These will appear as radio button choices in the step:</p>
       
       <div className="space-y-2 mb-4">
@@ -141,7 +146,7 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
           Add Option
         </button>
       </div>
-    </Card>
+    </CollapsibleCard>
   );
 };
 

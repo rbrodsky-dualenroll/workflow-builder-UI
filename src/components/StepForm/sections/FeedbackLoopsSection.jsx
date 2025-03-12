@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Card from '../../common/Card';
+import CollapsibleCard from '../../common/CollapsibleCard';
 import FormField from '../../common/FormField';
 import { createFeedbackStep, validateFeedbackStep } from '../../../utils/feedbackStepUtils';
 
@@ -93,7 +93,12 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
   );
   
   return (
-    <Card title="Feedback Loops (Optional)" className="bg-white mb-6">
+    <CollapsibleCard 
+      title="Feedback Loops (Optional)" 
+      className="bg-white mb-6"
+      defaultCollapsed={true}
+      id="feedback-loops-section"
+    >
       <div className="bg-blue-50 p-3 rounded-md border border-blue-100 mb-4">
         <p className="text-sm text-blue-700">
           Feedback loops create additional steps when the user needs to request more information from another participant.
@@ -177,7 +182,7 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
           This step will include required comments and an action to return to {formData.role}.
         </p>
       </div>
-    </Card>
+    </CollapsibleCard>
   );
 };
 

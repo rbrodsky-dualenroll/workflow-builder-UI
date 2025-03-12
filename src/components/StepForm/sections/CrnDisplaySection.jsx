@@ -1,5 +1,5 @@
 import React from 'react';
-import Card from '../../common/Card';
+import CollapsibleCard from '../../common/CollapsibleCard';
 import FormField from '../../common/FormField';
 
 /**
@@ -58,7 +58,12 @@ const CrnDisplaySection = ({ formData, setFormData }) => {
   };
 
   return (
-    <Card title="CRN Display Settings" className="bg-white mb-6">
+    <CollapsibleCard 
+      title="CRN Display Settings" 
+      className="bg-white mb-6"
+      defaultCollapsed={true}
+      id="crn-display-section"
+    >
       <div className="mb-4">
         <div className="flex items-center">
           <input
@@ -115,7 +120,7 @@ const CrnDisplaySection = ({ formData, setFormData }) => {
           </div>
         </>
       )}
-    </Card>
+    </CollapsibleCard>
   );
 };
 
