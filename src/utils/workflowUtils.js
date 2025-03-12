@@ -35,20 +35,26 @@ export const validateStep = (formData) => {
   
   // Validate conditionals if the step is conditional
   if (formData.conditional) {
-    // Check if triggeringCondition is provided
-    const hasConditions = formData.triggeringCondition && formData.triggeringCondition.trim() !== '';
-    
-    if (!hasConditions) {
-      errors.triggeringCondition = "Conditions are required when step is marked as conditional";
+    // First check if using a named workflow condition
+    if (formData.workflowCondition && formData.workflowCondition.trim() !== '') {
+      // If using a named workflow condition, we're good
+      console.log('Using a valid named workflow condition:', formData.workflowCondition);
     } else {
-      // Validate triggeringCondition format
-      try {
-        const conditions = parseConditionals(formData.triggeringCondition);
-        if (!validateConditionals(conditions)) {
-          errors.triggeringCondition = "Invalid conditional format. Check all fields are properly set.";
+      // Otherwise validate the triggeringCondition
+      const hasConditions = formData.triggeringCondition && formData.triggeringCondition.trim() !== '';
+      
+      if (!hasConditions) {
+        errors.triggeringCondition = "Conditions are required when step is marked as conditional";
+      } else {
+        // Validate triggeringCondition format
+        try {
+          const conditions = parseConditionals(formData.triggeringCondition);
+          if (!validateConditionals(conditions)) {
+            errors.triggeringCondition = "Invalid conditional format. Check all fields are properly set.";
+          }
+        } catch (e) {
+          errors.triggeringCondition = "Invalid conditional format: " + e.message;
         }
-      } catch (e) {
-        errors.triggeringCondition = "Invalid conditional format: " + e.message;
       }
     }
   }

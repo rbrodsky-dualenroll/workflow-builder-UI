@@ -55,9 +55,12 @@ const StepHeader = ({
           </div>
         )}
         
-        {step.conditional && step.triggeringCondition && (
+        {step.conditional && (step.triggeringCondition || step.workflowCondition) && (
           <div className="pl-9">
-            <ConditionalDisplay conditionValue={step.triggeringCondition} />
+            <ConditionalDisplay 
+              conditionValue={step.triggeringCondition} 
+              workflowConditionName={step.workflowCondition}
+            />
           </div>
         )}
       </div>
