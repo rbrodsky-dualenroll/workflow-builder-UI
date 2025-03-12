@@ -176,7 +176,7 @@ const FeedbackLoopsSection = ({ formData, setFormData, onAddFeedbackStep }) => {
         </div>
       </div>
       
-      <div className="mt-3 text-xs text-gray-500">
+      <div className="mt-3 text-xs">
         <p>
           Adding a feedback loop will automatically create a Document Upload step with the specified name.
           This step will include required comments and an action to return to {formData.role}.

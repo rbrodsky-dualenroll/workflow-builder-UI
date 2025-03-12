@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import Card from './Card';
 
 /**
- * Collapsible card component that extends the standard Card
+ * Collapsible card component with improved toggle aesthetics
  */
 const CollapsibleCard = ({ 
   title,
@@ -27,17 +26,24 @@ const CollapsibleCard = ({
         <div>{title}</div>
         <button 
           type="button"
-          className="text-gray-500 hover:text-gray-700 focus:outline-none"
+          className="focus:outline-none"
           aria-expanded={!isCollapsed}
           aria-label={isCollapsed ? "Expand section" : "Collapse section"}
         >
+          {/* Simple arrow that changes direction based on collapsed state */}
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className={`h-5 w-5 transform transition-transform ${isCollapsed ? '' : 'rotate-180'}`} 
-            viewBox="0 0 20 20" 
-            fill="currentColor"
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            className={`transform transition-transform duration-200 ${isCollapsed ? '' : 'rotate-90'}`}
           >
-            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </button>
       </div>

@@ -37,7 +37,7 @@ const UploadStepSection = ({ formData, setFormData, errors = {} }) => {
       <div className="space-y-2 mb-4">
         {formData.fileUploads?.map((file, index) => (
           <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md border border-gray-200">
-            <span className="text-sm">{file.label} <span className="text-gray-500 text-xs">({file.fileType})</span></span>
+            <span className="text-sm">{file.label} <span className="text-xs">({file.fileType})</span></span>
             <button 
               type="button" 
               onClick={() => removeFileUpload(index)}
