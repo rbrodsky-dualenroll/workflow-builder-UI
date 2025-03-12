@@ -59,25 +59,10 @@ export const CheckHoldsSection = ({ formData, handleChange, errors = {} }) => {
  */
 export const RegisterViaApiSection = ({ formData, handleChange, errors = {} }) => {
   return (
-    <Card title="API Registration Configuration" className="bg-white mb-6">
-      <FormField
-        label="API Endpoint"
-        name="apiEndpoint"
-        type="select"
-        value={formData.apiEndpoint || ''}
-        onChange={handleChange}
-        options={[
-          { value: '', label: 'Select an API endpoint' },
-          { value: 'EthosApi', label: 'Ethos API' },
-          { value: 'BannerApi', label: 'Banner API' },
-          { value: 'ColleagueApi', label: 'Colleague API' },
-          { value: 'Custom', label: 'Custom API' },
-        ]}
-        error={errors.apiEndpoint}
-      />
-      
-      <div className="bg-gray-50 p-3 rounded-md border border-gray-300 mt-4">
-        <p className="text-sm text-gray-700">This step will register the student via the selected API integration. The system will automatically handle the API communication.</p>
+    <Card title="Register Via API" className="bg-white mb-6">
+      <div className="bg-gray-50 p-3 rounded-md border border-gray-300">
+        <p className="text-sm text-gray-700">This step will automatically register the student via the DualEnroll API integration with your SIS. No configuration is required.</p>
+        <p className="text-sm text-gray-700 mt-2">The system will handle all communication with your SIS and will provide appropriate messages for any errors encountered.</p>
       </div>
     </Card>
   );

@@ -78,6 +78,8 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
           options={roleOptions}
           error={errors.role}
           required
+          disabled={formData.stepType === 'RegisterViaApi'}
+          helpText={formData.stepType === 'RegisterViaApi' ? 'RegisterViaApi steps always use System role' : ''}
         />
       </div>
 

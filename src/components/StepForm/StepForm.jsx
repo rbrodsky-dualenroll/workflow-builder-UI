@@ -108,12 +108,20 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
   // Effect to update form data when initialData changes
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      // Force a re-render by creating a brand new object
-      setFormData({
+      // Create a new form data object from initial data
+      const newFormData = {
         ...defaultFormData,
         ...initialData,
         pendingFeedbackSteps: [] // Always reset pending feedback steps
-      });
+      };
+      
+      // Enforce System role for RegisterViaApi steps
+      if (newFormData.stepType === 'RegisterViaApi') {
+        newFormData.role = 'System';
+      }
+      
+      // Force a re-render by creating a brand new object
+      setFormData(newFormData);
     }
   }, [initialData]);
 
@@ -146,6 +154,11 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
         };
       }
       
+      // If changing to RegisterViaApi, set role to System
+      if (value === 'RegisterViaApi') {
+        updatedFormData.role = 'System';
+      }
+      
       setFormData(updatedFormData);
     } else if (name === 'conditional') {
       // Special handling for conditional checkbox
@@ -167,6 +180,12 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
       console.log('Updated form data:', updatedFormData);
       // Force a re-render by creating a brand new object
       setFormData({...updatedFormData});
+    } else if (name === 'role' && formData.stepType === 'RegisterViaApi') {
+      // For RegisterViaApi steps, always enforce System role regardless of selection
+      setFormData(prev => ({
+        ...prev,
+        role: 'System' // Force this to be System
+      }));
     } else {
       // Force a re-render by creating a brand new object
       setFormData(prev => ({
@@ -275,8 +294,10 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
         onManageWorkflowConditions={onManageWorkflowConditions}
       />
 
-      {/* Table Columns - not for Information or Consent steps */}
-      {formData.stepType !== 'Information' && formData.stepType !== 'ProvideConsent' && (
+      {/* Table Columns - not for Information or Consent steps or RegisterViaApi */}
+      {formData.stepType !== 'Information' && 
+       formData.stepType !== 'ProvideConsent' && 
+       formData.stepType !== 'RegisterViaApi' && (
         <>
           <TableColumnsSection 
             formData={formData} 
@@ -358,8 +379,8 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
         />
       )}
 
-      {/* Comments Section - not for Consent steps */}
-      {formData.stepType !== 'ProvideConsent' && (
+      {/* Comments Section - not for Consent steps or RegisterViaApi */}
+      {formData.stepType !== 'ProvideConsent' && formData.stepType !== 'RegisterViaApi' && (
         <CommentsSection 
           formData={formData} 
           setFormData={setFormData} 
