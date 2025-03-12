@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import FormField from '../../common/FormField';
 import CollapsibleCard from '../../common/CollapsibleCard';
-import ConditionSelector from './conditionals/ConditionSelector';
-import { parseConditionals, stringifyConditionals, formatConditionalsForDisplay, formatConditionForDisplay } from '../../../utils/conditionalUtils';
+import { formatConditionForDisplay } from '../../../utils/conditionalUtils';
 
 /**
  * Conditional logic section for step forms
@@ -17,16 +16,7 @@ const ConditionalSection = ({
   onManageWorkflowConditions
 }) => {
   // Configure state for our conditionals
-  const [conditions, setConditions] = useState([]);
-  
-  // Initialize conditions when form data changes
-  useEffect(() => {
-    if (formData?.triggeringCondition) {
-      setConditions(parseConditionals(formData.triggeringCondition));
-    } else {
-      setConditions([]);
-    }
-  }, [formData?.triggeringCondition]);
+  // Note: No longer need to track conditions array since we're only using workflowCondition
   
   // Handle condition selection from workflow conditions
   const handleConditionSelect = (conditionName) => {
@@ -51,26 +41,6 @@ const ConditionalSection = ({
         type: 'text'
       }
     });
-    
-    // Also set the triggeringCondition if a condition is selected (for backward compatibility)
-    if (newValue) {
-      handleChange({
-        target: {
-          name: 'triggeringCondition',
-          value: JSON.stringify(workflowConditions[newValue]),
-          type: 'text'
-        }
-      });
-    } else {
-      // Clear the triggering condition if no condition is selected
-      handleChange({
-        target: {
-          name: 'triggeringCondition',
-          value: '',
-          type: 'text'
-        }
-      });
-    }
   };
   
   return (

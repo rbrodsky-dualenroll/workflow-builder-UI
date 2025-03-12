@@ -41,7 +41,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
     subworkflow: 'Per Course',
     description: '',
     conditional: false,
-    triggeringCondition: '',
     workflowCondition: '',
     actionOptions: [],
     fileUploads: [],
@@ -99,8 +98,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
       // Force a re-render by creating a brand new object
       setFormData(prev => ({
         ...prev,
-        conditional: true,
-        triggeringCondition: scenarioCondition || ''
+        conditional: true
       }));
     }
   }, [isConditionalScenario, scenarioId, scenarioCondition, initialData]);
@@ -173,7 +171,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
       
       // If unchecking, also clear related fields
       if (!checked) {
-        updatedFormData.triggeringCondition = '';
         updatedFormData.workflowCondition = '';
       }
       

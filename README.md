@@ -1,22 +1,24 @@
 # DualEnroll Workflow Builder
 
-A clickable-prototype workflow builder application that allows quick creation of mock workflows for client demonstrations.
+A sophisticated workflow builder application for creating, prototyping, and demonstrating DualEnroll workflow processes.
 
 ## Overview
 
-This workflow builder tool enables you to:
+The DualEnroll Workflow Builder enables you to:
 
-1. Create visual workflow steps
-2. Configure steps with various properties (approvals, uploads, information displays)
-3. Rearrange steps in the workflow
-4. Save workflows as JSON for later import
-5. Visualize how the workflow will appear to users
+1. Create complex workflow visualizations with various step types
+2. Configure conditional logic and workflow scenarios
+3. Define reusable conditions across workflow steps
+4. Customize steps with role-based permissions and actions
+5. Implement specialized step types such as API integrations and consent forms
+6. Save, export, and import workflows as JSON for easy sharing
+7. Preview how workflows will appear from different user perspectives
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - npm or yarn
 
 ### Installation
@@ -31,40 +33,107 @@ npm install
 npm run dev
 ```
 
+## Core Features
+
+### Step Types
+
+The workflow builder supports multiple specialized step types:
+
+- **Approval**: Configuration for review/approval processes with customizable actions
+- **Document Upload**: For collecting documents with file type specifications
+- **Information**: For displaying information to users
+- **Provide Consent**: Specialized step for parent/guardian consent collection
+- **Check Holds**: Automated step to verify if students have holds on their accounts
+- **Register Via API**: System integration step to register students via SIS APIs
+- **Resolve Issue**: Step for handling exceptions and issues in the workflow
+
+### Scenarios
+
+Scenarios allow for creating variant workflows based on conditions:
+
+- **Main Workflow**: Default path for most users
+- **Conditional Scenarios**: Alternative paths based on specific conditions
+- **Master View**: Consolidated view of all scenarios for administration
+
+### Workflow Conditions
+
+The new condition builder allows for creating and reusing complex conditions:
+
+- Define conditions based on entity/property combinations
+- Create custom properties for specialized needs
+- Apply conditions to determine when steps should be shown
+- Manage conditions at the workflow level for reuse across steps
+
+### Role-Based Configuration
+
+Steps can be assigned to specific roles:
+
+- College
+- High School
+- Student
+- Parent
+- Approver
+- Dean
+- System (for automated steps)
+
+### Sub-Workflows
+
+Steps can be categorized into different execution patterns:
+
+- **Once Ever**: Executed only once per student
+- **Per Year**: Executed once per academic year
+- **Per Term**: Executed once per term
+- **Per Course**: Executed for each course registration
+
 ## Usage Guide
 
 ### Creating a Workflow
 
-1. Click the "Add Step" button to create a new workflow step
-2. Select the step type (Approval, Upload, or Information)
-3. Configure the step properties (role, conditions, actions, etc.)
-4. Click "Save Step" to add it to the workflow
-5. Repeat for each step in your workflow
+1. Start a new workflow or import an existing one
+2. Add steps by clicking the "Add Step" button
+3. Configure each step with appropriate settings
+4. Organize steps in the desired sequence
+5. Save your workflow for future use
 
-### Editing Steps
+### Managing Scenarios
 
-- Click the pencil icon on any step to edit its properties
-- Use the up/down arrows to reorder steps in the workflow
-- Click the trash icon to delete a step
+1. Create scenarios for different condition-based paths
+2. Configure the condition that triggers each scenario
+3. Add scenario-specific steps
+4. Use Master View to see all scenarios at once
 
-### Saving & Importing Workflows
+### Working with Conditions
 
-- Click "Save Workflow" to export the workflow as JSON
-- Use the "Import Workflow" button to load a previously created workflow
+1. Create reusable conditions in the Conditions Manager
+2. Apply conditions to steps to control when they appear
+3. Use conditions to create branching logic in your workflow
 
-## Core Data Model
+### Specialized Step Configuration
 
-Each workflow step is represented as a JSON object with these properties:
+Each step type has unique configuration options:
+
+- **Approval Steps**: Configure action buttons, feedback loops
+- **Upload Steps**: Specify required documents and file types
+- **Information Steps**: Define what information to display
+- **Register Via API**: Automated SIS integration (System role only)
+- **Provide Consent**: Configure consent type for parents/guardians
+
+## Data Model
+
+### Step Structure
 
 ```json
 {
   "id": "unique-step-id",
-  "stepType": "Approval | Upload | Information",
+  "stepType": "Approval | Upload | Information | ProvideConsent | CheckHolds | RegisterViaApi | ResolveIssue",
   "title": "Step Title",
-  "role": "College | High School | Student | Parent | System",
+  "role": "College | High School | Student | Parent | Approver | Dean | System",
+  "subworkflow": "Once Ever | Per Year | Per Term | Per Course",
   "description": "Description of this step",
   "conditional": true | false,
-  "triggeringCondition": "condition logic (e.g., student.gpa > 3.0)",
+  "workflowCondition": "named-condition-reference",
+  
+  // Type-specific properties
   
   // For Approval steps
   "actionOptions": [
@@ -74,23 +143,37 @@ Each workflow step is represented as a JSON object with these properties:
   
   // For Upload steps
   "fileUploads": [
-    { "fileType": "pdf", "label": "Transcript" }
+    { "fileType": "pdf", "label": "Transcript", "required": true }
   ],
   
   // For Information steps
   "informationDisplays": [
-    "Student GPA information",
-    "Course registration details"
+    { "content": "Student GPA information", "style": "info" }
   ],
   
-  // Additional properties
-  "feedbackLoops": {
-    "recipient": "Student | High School | College",
-    "nextStep": "Name of next step"
-  },
+  // Common optional properties
+  "tableColumns": ["Student Name", "Course Number", "CRN"],
   "comments": {
     "required": true | false,
     "public": true | false
+  },
+  "feedbackLoops": {
+    "recipient": "College | High School | Student | Parent",
+    "nextStep": "step-id-reference"
+  }
+}
+```
+
+### Condition Structure
+
+```json
+{
+  "condition_name": {
+    "entity": "student | course | section | instructor | high_school | term | registration",
+    "property": "property_name",
+    "comparison": "== | != | > | < | >= | <= | includes | present | blank | true | false",
+    "value": "comparison_value",
+    "fields": ["condition_name"]
   }
 }
 ```
@@ -99,36 +182,77 @@ Each workflow step is represented as a JSON object with these properties:
 
 ```
 react-workflow-app/
-├── public/              # Static assets
+├── public/                # Static assets
 ├── src/
-│   ├── components/      # React components
-│   │   ├── WorkflowBuilder.jsx        # Main workflow builder component
-│   │   ├── WorkflowBuilder.css        # Component-specific styles
-│   │   ├── WorkflowStep.jsx           # Component for individual workflow steps
-│   │   └── StepForm.jsx               # Form for creating/editing steps
-│   ├── App.jsx          # Main application component
-│   ├── App.css          # Main application styles
-│   ├── index.css        # Global styles
-│   └── main.jsx         # Application entry point
-└── package.json         # Dependencies and scripts
+│   ├── components/        # React components
+│   │   ├── StepForm/      # Step configuration forms
+│   │   │   ├── sections/  # Specialized form sections
+│   │   │   │   ├── conditionals/  # Condition building components
+│   │   │   │   └── ...
+│   │   │   └── StepForm.jsx       # Main step form component
+│   │   ├── WorkflowBuilder/       # Workflow builder components
+│   │   │   ├── hooks/             # Custom hooks
+│   │   │   ├── modals/            # Modal components
+│   │   │   ├── WorkflowBuilder.jsx # Main builder component
+│   │   │   ├── WorkflowContent.jsx # Workflow step container
+│   │   │   ├── WorkflowHeader.jsx  # Header component
+│   │   │   ├── WorkflowConditionManager.jsx # Condition management
+│   │   │   ├── ScenarioManager.jsx # Scenario management
+│   │   │   └── ...
+│   │   ├── WorkflowStep/          # Step visualization components
+│   │   └── common/                # Shared UI components
+│   │       ├── Card.jsx
+│   │       ├── CollapsibleCard.jsx
+│   │       ├── FormField.jsx
+│   │       └── ...
+│   ├── utils/              # Utility functions
+│   │   ├── conditionalUtils.js    # Condition parsing/formatting
+│   │   ├── workflowUtils.js       # Workflow helpers
+│   │   └── ...
+│   ├── App.jsx            # Main application component
+│   ├── App.css            # Main application styles
+│   ├── index.css          # Global styles
+│   └── main.jsx           # Application entry point
+└── package.json           # Dependencies and scripts
 ```
+
+## Feature Highlights
+
+### Conditional Logic Builder
+- Visual interface for building complex conditions
+- Entity and property-based condition creation
+- Custom property support for specialized needs
+- Reusable conditions across workflow steps
+
+### Step Templates
+- Pre-configured step templates for common processes
+- Specialized templates like RegisterViaAPI with enforced settings
+- Role-appropriate configurations
+
+### Workflow Organization
+- Drag and reorder steps
+- Move steps between scenarios
+- Master view for comprehensive workflow management
+
+### Import/Export
+- Save workflows as JSON
+- Import existing workflows
+- Share workflows between team members
 
 ## Future Enhancements
 
-- Add ability to create branching workflows
-- Add more step types specific to DualEnroll workflow needs
-- Create a previewer to see the workflow from different user perspectives
-- Implement drag-and-drop for step reordering
-- Add ability to copy steps
-- Allow importing steps from existing workflows
-- Add workflow validation to highlight potential issues
+- Advanced previewer to simulate workflow from different user perspectives
+- Step cloning and templates library
+- Advanced validation and error checking
+- Integration with live DualEnroll systems
+- Workflow statistics and metrics
+- Collaborative editing features
 
-## Workflow Examples
+## Best Practices
 
-Based on the provided documentation, typical workflow steps might include:
-- Parent Consent
-- Counselor Approval
-- College Review
-- Document Upload
-- Instructor Approval
-- System Integration
+- Start with the Main workflow for standard processes
+- Use scenarios sparingly for truly different paths
+- Create reusable conditions for consistent logic
+- Test workflows from different role perspectives
+- Use appropriate step types for each process
+- Document your workflow design decisions

@@ -3,91 +3,6 @@
  */
 
 /**
- * Parses a stringified JSON conditions array or a legacy condition string
- * 
- * @param {string} conditionValue - The value from the form (either JSON string or legacy condition string)
- * @returns {Array} - Array of condition objects
- */
-export const parseConditionals = (conditionValue) => {
-  if (!conditionValue) return [];
-  
-  try {
-    // First try to parse as JSON
-    return JSON.parse(conditionValue);
-  } catch (e) {
-    // If not valid JSON, treat as legacy condition string
-    // Convert to a single condition object
-    if (conditionValue.trim()) {
-      return [
-        {
-          // We don't have method/fields for legacy conditions, so we'll use a placeholder
-          method: 'legacy_condition',
-          comparison: 'custom',
-          value: conditionValue,
-          fields: ['_legacy_condition_true'],
-        }
-      ];
-    }
-    
-    return [];
-  }
-};
-
-/**
- * Stringifies an array of condition objects to JSON
- * 
- * @param {Array} conditions - Array of condition objects
- * @returns {string} - JSON string representing the conditions
- */
-export const stringifyConditionals = (conditions) => {
-  if (!conditions || conditions.length === 0) return '';
-  
-  // Check if this is a legacy condition (simple string)
-  if (conditions.length === 1 && 
-      conditions[0].method === 'legacy_condition' && 
-      conditions[0].comparison === 'custom') {
-    return conditions[0].value;
-  }
-  
-  return JSON.stringify(conditions);
-};
-
-/**
- * Validates that conditionals are properly structured
- * 
- * @param {Array} conditions - Array of condition objects
- * @returns {boolean} - True if valid, false otherwise
- */
-export const validateConditionals = (conditions) => {
-  if (!conditions || !Array.isArray(conditions)) return false;
-  
-  // Empty array is valid
-  if (conditions.length === 0) return true;
-  
-  // Check each condition
-  return conditions.every(condition => {
-    // Method is required
-    if (!condition.method) return false;
-    
-    // Comparison is required
-    if (!condition.comparison) return false;
-    
-    // Value is required for most comparison types
-    if (!['present', 'blank', 'true', 'false'].includes(condition.comparison) && 
-        (condition.value === undefined || condition.value === null || condition.value === '')) {
-      return false;
-    }
-    
-    // Fields array is required
-    if (!Array.isArray(condition.fields) || condition.fields.length === 0) {
-      return false;
-    }
-    
-    return true;
-  });
-};
-
-/**
  * Represents a condition as a human-readable string
  * 
  * @param {Object} condition - A condition object
@@ -230,16 +145,4 @@ export const formatConditionForDisplay = (condition) => {
   }
   
   return result;
-};
-
-/**
- * Represents a list of conditions as a human-readable string
- * 
- * @param {Array} conditions - Array of condition objects
- * @returns {string} - Human-readable representation
- */
-export const formatConditionalsForDisplay = (conditions) => {
-  if (!conditions || conditions.length === 0) return '';
-  
-  return conditions.map(cond => formatConditionForDisplay(cond)).join('\n');
 };
