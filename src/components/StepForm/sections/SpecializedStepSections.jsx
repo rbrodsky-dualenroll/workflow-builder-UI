@@ -101,3 +101,45 @@ export const ResolveIssueSection = ({ formData, handleChange, errors = {} }) => 
     </Card>
   );
 };
+
+/**
+ * Section for the PendingCompletionOfOneTimeSteps step type
+ */
+export const PendingCompletionOfOneTimeStepsSection = ({ formData, handleChange, errors = {} }) => {
+  return (
+    <Card title="Pending Completion Of One-Time Steps" className="bg-white mb-6">
+      <div className="bg-gray-50 p-3 rounded-md border border-gray-300">
+        <p className="text-sm text-gray-700">This step will automatically wait for the completion of the student's one-time application steps before proceeding. No configuration is required.</p>
+        <p className="text-sm text-gray-700 mt-2">The system will handle this check automatically and proceed once the one-time steps are complete.</p>
+      </div>
+    </Card>
+  );
+};
+
+/**
+ * Section for the PendingCompletionOfPerTermSteps step type
+ */
+export const PendingCompletionOfPerTermStepsSection = ({ formData, handleChange, errors = {} }) => {
+  return (
+    <Card title="Pending Completion Of Per-Term Steps" className="bg-white mb-6">
+      <div className="bg-gray-50 p-3 rounded-md border border-gray-300">
+        <p className="text-sm text-gray-700">This step will automatically wait for the completion of the student's per-term steps before proceeding. No configuration is required.</p>
+        <p className="text-sm text-gray-700 mt-2">The system will handle this check automatically and proceed once the per-term steps are complete.</p>
+      </div>
+    </Card>
+  );
+};
+
+/**
+ * Section for the PendingCompletionOfPerYearSteps step type
+ */
+export const PendingCompletionOfPerYearStepsSection = ({ formData, handleChange, errors = {} }) => {
+  return (
+    <Card title="Pending Completion Of Per-Year Steps" className="bg-white mb-6">
+      <div className="bg-gray-50 p-3 rounded-md border border-gray-300">
+        <p className="text-sm text-gray-700">This step will automatically wait for the completion of the student's per-year steps before proceeding. No configuration is required.</p>
+        <p className="text-sm text-gray-700 mt-2">The system will handle this check automatically and proceed once the per-year steps are complete.</p>
+      </div>
+    </Card>
+  );
+};

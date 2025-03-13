@@ -15,7 +15,10 @@ import {
   ProvideConsentSection, 
   CheckHoldsSection, 
   RegisterViaApiSection, 
-  ResolveIssueSection 
+  ResolveIssueSection,
+  PendingCompletionOfOneTimeStepsSection,
+  PendingCompletionOfPerTermStepsSection,
+  PendingCompletionOfPerYearStepsSection
 } from './sections/SpecializedStepSections';
 
 const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedbackStep, workflowConditions = {}, onManageWorkflowConditions }) => {
@@ -152,9 +155,17 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
         };
       }
       
-      // If changing to RegisterViaApi, set role to System
-      if (value === 'RegisterViaApi') {
+      // If changing to RegisterViaApi or a Pending Step, set role to System
+      if (value === 'RegisterViaApi' || 
+          value === 'PendingCompletionOfOneTimeSteps' || 
+          value === 'PendingCompletionOfPerTermSteps' || 
+          value === 'PendingCompletionOfPerYearSteps') {
         updatedFormData.role = 'System';
+        
+        // For Pending steps, automatically set the title to match the step type
+        if (value.includes('Pending')) {
+          updatedFormData.title = value;
+        }
       }
       
       setFormData(updatedFormData);
@@ -297,10 +308,13 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
         onManageWorkflowConditions={onManageWorkflowConditions}
       />
 
-      {/* Table Columns - not for Information or Consent steps or RegisterViaApi */}
+      {/* Table Columns - not for Information or Consent steps or System processed steps */}
       {formData.stepType !== 'Information' && 
        formData.stepType !== 'ProvideConsent' && 
-       formData.stepType !== 'RegisterViaApi' && (
+       formData.stepType !== 'RegisterViaApi' &&
+       formData.stepType !== 'PendingCompletionOfOneTimeSteps' &&
+       formData.stepType !== 'PendingCompletionOfPerTermSteps' &&
+       formData.stepType !== 'PendingCompletionOfPerYearSteps' && (
         <>
           <TableColumnsSection 
             formData={formData} 
@@ -373,6 +387,30 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
         />
       )}
 
+      {formData.stepType === 'PendingCompletionOfOneTimeSteps' && (
+        <PendingCompletionOfOneTimeStepsSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          errors={errors} 
+        />
+      )}
+
+      {formData.stepType === 'PendingCompletionOfPerTermSteps' && (
+        <PendingCompletionOfPerTermStepsSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          errors={errors} 
+        />
+      )}
+
+      {formData.stepType === 'PendingCompletionOfPerYearSteps' && (
+        <PendingCompletionOfPerYearStepsSection 
+          formData={formData} 
+          handleChange={handleChange} 
+          errors={errors} 
+        />
+      )}
+
       {/* Feedback Loops - only for Approval steps */}
       {formData.stepType === 'Approval' && (
         <FeedbackLoopsSection 
@@ -382,8 +420,12 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
         />
       )}
 
-      {/* Comments Section - not for Consent steps or RegisterViaApi */}
-      {formData.stepType !== 'ProvideConsent' && formData.stepType !== 'RegisterViaApi' && (
+      {/* Comments Section - not for Consent steps or System processed steps */}
+      {formData.stepType !== 'ProvideConsent' && 
+       formData.stepType !== 'RegisterViaApi' && 
+       formData.stepType !== 'PendingCompletionOfOneTimeSteps' && 
+       formData.stepType !== 'PendingCompletionOfPerTermSteps' && 
+       formData.stepType !== 'PendingCompletionOfPerYearSteps' && (
         <CommentsSection 
           formData={formData} 
           setFormData={setFormData} 

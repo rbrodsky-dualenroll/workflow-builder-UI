@@ -6,6 +6,9 @@ import ProvideConsentStepPreview from './previews/ProvideConsentStepPreview';
 import CheckHoldsStepPreview from './previews/CheckHoldsStepPreview';
 import RegisterViaApiStepPreview from './previews/RegisterViaApiStepPreview';
 import ResolveIssueStepPreview from './previews/ResolveIssueStepPreview';
+import PendingCompletionOfOneTimeStepsPreview from './previews/PendingCompletionOfOneTimeStepsPreview';
+import PendingCompletionOfPerTermStepsPreview from './previews/PendingCompletionOfPerTermStepsPreview';
+import PendingCompletionOfPerYearStepsPreview from './previews/PendingCompletionOfPerYearStepsPreview';
 
 /**
  * Container component for step previews
@@ -27,6 +30,12 @@ const StepPreview = ({ step }) => {
         return <RegisterViaApiStepPreview step={step} />;
       case 'ResolveIssue':
         return <ResolveIssueStepPreview step={step} />;
+      case 'PendingCompletionOfOneTimeSteps':
+        return <PendingCompletionOfOneTimeStepsPreview step={step} />;
+      case 'PendingCompletionOfPerTermSteps':
+        return <PendingCompletionOfPerTermStepsPreview step={step} />;
+      case 'PendingCompletionOfPerYearSteps':
+        return <PendingCompletionOfPerYearStepsPreview step={step} />;
       default:
         return <p>Unknown step type</p>;
     }
