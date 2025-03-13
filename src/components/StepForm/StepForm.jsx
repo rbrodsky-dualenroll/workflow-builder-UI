@@ -18,10 +18,10 @@ import {
   ResolveIssueSection 
 } from './sections/SpecializedStepSections';
 
-const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCondition, onAddFeedbackStep, workflowConditions = {}, onManageWorkflowConditions }) => {
+const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedbackStep, workflowConditions = {}, onManageWorkflowConditions }) => {
   // Display scenario info if in a scenario other than main
   const isConditionalScenario = scenarioId && scenarioId !== 'main';
-  const scenarioInfo = isConditionalScenario ? { id: scenarioId, condition: scenarioCondition } : null;
+  const scenarioInfo = isConditionalScenario ? { id: scenarioId } : null;
   
   // Form errors
   const [errors, setErrors] = useState({});
@@ -101,7 +101,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, scenarioCo
         conditional: true
       }));
     }
-  }, [isConditionalScenario, scenarioId, scenarioCondition, initialData]);
+  }, [isConditionalScenario, scenarioId, initialData]);
 
   // Effect to update form data when initialData changes
   useEffect(() => {

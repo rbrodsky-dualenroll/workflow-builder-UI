@@ -10,7 +10,6 @@ const useWorkflowState = () => {
     main: {
       id: 'main',
       name: 'Main Workflow',
-      condition: null,
       steps: []
     }
   });

@@ -50,11 +50,6 @@ const ScenarioManager = ({
           >
             {scenario.name}
             {scenario.id !== 'main' && (
-              <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
-                {scenario.condition || 'No condition'}
-              </span>
-            )}
-            {scenario.id !== 'main' && (
               <button 
                 onClick={(e) => { e.stopPropagation(); onDeleteScenario(scenario.id); }}
                 className="ml-2 text-gray-500 hover:text-red-500"

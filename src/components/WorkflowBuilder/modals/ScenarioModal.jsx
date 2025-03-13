@@ -9,8 +9,6 @@ const ScenarioModal = ({
   onClose, 
   scenarioName,
   setScenarioName,
-  scenarioCondition,
-  setScenarioCondition,
   baseScenarioId,
   setBaseScenarioId,
   scenarios,
@@ -28,18 +26,6 @@ const ScenarioModal = ({
             onChange={(e) => setScenarioName(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             placeholder="e.g., Home School Path"
-          />
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="scenario-condition" className="block text-sm font-medium mb-1">Condition (When this scenario applies)</label>
-          <input
-            id="scenario-condition"
-            type="text"
-            value={scenarioCondition}
-            onChange={(e) => setScenarioCondition(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="e.g., student.homeSchool === true"
           />
         </div>
         

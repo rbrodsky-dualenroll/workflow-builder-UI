@@ -56,8 +56,6 @@ const WorkflowBuilder = () => {
     setShowNewWorkflowModal,
     newScenarioName,
     setNewScenarioName,
-    newScenarioCondition,
-    setNewScenarioCondition,
     baseScenarioId,
     setBaseScenarioId
   } = useModalState();
@@ -133,8 +131,7 @@ const WorkflowBuilder = () => {
     const updatedScenarios = createScenario(
       scenarios, 
       baseScenarioId, 
-      newScenarioName, 
-      newScenarioCondition
+      newScenarioName
     );
     
     setScenarios(updatedScenarios);
@@ -143,7 +140,6 @@ const WorkflowBuilder = () => {
     const newScenarioId = `scenario_${Date.now()}`;
     
     setNewScenarioName('');
-    setNewScenarioCondition('');
     setShowScenarioModal(false);
     setActiveScenarioId(newScenarioId); // Switch to the new scenario
     setMasterView(false);
@@ -181,7 +177,6 @@ const WorkflowBuilder = () => {
       main: {
         id: 'main',
         name: 'Main Workflow',
-        condition: null,
         steps: []
       }
     });
@@ -246,7 +241,6 @@ const WorkflowBuilder = () => {
           title="Add New Step"
           onSubmit={handleAddStep}
           scenarioId={activeScenarioId}
-          scenarioCondition={scenarios[activeScenarioId]?.condition}
           onAddFeedbackStep={handleAddStep}
           workflowConditions={workflowConditions}
           onManageWorkflowConditions={handleManageWorkflowConditions}
@@ -261,7 +255,6 @@ const WorkflowBuilder = () => {
             initialData={scenarios[activeScenarioId]?.steps.find(step => step.id === editingStep)}
             onSubmit={handleUpdateStep}
             scenarioId={activeScenarioId}
-            scenarioCondition={scenarios[activeScenarioId]?.condition}
             onAddFeedbackStep={handleAddStep}
             workflowConditions={workflowConditions}
             onManageWorkflowConditions={handleManageWorkflowConditions}
@@ -288,8 +281,6 @@ const WorkflowBuilder = () => {
           onClose={() => setShowScenarioModal(false)}
           scenarioName={newScenarioName}
           setScenarioName={setNewScenarioName}
-          scenarioCondition={newScenarioCondition}
-          setScenarioCondition={setNewScenarioCondition}
           baseScenarioId={baseScenarioId}
           setBaseScenarioId={setBaseScenarioId}
           scenarios={scenarios}
