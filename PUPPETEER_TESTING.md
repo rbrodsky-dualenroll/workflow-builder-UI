@@ -59,33 +59,6 @@ All major components have been enhanced with the following types of data attribu
 
 ### 1. Opening the Add Step Modal
 
-```
-
-## Testing Feedback Steps
-
-When testing feedback steps, verify these specific aspects:
-
-1. **Parent-Child Relationship**: The feedback step should properly display the parent step title
-2. **Visual Styling**: The feedback step should have appropriate indentation and styling
-3. **Data Attributes**: All data attributes should be consistent and accurate
-
-```javascript
-// After adding a feedback loop and saving, verify the parent-child relationship
-const parentTitle = await page.evaluate(() => {
-  const parentStep = document.querySelector('[data-has-feedback="true"]');
-  return parentStep ? parentStep.querySelector('.step-type').textContent.trim() : '';
-});
-
-const feedbackParentLabel = await page.evaluate(() => {
-  const feedbackStep = document.querySelector('[data-is-feedback="true"]');
-  return feedbackStep ? 
-    feedbackStep.querySelector('.text-gray-500:not(.step-type)').textContent.trim() : '';
-});
-
-// Verify that the parent title is correctly referenced in the feedback step
-console.log('Parent step title:', parentTitle);
-console.log('Feedback step parent label:', feedbackParentLabel);
-console.log('Relationship is correct:', feedbackParentLabel.includes(parentTitle));
 ```javascript
 // Click the Add Step button
 await page.click('[data-testid="add-step-button"]');
@@ -304,6 +277,33 @@ When testing drag and drop operations, be aware that:
 1. The parent step and all its feedback children should move together
 2. The relative order of feedback steps should be maintained
 3. Feedback steps cannot be dragged independently
+
+## Testing Feedback Steps
+
+When testing feedback steps, verify these specific aspects:
+
+1. **Parent-Child Relationship**: The feedback step should properly display the parent step title
+2. **Visual Styling**: The feedback step should have appropriate indentation and styling
+3. **Data Attributes**: All data attributes should be consistent and accurate
+
+```javascript
+// After adding a feedback loop and saving, verify the parent-child relationship
+const parentTitle = await page.evaluate(() => {
+  const parentStep = document.querySelector('[data-has-feedback="true"]');
+  return parentStep ? parentStep.querySelector('.step-type').textContent.trim() : '';
+});
+
+const feedbackParentLabel = await page.evaluate(() => {
+  const feedbackStep = document.querySelector('[data-is-feedback="true"]');
+  return feedbackStep ? 
+    feedbackStep.querySelector('.text-gray-500:not(.step-type)').textContent.trim() : '';
+});
+
+// Verify that the parent title is correctly referenced in the feedback step
+console.log('Parent step title:', parentTitle);
+console.log('Feedback step parent label:', feedbackParentLabel);
+console.log('Relationship is correct:', feedbackParentLabel.includes(parentTitle));
+```
 
 ## Collapsible Form Sections
 
