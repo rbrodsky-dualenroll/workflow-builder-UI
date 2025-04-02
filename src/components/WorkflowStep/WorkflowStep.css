@@ -1,0 +1,95 @@
+/* Feedback step specific styling */
+
+/* Group container styling */
+.feedback-parent-container {
+  position: relative;
+  border-left: 3px solid transparent;
+  margin-left: -3px;
+}
+
+/* Indentation and position for feedback child steps */
+.feedback-child {
+  margin-left: 2rem !important;
+  position: relative;
+  transition: all 0.2s ease;
+  pointer-events: auto !important; /* Ensure the step is still interactive */
+  user-select: auto !important;
+  cursor: default !important; /* Show normal cursor instead of move cursor */
+}
+
+/* Visual indicator to connect feedback step to parent */
+.feedback-child::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -2rem;
+  width: 2rem;
+  height: 1.5rem;
+  border-bottom: 2px solid var(--parent-color, #6b7280);
+  border-left: 2px solid var(--parent-color, #6b7280);
+  border-bottom-left-radius: 6px;
+  pointer-events: none; /* Allow clicking through the connector */
+}
+
+/* Small icon badge on the connector to indicate feedback relationship */
+.feedback-child::after {
+  content: '↩';
+  position: absolute;
+  top: -0.5rem;
+  left: -1.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: var(--parent-color, #6b7280);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  pointer-events: none; /* Allow clicking through the icon */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Make feedback steps slightly more transparent */
+.feedback-header {
+  opacity: 0.95;
+}
+
+/* Ensure feedback steps have a slightly different appearance */
+.workflow-step.feedback-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+}
+
+/* Highlight parent steps with feedback children */
+.workflow-step[data-has-feedback="true"] {
+  border-bottom: 1px dashed var(--parent-color, #6b7280);
+  position: relative;
+}
+
+/* Hover effects for feedback child steps */
+.workflow-step.feedback-child:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Make it clear when multiple feedback steps go to the same parent */
+.workflow-step.feedback-child + .workflow-step.feedback-child::before {
+  height: 0;
+  border-bottom: none;
+  border-left: 2px solid var(--parent-color, #6b7280);
+  top: -1px; /* Connect to the previous feedback step */
+}
+
+/* Visual distinction for grouped steps */
+.feedback-child {
+  /* Lighter background to distinguish from parent */
+  background-color: rgba(249, 250, 251, 0.8) !important;
+  /* Prevent drag appearance */
+  cursor: default !important;
+}
+
+/* Add special cursor to parent steps with feedback loops */
+.workflow-step:has(+ .feedback-child) {
+  cursor: move !important;
+}

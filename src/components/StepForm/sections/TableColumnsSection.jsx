@@ -60,18 +60,21 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
       title="Table Columns" 
       className="bg-white mb-6" 
       defaultCollapsed={true}
-      id="table-columns-section"
+      data-testid="table-columns-section"
     >
-      <p className="text-sm text-gray-600 mb-3">Define what information columns will appear in the step table:</p>
+      <p className="text-sm text-gray-600 mb-3" data-testid="table-columns-intro">Define what information columns will appear in the step table:</p>
       
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2 mb-4" data-testid="existing-table-columns">
         {(formData.tableColumns || []).map((column, index) => (
-          <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md border border-gray-200">
+          <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md border border-gray-200" data-testid={`table-column-${index}`} data-column-index={index}>
             <span className="text-sm">{column}</span>
             <button 
               type="button" 
               onClick={() => removeTableColumn(index)}
               className="text-red-500 hover:bg-red-50 p-1 rounded"
+              data-testid={`remove-column-${index}`}
+              data-action="remove-column"
+              data-column-index={index}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -81,11 +84,14 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
         ))}
       </div>
       
-      <div className="mb-4">
+      <div className="mb-4" data-testid="column-templates-section">
         <button
           type="button"
           onClick={() => setShowTableColumnTemplates(!showTableColumnTemplates)}
           className="text-primary bg-white text-sm flex items-center border border-gray-200 px-3 py-1 rounded"
+          data-testid="toggle-templates-button"
+          data-action="toggle-templates"
+          data-expanded={showTableColumnTemplates}
         >
           {showTableColumnTemplates ? 'Hide' : 'Show'} common table columns
           <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ml-1 transform ${showTableColumnTemplates ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
@@ -94,7 +100,7 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
         </button>
         
         {showTableColumnTemplates && (
-          <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
+          <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md" data-testid="column-templates-list">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               {commonTableColumns.map((column, idx) => (
                 <button
@@ -103,6 +109,9 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
                   onClick={() => addCommonTableColumn(column)}
                   className="text-left text-sm px-2 py-1 rounded flex items-center text-primary bg-white"
                   disabled={(formData.tableColumns || []).includes(column)}
+                  data-testid={`add-common-column-${column.replace(/\s+/g, '-').toLowerCase()}`}
+                  data-action="add-common-column"
+                  data-column-name={column}
                 >
                   <span className="w-4 h-4 mr-2 flex-shrink-0">+</span>
                   {column}
@@ -113,18 +122,21 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
         )}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2" data-testid="add-column-form">
         <input
           type="text"
           value={tempTableColumn}
           onChange={(e) => setTempTableColumn(e.target.value)}
           placeholder="New Column Name"
           className="col-span-3 rounded-md border border-gray-300 px-3 py-2 text-sm"
+          data-testid="new-column-input"
         />
         <button 
           type="button" 
           onClick={addTableColumn}
           className="bg-secondary hover:bg-secondary-600 text-white rounded-md px-3 py-2 text-sm"
+          data-testid="add-column-button"
+          data-action="add-column"
         >
           Add Column
         </button>

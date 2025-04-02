@@ -14,52 +14,64 @@
  * @param {string} options.parentStepId - ID of the parent step
  * @returns {Object} The newly created feedback step object
  */
+import { generateUniqueId } from './idUtils';
+
 export const createFeedbackStep = ({ 
   recipientRole, 
   stepTitle,
   requestingRole, 
   parentStepTitle = 'Previous Step',
   feedbackId,
-  parentStepId
+  parentStepId,
+  parentStepData // Add this parameter to pass the full parent step data
 }) => {
-  // Create a default return action button that references the requesting role
-  const returnAction = {
-    label: `Return to ${requestingRole}`,
-    value: `return-to-${requestingRole.toLowerCase().replace(/\s+/g, '-')}`
+  if (!parentStepId) {
+    throw new Error('Parent step ID is required for feedback steps');
+  }
+
+  // Inherit key properties from parent step
+  const inheritedProperties = {
+    conditional: parentStepData.conditional || false,
+    workflowCondition: parentStepData.workflowCondition || [],
+    subworkflow: parentStepData.subworkflow || 'Per Course',
+    tableColumns: parentStepData.tableColumns || ['Student Name', 'Document', 'Upload Status']
   };
 
-  // Generate a truly unique ID for this feedback step
-  const uniqueStepId = `feedback_step_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-  // Create the feedback step with document upload as the default type
   return {
-    id: uniqueStepId, // Add a truly unique ID for each feedback step
+    ...inheritedProperties,
     stepType: 'Upload',
     title: stepTitle.trim(),
     role: recipientRole,
     description: `Please provide the requested information to continue the process.`,
-    // Default to requiring document upload
+    
     fileUploads: [
       { label: 'Supporting Documentation', required: true }
     ],
-    // Add a default action to return to the requesting role
-    actionOptions: [returnAction],
-    // Default to requiring comments
+    actionOptions: [{
+      label: `Return to ${requestingRole}`,
+      value: `return-to-${requestingRole.toLowerCase().replace(/\s+/g, '-')}`
+    }],
+    
     comments: {
       required: true,
       public: true
     },
-    // Relationship information
+    
+    // Keep feedback-specific metadata
     isFeedbackStep: true,
     feedbackRelationship: {
       feedbackId: feedbackId,
       parentStepId: parentStepId,
       parentStepTitle: parentStepTitle,
       requestingRole: requestingRole
-    }
+    },
+    
+    // Default empty displays and other fields
+    informationDisplays: [],
+    showCrnInfo: false,
+    crnDisplay: []
   };
 };
-
 /**
  * Validates feedback step configuration
  * 

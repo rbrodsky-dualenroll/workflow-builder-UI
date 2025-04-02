@@ -54,6 +54,7 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
           options={stepTypeOptions}
           error={errors.stepType}
           required
+          data-testid="step-form-type"
         />
 
         <FormField
@@ -64,6 +65,7 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
           onChange={handleChange}
           options={subworkflowOptions}
           error={errors.subworkflow}
+          data-testid="step-form-subworkflow"
         />
       </div>
 
@@ -86,6 +88,7 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
             placeholder={`${formData.stepType} Step`}
             error={errors.title}
             required
+            data-testid="step-form-title"
           />
         )}
 
@@ -100,6 +103,7 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
           required
           disabled={isSystemOnlyStep}
           helpText={isSystemOnlyStep ? 'This step type always uses System role' : ''}
+          data-testid="step-form-role"
         />
       </div>
 
@@ -111,6 +115,7 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
         onChange={handleChange}
         placeholder="Enter step description"
         error={errors.description}
+        data-testid="step-form-description"
       />
     </>
   );

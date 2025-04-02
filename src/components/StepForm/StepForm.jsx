@@ -434,11 +434,12 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
       )}
 
       {/* Form Buttons */}
-      <div className="flex justify-end gap-3 pt-4">
+      <div className="flex justify-end gap-3 pt-4" data-testid="modal-actions">
         <button 
           type="button" 
           onClick={onCancel}
           className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md"
+          data-testid="modal-cancel-button"
         >
           Cancel
         </button>
@@ -446,6 +447,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
           type="button"
           onClick={handleSaveClick}
           className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-md"
+          data-testid="modal-save-button"
         >
           Save Step
         </button>

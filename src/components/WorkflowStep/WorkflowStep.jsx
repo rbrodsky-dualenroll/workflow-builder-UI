@@ -2,6 +2,23 @@ import { useState, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import StepHeader from './StepHeader';
 import StepPreview from './StepPreview';
+import './WorkflowStep.css'; // Import the CSS file we'll create
+
+/**
+ * Get color based on step type
+ */
+const getStepTypeColor = (stepType) => {
+  switch (stepType) {
+    case 'approval':
+      return '#4ade80'; // green-400
+    case 'upload':
+      return '#3b82f6'; // blue-500
+    case 'information':
+      return '#f97316'; // orange-500
+    default:
+      return '#6b7280'; // gray-500
+  }
+};
 
 /**
  * Main workflow step component that handles drag & drop functionality
@@ -11,6 +28,15 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
 
   // Check if this step is part of a conditional scenario in master view
   const isConditionalStep = step.conditional || (step.scenarioId && step.scenarioId !== 'main');
+  
+  // Check if this is a feedback step
+  const isFeedbackStep = step.isFeedbackStep && step.feedbackRelationship;
+  
+  // Get the parent step type if this is a feedback step
+  let parentStepColor = '';
+  if (isFeedbackStep && step.stepType) {
+    parentStepColor = getStepTypeColor(step.stepType.toLowerCase());
+  }
 
   // Create a ref for the draggable element
   const ref = useRef(null);
@@ -25,6 +51,10 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
     },
     hover(item, monitor) {
       if (!ref.current) return;
+      
+      // Don't allow dropping onto feedback steps
+      if (isFeedbackStep) return;
+      
       const dragIndex = item.index;
       const hoverIndex = index;
       
@@ -56,11 +86,15 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
     type: 'WORKFLOW_STEP',
     item: () => ({
       id: step.id,
-      index
+      index,
+      isParent: !!(step.feedbackLoops && Object.keys(step.feedbackLoops).length > 0),
+      isFeedbackStep: isFeedbackStep
     }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
+    // Complete prevention of dragging feedback steps
+    canDrag: () => !isFeedbackStep
   });
   
   // Apply the drag and drop refs to the element
@@ -69,8 +103,28 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
   return (
     <div 
       ref={ref} 
-      className={`workflow-step ${step.stepType?.toLowerCase() || ''} ${isDragging ? 'opacity-50' : ''}`}
+      className={`
+        workflow-step 
+        ${step.stepType?.toLowerCase() || ''} 
+        ${isDragging ? 'opacity-50' : ''}
+        ${isFeedbackStep ? 'feedback-child' : ''}
+      `}
       data-handler-id={handlerId}
+      data-testid={`workflow-step-${step.id}`}
+      data-step-id={step.id}
+      data-step-type={step.stepType}
+      data-is-feedback={isFeedbackStep ? 'true' : 'false'}
+      data-parent-id={isFeedbackStep && step.feedbackRelationship ? step.feedbackRelationship.parentStepId : ''}
+      data-step-index={index}
+      data-drag-handle="true"
+      data-has-feedback={step.feedbackLoops && Object.keys(step.feedbackLoops).length > 0 ? 'true' : 'false'}
+      data-step-role={step.role || ''}
+      style={{
+        // Only add extra styling for feedback steps
+        borderLeft: isFeedbackStep ? `4px solid ${parentStepColor}` : '',
+        // Set a CSS variable for the connector styling
+        '--parent-color': parentStepColor
+      }}
     >
       <StepHeader 
         step={step} 
@@ -79,7 +133,8 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
         onDelete={() => onDelete(step.id)} 
         isExpanded={isExpanded} 
         setIsExpanded={setIsExpanded}
-        isConditionalStep={isConditionalStep} 
+        isConditionalStep={isConditionalStep}
+        isFeedbackStep={isFeedbackStep}
       />
       
       {isExpanded && <StepPreview step={step} />}

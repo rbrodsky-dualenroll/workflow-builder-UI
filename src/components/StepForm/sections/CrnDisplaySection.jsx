@@ -62,9 +62,9 @@ const CrnDisplaySection = ({ formData, setFormData }) => {
       title="CRN Display Settings" 
       className="bg-white mb-6"
       defaultCollapsed={true}
-      id="crn-display-section"
+      data-testid="crn-display-section"
     >
-      <div className="mb-4">
+      <div className="mb-4" data-testid="crn-display-intro">
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -73,6 +73,8 @@ const CrnDisplaySection = ({ formData, setFormData }) => {
             checked={formData.showCrnInfo || false}
             onChange={handleShowCrnInfoToggle}
             className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+            data-testid="show-crn-info-checkbox"
+            data-action="toggle-crn-info"
           />
           <label 
             htmlFor="show-crn-info" 
@@ -87,14 +89,14 @@ const CrnDisplaySection = ({ formData, setFormData }) => {
       </div>
       
       {formData.showCrnInfo && (
-        <>
-          <p className="text-sm text-gray-600 mb-3">
+        <div data-testid="crn-display-options">
+          <p className="text-sm text-gray-600 mb-3" data-testid="crn-display-options-intro">
             Select additional information to display alongside the CRN:
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2" data-testid="crn-display-fields">
             {availableFields.map((field) => (
-              <div key={field.value} className="flex items-center">
+              <div key={field.value} className="flex items-center" data-testid={`crn-field-${field.value}`}>
                 <input
                   type="checkbox"
                   id={`crn-display-${field.value}`}
@@ -102,6 +104,9 @@ const CrnDisplaySection = ({ formData, setFormData }) => {
                   checked={(formData.crnDisplay || []).includes(field.value)}
                   onChange={handleCrnDisplayChange}
                   className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  data-testid={`crn-field-checkbox-${field.value}`}
+                  data-action="toggle-crn-field"
+                  data-field-name={field.value}
                 />
                 <label 
                   htmlFor={`crn-display-${field.value}`} 
@@ -113,12 +118,12 @@ const CrnDisplaySection = ({ formData, setFormData }) => {
             ))}
           </div>
           
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-md">
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-md" data-testid="crn-display-info">
             <p className="text-xs text-blue-700">
               Selected fields will be displayed underneath the CRN in the table. This helps users see important details about each section without additional clicks.
             </p>
           </div>
-        </>
+        </div>
       )}
     </CollapsibleCard>
   );

@@ -63,27 +63,32 @@ const ConditionalSection = ({
       title="Conditionals" 
       className="mb-6" 
       bodyClassName="bg-gray-50"
+      id="conditionals-section"
+      data-testid="conditionals-section"
     >
       {scenarioInfo && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md" data-testid="scenario-info">
           <h3 className="text-sm font-medium text-blue-800 mb-1">Conditional Scenario: {scenarioInfo.id}</h3>
           <p className="text-xs text-blue-700">This step is part of the "{scenarioInfo.id}" scenario.</p>
         </div>
       )}
             <div className="mb-4">
-        <p className="text-sm mb-4">Select the conditions that must be met for this step to be shown in the workflow:</p>
+        <p className="text-sm mb-4" data-testid="conditionals-intro">Select the conditions that must be met for this step to be shown in the workflow:</p>
         
         {/* Display available conditions as checkboxes */}
         {Object.keys(workflowConditions).length > 0 ? (
-          <div className="space-y-3 mb-4">
+          <div className="space-y-3 mb-4" data-testid="workflow-conditions-list">
             {Object.entries(workflowConditions).map(([conditionName, condition]) => (
-              <div key={conditionName} className="flex items-start">
+              <div key={conditionName} className="flex items-start" data-testid={`condition-item-${conditionName}`} data-condition-name={conditionName}>
                 <input
                   id={`condition-${conditionName}`}
                   type="checkbox"
                   checked={formData?.workflowCondition && workflowConditionArray.includes(conditionName)}
                   onChange={() => handleConditionSelect(conditionName)}
                   className="h-4 w-4 mt-1 text-primary focus:ring-primary border-gray-300 rounded"
+                  data-testid={`condition-checkbox-${conditionName}`}
+                  data-action="toggle-condition"
+                  data-condition-name={conditionName}
                 />
                 <label htmlFor={`condition-${conditionName}`} className="ml-2 block">
                   <div className="font-medium text-sm">{conditionName}</div>
@@ -95,7 +100,7 @@ const ConditionalSection = ({
             ))}
           </div>
         ) : (
-          <div className="p-4 bg-gray-100 border border-dashed border-gray-300 rounded-md mb-4 text-center">
+          <div className="p-4 bg-gray-100 border border-dashed border-gray-300 rounded-md mb-4 text-center" data-testid="no-conditions-message">
             <p className="text-gray-500 text-sm">No workflow conditions available. Create your first condition below.</p>
           </div>
         )}
@@ -116,6 +121,8 @@ const ConditionalSection = ({
             onManageWorkflowConditions(newCondition);
           }}
           className="w-full px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-md text-sm flex items-center justify-center"
+          data-testid="add-condition-button"
+          data-action="add-condition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />

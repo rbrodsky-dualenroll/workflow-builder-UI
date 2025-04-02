@@ -29,6 +29,7 @@ const CollapsibleCard = ({
           className="focus:outline-none"
           aria-expanded={!isCollapsed}
           aria-label={isCollapsed ? "Expand section" : "Collapse section"}
+          data-testid={id ? `${id}-expander` : 'collapsible-expander'}
         >
           {/* Simple arrow that changes direction based on collapsed state */}
           <svg 

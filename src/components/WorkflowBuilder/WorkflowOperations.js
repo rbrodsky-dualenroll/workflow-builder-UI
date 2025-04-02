@@ -1,24 +1,74 @@
+import { generateUniqueId } from '../../utils/idUtils';
+
 /**
  * Functions for workflow step operations
  */
 
 /**
  * Add a new step to the workflow
+ * If it's a feedback step, insert it immediately after the parent step
  */
 export const addStep = (stepData, activeScenarioId, setScenarios) => {
   // If the step doesn't have an ID yet, generate one
   const newStep = {
-    id: stepData.id || Date.now().toString(),
+    id: stepData.id || generateUniqueId('step_'),
     ...stepData
   };
   
-  setScenarios(prevScenarios => ({
-    ...prevScenarios,
-    [activeScenarioId]: {
-      ...prevScenarios[activeScenarioId],
-      steps: [...prevScenarios[activeScenarioId].steps, newStep]
+  setScenarios(prevScenarios => {
+    const currentSteps = [...prevScenarios[activeScenarioId].steps];
+    
+    // Check if this is a feedback step
+    if (newStep.isFeedbackStep && newStep.feedbackRelationship) {
+      const parentStepId = newStep.feedbackRelationship.parentStepId;
+      
+      // Find the parent step index
+      const parentIndex = currentSteps.findIndex(step => step.id === parentStepId);
+      
+      if (parentIndex !== -1) {
+        // Find the last feedback step for this parent, if any
+        let insertIndex = parentIndex + 1;
+        
+        // Find all feedback steps for this parent
+        const feedbackSteps = currentSteps.filter(step => 
+          step.isFeedbackStep && 
+          step.feedbackRelationship && 
+          step.feedbackRelationship.parentStepId === parentStepId
+        );
+        
+        // If there are existing feedback steps, insert after the last one
+        if (feedbackSteps.length > 0) {
+          // Get the indices of all feedback steps for this parent
+          const feedbackIndices = feedbackSteps.map(step => 
+            currentSteps.findIndex(s => s.id === step.id)
+          );
+          
+          // Insert after the last feedback step for this parent
+          insertIndex = Math.max(...feedbackIndices) + 1;
+        }
+        
+        // Insert the new feedback step at the calculated position
+        currentSteps.splice(insertIndex, 0, newStep);
+        
+        return {
+          ...prevScenarios,
+          [activeScenarioId]: {
+            ...prevScenarios[activeScenarioId],
+            steps: currentSteps
+          }
+        };
+      }
     }
-  }));
+    
+    // If not a feedback step or parent not found, add to the end as before
+    return {
+      ...prevScenarios,
+      [activeScenarioId]: {
+        ...prevScenarios[activeScenarioId],
+        steps: [...currentSteps, newStep]
+      }
+    };
+  });
   
   return newStep;
 };
@@ -27,51 +77,73 @@ export const addStep = (stepData, activeScenarioId, setScenarios) => {
  * Update an existing step
  */
 export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, setScenarios) => {
-  // Get the step we're editing
-  const step = scenarios[activeScenarioId].steps.find(s => s.id === editingStep);
-  
-  if (activeScenarioId === 'main') {
-    // Updating a step in the main workflow - update it in all scenarios
-    const updatedScenarios = { ...scenarios };
+  setScenarios(prevScenarios => {
+    const updatedScenarios = { ...prevScenarios };
     
-    // Update in main scenario
-    updatedScenarios.main.steps = updatedScenarios.main.steps.map(s => 
-      s.id === editingStep ? { ...s, ...stepData } : s
+    // Find the step we're editing
+    const stepToUpdate = updatedScenarios[activeScenarioId].steps.find(s => s.id === editingStep);
+    
+    if (!stepToUpdate) {
+      console.error('Step not found for update');
+      return prevScenarios;
+    }
+    
+    // Merge new data WITHOUT changing the ID
+    const updatedStep = {
+      ...stepToUpdate,  // Preserve the original step
+      ...stepData,      // Merge in new data
+      id: stepToUpdate.id  // EXPLICITLY keep the original ID
+    };
+    
+    // Update the step in the scenario's steps array
+    updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.map(
+      step => step.id === editingStep ? updatedStep : step
     );
     
-    // Update in other scenarios if they have the same step (not already customized)
-    Object.keys(updatedScenarios).forEach(scenarioId => {
-      if (scenarioId === 'main') return;
-      
-      updatedScenarios[scenarioId].steps = updatedScenarios[scenarioId].steps.map(s => 
-        s.id === editingStep ? { ...s, ...stepData } : s
-      );
-    });
-    
-    setScenarios(updatedScenarios);
-  } else {
-    // Updating a step in a conditional scenario - create a new conditional version
-    const newStepId = `${editingStep}_${activeScenarioId}`;
-    const updatedStep = { ...stepData, id: newStepId, originalStepId: editingStep };
-    
-    // Replace the step in this scenario only
-    setScenarios(prevScenarios => {
-      const scenarioSteps = [...prevScenarios[activeScenarioId].steps];
-      const stepIndex = scenarioSteps.findIndex(s => s.id === editingStep);
-      
-      if (stepIndex !== -1) {
-        scenarioSteps[stepIndex] = updatedStep;
-      }
-      
-      return {
-        ...prevScenarios,
-        [activeScenarioId]: {
-          ...prevScenarios[activeScenarioId],
-          steps: scenarioSteps
+    // Update child steps if this is a parent step with feedback children
+    if (updatedStep.feedbackLoops && Object.keys(updatedStep.feedbackLoops).length > 0) {
+      // Find any feedback steps that reference this parent step
+      updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.map(step => {
+        if (step.isFeedbackStep && 
+            step.feedbackRelationship && 
+            step.feedbackRelationship.parentStepId === editingStep) {
+          // Update the feedback relationship to ensure it maintains the correct parent ID
+          return {
+            ...step,
+            feedbackRelationship: {
+              ...step.feedbackRelationship,
+              parentStepTitle: updatedStep.title || step.feedbackRelationship.parentStepTitle
+            }
+          };
         }
-      };
-    });
-  }
+        return step;
+      });
+    }
+    
+    // If in main scenario, propagate changes to other scenarios that haven't been customized
+    if (activeScenarioId === 'main') {
+      Object.keys(updatedScenarios).forEach(scenarioId => {
+        if (scenarioId === 'main') return;
+        
+        // Only update if the step hasn't been customized in this scenario
+        updatedScenarios[scenarioId].steps = updatedScenarios[scenarioId].steps.map(
+          step => {
+            // Check if this step is the original or a direct copy of the main scenario step
+            if (step.id === editingStep || step.originalStepId === editingStep) {
+              return { 
+                ...step, 
+                ...stepData,
+                id: step.id  // PRESERVE ORIGINAL ID
+              };
+            }
+            return step;
+          }
+        );
+      });
+    }
+    
+    return updatedScenarios;
+  });
 };
 
 /**
@@ -190,24 +262,80 @@ export const deleteFeedbackStep = (stepId, activeScenarioId, setScenarios) => {
 };
 
 /**
- * Move a step from one position to another in the workflow
+ * Move a step from one position to another in the workflow,
+ * ensuring that feedback loop children steps move with their parent
  */
 export const moveStep = (dragIndex, hoverIndex, activeScenarioId, setScenarios) => {
   setScenarios(prevScenarios => {
-    const currentSteps = prevScenarios[activeScenarioId].steps;
-    const draggedStep = {...currentSteps[dragIndex]};
-    const updatedSteps = [...currentSteps];
+    const currentSteps = [...prevScenarios[activeScenarioId].steps];
     
-    // Remove the dragged item
-    updatedSteps.splice(dragIndex, 1);
-    // Insert it at the new position
-    updatedSteps.splice(hoverIndex, 0, draggedStep);
+    // Find the step being dragged
+    const draggedStep = currentSteps[dragIndex];
+    
+    // Find all child steps for this parent (if any)
+    const childSteps = currentSteps.filter(
+      step => step.feedbackRelationship && 
+              step.feedbackRelationship.parentStepId === draggedStep.id
+    );
+    
+    // If no child steps, perform a simple move
+    if (childSteps.length === 0) {
+      const updatedSteps = [...currentSteps];
+      updatedSteps.splice(dragIndex, 1);
+      updatedSteps.splice(hoverIndex, 0, draggedStep);
+      
+      return {
+        ...prevScenarios,
+        [activeScenarioId]: {
+          ...prevScenarios[activeScenarioId],
+          steps: updatedSteps
+        }
+      };
+    }
+    
+    // With child steps, move the entire group
+    // Remove the dragged step and its children
+    const filteredSteps = currentSteps.filter(
+      step => step.id !== draggedStep.id && 
+              !childSteps.some(child => child.id === step.id)
+    );
+    
+    // Calculate the correct insertion index
+    let insertIndex = hoverIndex;
+    
+    // Adjust insertion index if moving downward
+    if (dragIndex < hoverIndex) {
+      const childCount = childSteps.length;
+      insertIndex -= childCount;
+    }
+    
+    // Insert the parent step first
+    filteredSteps.splice(insertIndex, 0, draggedStep);
+    
+    // Then insert the child steps immediately after
+    const childInsertIndex = insertIndex + 1;
+    
+    // Ensure feedback steps keep their parent reference
+    const updatedChildSteps = childSteps.map(childStep => {
+      if (childStep.isFeedbackStep && childStep.feedbackRelationship) {
+        return {
+          ...childStep,
+          feedbackRelationship: {
+            ...childStep.feedbackRelationship,
+            parentStepId: draggedStep.id // Explicitly ensure parent ID is maintained
+          }
+        };
+      }
+      return childStep;
+    });
+    
+    filteredSteps.splice(childInsertIndex, 0, ...updatedChildSteps);
     
     return {
       ...prevScenarios,
       [activeScenarioId]: {
         ...prevScenarios[activeScenarioId],
-        steps: updatedSteps
+        steps: filteredSteps
       }
     };
   });
