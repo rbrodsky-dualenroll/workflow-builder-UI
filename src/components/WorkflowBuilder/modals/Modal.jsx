@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 /**
  * Reusable modal component
@@ -31,13 +31,25 @@ const Modal = ({
       default: return 'max-w-2xl';
     }
   };
+  
+  // Prevent scrolling on the body when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isOpen]);
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]" 
       onClick={handleBackdropClick}
       data-testid="modal-backdrop"
       data-modal-size={size}
+      style={{ zIndex: 1000 }} // Ensure a high z-index
     >
       <div 
         className={`bg-white rounded-lg ${getWidth()} w-5/6 max-h-[90vh] overflow-y-auto`}

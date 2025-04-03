@@ -5,7 +5,7 @@
 /**
  * Create a new scenario based on an existing scenario
  */
-export const createScenario = (scenarios, baseScenarioId, scenarioName) => {
+export const createScenario = (scenarios, baseScenarioId, scenarioName, condition = '') => {
   const baseScenario = scenarios[baseScenarioId] || scenarios.main;
   const newScenarioId = `scenario_${Date.now()}`;
   
@@ -14,7 +14,8 @@ export const createScenario = (scenarios, baseScenarioId, scenarioName) => {
     [newScenarioId]: {
       id: newScenarioId,
       name: scenarioName,
-      steps: [...baseScenario.steps]
+      steps: [...baseScenario.steps],
+      condition: condition // Store the scenario condition
     }
   };
 };
@@ -55,7 +56,10 @@ export const getMergedWorkflow = (scenarios) => {
         return {
           ...step,
           scenarioId,
-          conditional: true
+          scenarioName: scenario.name, // Add the human-readable scenario name
+          scenarioCondition: scenario.condition, // Add scenario condition
+          conditional: true,
+          workflowCondition: step.workflowCondition || scenario.condition // Use step condition or inherit from scenario
         };
       }
       return null;

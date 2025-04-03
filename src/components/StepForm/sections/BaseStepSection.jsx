@@ -65,7 +65,7 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
           onChange={handleChange}
           options={subworkflowOptions}
           error={errors.subworkflow}
-          data-testid="step-form-subworkflow"
+          data-testid="field-subworkflow"
         />
       </div>
 
@@ -103,7 +103,7 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
           required
           disabled={isSystemOnlyStep}
           helpText={isSystemOnlyStep ? 'This step type always uses System role' : ''}
-          data-testid="step-form-role"
+          data-testid="field-role"
         />
       </div>
 

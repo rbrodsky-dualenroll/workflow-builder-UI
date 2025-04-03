@@ -14,6 +14,7 @@ const useModalState = () => {
   // New scenario form state
   const [newScenarioName, setNewScenarioName] = useState('');
   const [baseScenarioId, setBaseScenarioId] = useState('main');
+  const [scenarioCondition, setScenarioCondition] = useState('');
 
   return {
     // Modal states
@@ -32,7 +33,9 @@ const useModalState = () => {
     newScenarioName,
     setNewScenarioName,
     baseScenarioId,
-    setBaseScenarioId
+    setBaseScenarioId,
+    scenarioCondition,
+    setScenarioCondition
   };
 };
 

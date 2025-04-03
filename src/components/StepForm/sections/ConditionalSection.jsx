@@ -68,8 +68,8 @@ const ConditionalSection = ({
     >
       {scenarioInfo && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md" data-testid="scenario-info">
-          <h3 className="text-sm font-medium text-blue-800 mb-1">Conditional Scenario: {scenarioInfo.id}</h3>
-          <p className="text-xs text-blue-700">This step is part of the "{scenarioInfo.id}" scenario.</p>
+          <h3 className="text-sm font-medium text-blue-800 mb-1">Conditional Scenario: {scenarioInfo.name || scenarioInfo.id}</h3>
+          <p className="text-xs text-blue-700">This step is part of the "{scenarioInfo.name || scenarioInfo.id}" scenario.</p>
         </div>
       )}
             <div className="mb-4">

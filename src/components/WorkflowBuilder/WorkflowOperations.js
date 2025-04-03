@@ -61,13 +61,29 @@ export const addStep = (stepData, activeScenarioId, setScenarios) => {
     }
     
     // If not a feedback step or parent not found, add to the end as before
-    return {
-      ...prevScenarios,
-      [activeScenarioId]: {
-        ...prevScenarios[activeScenarioId],
-        steps: [...currentSteps, newStep]
-      }
-    };
+    // If this is a scenario step, ensure it gets the scenario condition
+    if (activeScenarioId !== 'main' && !newStep.isFeedbackStep) {
+    // Get the scenario condition and name
+    const scenarioCondition = prevScenarios[activeScenarioId].condition;
+    const scenarioName = prevScenarios[activeScenarioId].name;
+    
+    // Make sure step has the right conditional settings
+    if (!newStep.workflowCondition || newStep.workflowCondition.length === 0) {
+    newStep.conditional = true;
+    newStep.workflowCondition = [scenarioCondition];
+    }
+      
+    // Always set the scenario name for display purposes
+    newStep.scenarioName = scenarioName;
+  }
+  
+  return {
+    ...prevScenarios,
+    [activeScenarioId]: {
+      ...prevScenarios[activeScenarioId],
+      steps: [...currentSteps, newStep]
+    }
+  };
   });
   
   return newStep;

@@ -26,6 +26,7 @@ const ConfirmationModal = ({
             type="button" 
             onClick={onClose}
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md"
+            data-testid="confirmation-cancel-button"
           >
             {cancelButtonText}
           </button>
@@ -36,6 +37,7 @@ const ConfirmationModal = ({
               onClose();
             }}
             className={`px-4 py-2 ${confirmButtonClass} text-white rounded-md`}
+            data-testid="confirmation-confirm-button"
           >
             {confirmButtonText}
           </button>

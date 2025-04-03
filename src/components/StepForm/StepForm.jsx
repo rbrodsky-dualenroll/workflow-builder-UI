@@ -21,10 +21,23 @@ import {
   PendingCompletionOfPerYearStepsSection
 } from './sections/SpecializedStepSections';
 
-const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedbackStep, workflowConditions = {}, onManageWorkflowConditions }) => {
+const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedbackStep, workflowConditions = {}, onManageWorkflowConditions, scenarioCondition }) => {
   // Display scenario info if in a scenario other than main
   const isConditionalScenario = scenarioId && scenarioId !== 'main';
-  const scenarioInfo = isConditionalScenario ? { id: scenarioId } : null;
+  
+  // Find scenario name in workflowConditions
+  let scenarioName = scenarioId;
+  // If scenarioCondition is provided, use it for new steps
+  const scenarioConditionValue = scenarioCondition || '';
+  
+  // For display purposes, we want to show the human-readable scenario name
+  Object.entries(workflowConditions).forEach(([name, condition]) => {
+    if (name === scenarioConditionValue) {
+      scenarioName = `${scenarioId} (${name})`;
+    }
+  });
+  
+  const scenarioInfo = isConditionalScenario ? { id: scenarioId, name: scenarioName } : null;
   
   // Form errors
   const [errors, setErrors] = useState({});
@@ -97,14 +110,19 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
   // Effect for conditional scenarios
   useEffect(() => {
     // If we're in a conditional scenario, set the conditional flag by default for new steps
+    // and automatically add the scenario's condition
     if (isConditionalScenario && !initialData.id) {
+      // For new steps in a scenario, automatically set conditional and inherit the scenario condition
+      const workflowCondition = scenarioConditionValue ? [scenarioConditionValue] : [];
+      
       // Force a re-render by creating a brand new object
       setFormData(prev => ({
         ...prev,
-        conditional: true
+        conditional: true,
+        workflowCondition: workflowCondition
       }));
     }
-  }, [isConditionalScenario, scenarioId, initialData]);
+  }, [isConditionalScenario, scenarioId, initialData, scenarioConditionValue]);
 
   // Effect to update form data when initialData changes
   useEffect(() => {

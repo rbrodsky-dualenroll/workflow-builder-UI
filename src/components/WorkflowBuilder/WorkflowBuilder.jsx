@@ -57,7 +57,9 @@ const WorkflowBuilder = () => {
     newScenarioName,
     setNewScenarioName,
     baseScenarioId,
-    setBaseScenarioId
+    setBaseScenarioId,
+    scenarioCondition,
+    setScenarioCondition
   } = useModalState();
   
   // Collect usage stats for conditions
@@ -93,6 +95,11 @@ const WorkflowBuilder = () => {
   const handleManageWorkflowConditions = (condition) => {
     setConditionToAdd(condition);
     setShowConditionModal(true);
+  };
+  
+  // Handler for managing workflow conditions from the scenario modal
+  const handleManageWorkflowConditionsFromScenario = (updatedConditions) => {
+    setWorkflowConditions(updatedConditions);
   };
   
   // Handler for adding a new step
@@ -131,7 +138,8 @@ const WorkflowBuilder = () => {
     const updatedScenarios = createScenario(
       scenarios, 
       baseScenarioId, 
-      newScenarioName
+      newScenarioName,
+      scenarioCondition // Pass the scenario condition
     );
     
     setScenarios(updatedScenarios);
@@ -140,6 +148,7 @@ const WorkflowBuilder = () => {
     const newScenarioId = `scenario_${Date.now()}`;
     
     setNewScenarioName('');
+    setScenarioCondition(''); // Reset scenario condition
     setShowScenarioModal(false);
     setActiveScenarioId(newScenarioId); // Switch to the new scenario
     setMasterView(false);
@@ -222,6 +231,7 @@ const WorkflowBuilder = () => {
           setMasterView={setMasterView}
           onAddScenario={() => setShowScenarioModal(true)}
           onDeleteScenario={handleDeleteScenario}
+          workflowConditions={workflowConditions}
         />
 
         {/* Workflow content (steps) */}
@@ -241,6 +251,7 @@ const WorkflowBuilder = () => {
           title="Add New Step"
           onSubmit={handleAddStep}
           scenarioId={activeScenarioId}
+          scenarioCondition={activeScenarioId !== 'main' ? scenarios[activeScenarioId]?.condition : ''}
           onAddFeedbackStep={handleAddStep}
           workflowConditions={workflowConditions}
           onManageWorkflowConditions={handleManageWorkflowConditions}
@@ -285,6 +296,10 @@ const WorkflowBuilder = () => {
           setBaseScenarioId={setBaseScenarioId}
           scenarios={scenarios}
           onCreate={handleCreateScenario}
+          workflowConditions={workflowConditions}
+          onManageWorkflowConditions={handleManageWorkflowConditionsFromScenario}
+          scenarioCondition={scenarioCondition}
+          setScenarioCondition={setScenarioCondition}
         />
 
         {/* Save Workflow Modal */}

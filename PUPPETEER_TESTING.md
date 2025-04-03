@@ -24,6 +24,30 @@ All major components have been enhanced with the following types of data attribu
 | New Workflow Button | `[data-testid="new-workflow-button"]` | Button to create a new workflow |
 | Workflow Steps Container | `[data-testid="workflow-steps-container"]` | Container for all workflow steps |
 | Empty Workflow Message | `[data-testid="empty-workflow"]` | Message shown when no steps exist |
+## Scenario System
+
+| Element | Selector | Description |
+|---------|----------|-------------|
+| New Scenario Button | `[data-testid="new-scenario-button"]` | Button to create a new scenario |
+| Manage Scenarios Button | `[data-testid="manage-scenarios-button"]` | Button to open scenario management modal |
+| Master View Button | `[data-testid="master-view-button"]` | Button to toggle master view |
+| Scenario Tab | `[data-testid^="scenario-tab-"]` | Tab for a specific scenario |
+| Main Scenario Tab | `[data-testid="scenario-tab-main"]` | Tab for the main scenario |
+| Scenario Condition Badge | `[data-testid^="scenario-condition-badge-"]` | Badge showing the scenario condition |
+
+## Scenario Modal
+
+| Element | Selector | Description |
+|---------|----------|-------------|
+| Scenario Name Input | `[data-testid="scenario-name-input"]` | Input field for the scenario name |
+| Base Scenario Select | `[data-testid="base-scenario-select"]` | Dropdown to select the base scenario |
+| Cancel Button | `[data-testid="scenario-modal-cancel-button"]` | Button to cancel scenario creation |
+| Create Button | `[data-testid="scenario-modal-create-button"]` | Button to create the scenario |
+| Scenario Conditions Section | `[data-testid="scenario-conditions-section"]` | Container for scenario conditions |
+| Scenario Conditions List | `[data-testid="scenario-conditions-list"]` | List of available scenario conditions |
+| Scenario Condition Item | `[data-testid^="scenario-condition-item-"]` | A specific condition item in the list |
+| Scenario Condition Radio | `[data-testid^="scenario-condition-radio-"]` | Radio button to select a condition |
+| Add Scenario Condition Button | `[data-testid="add-scenario-condition-button"]` | Button to add a new condition |
 
 ## Workflow Steps
 
@@ -54,6 +78,15 @@ All major components have been enhanced with the following types of data attribu
 | Modal Backdrop | `[data-testid="modal-backdrop"]` | The overlay behind a modal |
 | Modal Content | `[data-testid="modal-content"]` | The modal dialog content |
 | Modal Close Button | `[data-testid="modal-close-button"]` | Button to close a modal |
+
+## Scenario Modal
+
+| Element | Selector | Description |
+|---------|----------|-------------|
+| Scenario Name Input | `[data-testid="scenario-name-input"]` | Input field for the scenario name |
+| Base Scenario Select | `[data-testid="base-scenario-select"]` | Dropdown to select the base scenario |
+| Cancel Button | `[data-testid="scenario-modal-cancel-button"]` | Button to cancel scenario creation |
+| Create Button | `[data-testid="scenario-modal-create-button"]` | Button to create the scenario |
 
 ## Puppeteer Testing Examples
 
@@ -184,7 +217,91 @@ const validationResult = await validateFeedbackGrouping();
 console.log('Validation result:', validationResult);
 ```
 
-### 5. Creating a Test Workflow with Parent and Feedback Steps
+### 5. Working with Scenarios
+
+```javascript
+// Click the New Scenario button
+await page.click('[data-testid="new-scenario-button"]');
+
+// Wait for the scenario modal to appear
+await page.waitForSelector('[data-testid="scenario-name-input"]');
+
+// Fill in the scenario name
+await page.type('[data-testid="scenario-name-input"]', 'Homeschool Students');
+
+// Select the base scenario
+await page.select('[data-testid="base-scenario-select"]', 'main');
+
+// Create the scenario
+await page.click('[data-testid="scenario-modal-create-button"]');
+
+// Wait for the scenario tab to appear
+await page.waitForSelector('[data-testid^="scenario-tab-"]');
+
+// Click on a specific scenario tab
+await page.click('[data-testid="scenario-tab-main"]');
+
+// Toggle Master View
+await page.click('[data-testid="master-view-button"]');
+
+// Open the Manage Scenarios modal
+await page.click('[data-testid="manage-scenarios-button"]');
+
+// Wait for the modal to appear
+await page.waitForSelector('[data-testid^="delete-scenario-"]');
+
+// Delete a specific scenario
+await page.click('[data-testid="delete-scenario-scenario_1234"]');
+
+// Confirm the deletion in the confirmation dialog
+await page.waitForSelector('[data-testid="confirmation-confirm-button"]');
+await page.click('[data-testid="confirmation-confirm-button"]');
+
+// Alternatively, you could cancel the deletion using
+// await page.click('[data-testid="confirmation-cancel-button"]');
+
+// Close the manage scenarios modal using the Close button
+await page.click('[data-testid="manage-scenarios-close-button"]');
+
+// Alternatively, you could close the modal using the X button
+// await page.click('[data-testid="modal-close-button"]');
+```
+
+### 6. Working with Role and Subworkflow Fields
+
+```javascript
+// Open Add Step modal
+await page.click('[data-testid="add-step-button"]');
+
+// Select a role
+await page.select('[data-testid="field-role"]', 'high_school');
+
+// Select a subworkflow
+await page.select('[data-testid="field-subworkflow"]', 'per_course');
+```
+
+### 7. Working with Confirmation Dialogs
+
+```javascript
+// Example of handling a confirmation dialog, such as when deleting a scenario
+
+// First trigger an action that will show a confirmation dialog
+await page.click('[data-testid^="delete-scenario-"]');
+
+// Wait for the confirmation dialog to appear
+await page.waitForSelector('[data-testid="confirmation-confirm-button"]');
+
+// Take a screenshot of the confirmation dialog
+await page.screenshot({ path: 'confirmation-dialog.png' });
+
+// To confirm the action
+await page.click('[data-testid="confirmation-confirm-button"]');
+
+// Or to cancel the action
+// await page.click('[data-testid="confirmation-cancel-button"]');
+```
+
+### 8. Creating a Test Workflow with Parent and Feedback Steps
 
 ```javascript
 // Example function to create a test workflow with feedback steps
@@ -410,7 +527,17 @@ await page.click('[data-testid="crn-field-checkbox-time"]');
 | Modal Save Button | `[data-testid="modal-save-button"]` | Button to save the step |
 | Modal Cancel Button | `[data-testid="modal-cancel-button"]` | Button to cancel step creation/editing |
 
-### Base Step Form Fields
+### Manage Scenarios Modal
+
+| Element | Selector | Description |
+|---------|----------|-------------|
+| Manage Scenarios Modal Close Button | `[data-testid="manage-scenarios-close-button"]` | Button to close the manage scenarios modal |
+| Delete Scenario Button | `[data-testid^="delete-scenario-"]` | Button to delete a specific scenario |
+| Confirmation Cancel Button | `[data-testid="confirmation-cancel-button"]` | Button to cancel deletion in confirmation dialog |
+| Confirmation Confirm Button | `[data-testid="confirmation-confirm-button"]` | Button to confirm deletion in confirmation dialog |
+| Modal Close Button | `[data-testid="modal-close-button"]` | X button to close any modal dialog |
+
+## Base Step Form Fields
 | Element | Selector | Description |
 |---------|----------|-------------|
 | Step Type Select | `[data-testid="field-stepType"]` | Select step type dropdown |

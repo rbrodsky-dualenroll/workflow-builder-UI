@@ -98,7 +98,7 @@ const StepHeader = ({
         
         {isConditionalStep && (
           <div className="mt-1 text-xs text-blue-600 pl-9">
-            <span className="font-medium">Scenario:</span> {step.scenarioId}
+            <span className="font-medium">Scenario:</span> {step.scenarioName || step.scenarioId}
           </div>
         )}
         
