@@ -63,7 +63,8 @@ export const createFeedbackStep = ({
       feedbackId: feedbackId,
       parentStepId: parentStepId,
       parentStepTitle: parentStepTitle,
-      requestingRole: requestingRole
+      requestingRole: requestingRole,
+      recipientRole: recipientRole // Adding this for better consistency and symmetry
     },
     
     // Default empty displays and other fields

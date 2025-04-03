@@ -100,6 +100,38 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
       step => step.id === editingStep ? updatedStep : step
     );
     
+    // If this is a feedback step, update the parent's feedback loops with the new role
+    if (updatedStep.isFeedbackStep && updatedStep.feedbackRelationship) {
+      const parentStepId = updatedStep.feedbackRelationship.parentStepId;
+      const feedbackId = updatedStep.feedbackRelationship.feedbackId;
+      
+      // Find the parent step
+      const parentIndex = updatedScenarios[activeScenarioId].steps.findIndex(step => step.id === parentStepId);
+      
+      if (parentIndex !== -1) {
+        const parentStep = updatedScenarios[activeScenarioId].steps[parentIndex];
+        
+        // Update the feedback loop in the parent with the new recipient role
+        if (parentStep.feedbackLoops && parentStep.feedbackLoops[feedbackId]) {
+          // Create updated feedback loops with the new recipient role
+          const updatedFeedbackLoops = {
+            ...parentStep.feedbackLoops,
+            [feedbackId]: {
+              ...parentStep.feedbackLoops[feedbackId],
+              recipient: updatedStep.role, // Update recipient to match the step's role
+              nextStep: updatedStep.title   // Update next step to match the step's title
+            }
+          };
+          
+          // Update the parent step with the new feedback loops
+          updatedScenarios[activeScenarioId].steps[parentIndex] = {
+            ...parentStep,
+            feedbackLoops: updatedFeedbackLoops
+          };
+        }
+      }
+    }
+    
     // Update child steps if this is a parent step with feedback children
     if (updatedStep.feedbackLoops && Object.keys(updatedStep.feedbackLoops).length > 0) {
       // Find any feedback steps that reference this parent step
@@ -107,12 +139,13 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
         if (step.isFeedbackStep && 
             step.feedbackRelationship && 
             step.feedbackRelationship.parentStepId === editingStep) {
-          // Update the feedback relationship to ensure it maintains the correct parent ID
+          // Update the feedback relationship to ensure it maintains the correct parent info
           return {
             ...step,
             feedbackRelationship: {
               ...step.feedbackRelationship,
-              parentStepTitle: updatedStep.title || step.feedbackRelationship.parentStepTitle
+              parentStepTitle: updatedStep.title || step.feedbackRelationship.parentStepTitle,
+              requestingRole: updatedStep.role || step.feedbackRelationship.requestingRole
             }
           };
         }
@@ -136,6 +169,22 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
                 id: step.id  // PRESERVE ORIGINAL ID
               };
             }
+            
+            // If this is a feedback step whose parent is being updated
+            if (step.isFeedbackStep && 
+                step.feedbackRelationship && 
+                (step.feedbackRelationship.parentStepId === editingStep ||
+                 step.feedbackRelationship.parentStepId === stepData.id)) {
+              return {
+                ...step,
+                feedbackRelationship: {
+                  ...step.feedbackRelationship,
+                  parentStepTitle: stepData.title || step.feedbackRelationship.parentStepTitle,
+                  requestingRole: stepData.role || step.feedbackRelationship.requestingRole
+                }
+              };
+            }
+            
             return step;
           }
         );
