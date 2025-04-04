@@ -20,7 +20,7 @@ import useModalState from './hooks/useModalState';
 
 // Import operations
 import { addStep, updateStep, deleteStep, deleteFeedbackStep, moveStep } from './WorkflowOperations';
-import { createScenario, deleteScenario, getMergedWorkflow } from './ScenarioOperations';
+import { createScenario, deleteScenario, updateScenario, getMergedWorkflow } from './ScenarioOperations';
 import { saveWorkflow, importWorkflow } from './FileOperations';
 
 const WorkflowBuilder = () => {
@@ -165,6 +165,14 @@ const WorkflowBuilder = () => {
       setActiveScenarioId('main');
     }
   };
+  
+  // Handler for updating a scenario
+  const handleUpdateScenario = (updatedScenario) => {
+    if (!updatedScenario || !updatedScenario.id) return;
+    
+    const updatedScenarios = updateScenario(scenarios, updatedScenario);
+    setScenarios(updatedScenarios);
+  };
 
   // Handler for saving the workflow
   const handleSaveWorkflow = () => {
@@ -231,6 +239,7 @@ const WorkflowBuilder = () => {
           setMasterView={setMasterView}
           onAddScenario={() => setShowScenarioModal(true)}
           onDeleteScenario={handleDeleteScenario}
+          onUpdateScenario={handleUpdateScenario}
           workflowConditions={workflowConditions}
         />
 

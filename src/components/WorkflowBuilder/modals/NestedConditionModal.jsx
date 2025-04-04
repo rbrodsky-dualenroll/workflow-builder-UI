@@ -109,7 +109,7 @@ const NestedConditionModal = ({
               onChange={(e) => setNewConditionName(e.target.value)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               placeholder="e.g., student_above_18, high_school_payment_policy"
-              data-testid="condition-name-input"
+              data-testid="scenario-condition-name-input"
             />
             <p className="text-xs text-gray-500 mt-1">
               This name will be used as the workflow field that gets set when the condition is true.
@@ -133,7 +133,7 @@ const NestedConditionModal = ({
               }}
               className={`px-4 py-2 ${isValidCondition ? 'bg-primary hover:bg-primary-600' : 'bg-gray-300 cursor-not-allowed'} text-white rounded-md text-sm ml-2`}
               disabled={!isValidCondition}
-              data-testid="save-condition-button"
+              data-testid="scenario-condition-save-button"
             >
               Save Condition
             </button>
@@ -141,7 +141,7 @@ const NestedConditionModal = ({
               type="button"
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
-              data-testid="cancel-condition-button"
+              data-testid="scenario-condition-cancel-button"
             >
               Cancel
             </button>

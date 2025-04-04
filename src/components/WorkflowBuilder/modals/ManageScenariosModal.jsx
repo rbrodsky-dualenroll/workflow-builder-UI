@@ -10,6 +10,8 @@ const ManageScenariosModal = ({
   onClose, 
   scenarios,
   onDeleteScenario,
+  onEditScenario,
+  workflowConditions = {}
 }) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [scenarioToDelete, setScenarioToDelete] = useState(null);
@@ -64,17 +66,38 @@ const ManageScenariosModal = ({
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {scenario.id !== 'main' ? (
-                          <button
-                            onClick={() => handleDeleteClick(scenario.id)}
-                            className="text-red-600 hover:text-red-900 mx-1"
-                            data-testid={`delete-scenario-${scenario.id}`}
-                          >
-                            Delete
-                          </button>
-                        ) : (
-                          <span className="text-gray-400">Cannot delete main scenario</span>
-                        )}
+                        <div className="flex justify-end space-x-2">
+                          {scenario.id !== 'main' && (
+                            <>
+                              <button
+                                onClick={() => onEditScenario(scenario.id)}
+                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+                                data-testid={`edit-scenario-${scenario.id}`}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteClick(scenario.id)}
+                                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm ml-2"
+                                data-testid={`delete-scenario-${scenario.id}`}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                          {scenario.id === 'main' && (
+                            <>
+                              <button
+                                onClick={() => onEditScenario(scenario.id)}
+                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+                                data-testid={`edit-scenario-${scenario.id}`}
+                              >
+                                Edit
+                              </button>
+                              <span className="text-gray-400">Cannot delete main scenario</span>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

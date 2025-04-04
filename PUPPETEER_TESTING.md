@@ -1,6 +1,6 @@
 # Workflow Builder - Puppeteer Testing Guide
 
-This document provides a comprehensive reference for using Puppeteer to test the Workflow Builder application. All components have been updated with consistent data attributes to make testing more reliable and maintainable.
+This document provides a comprehensive reference for using Puppeteer to test the Workflow Builder application. All components have been updated with consistent data attributes to make testing more reliable and maintainable. The application is available locally at localhost:5173 and navigating there should be the starting point of your puppeteer tests.
 
 ## Key Data Attributes
 
@@ -44,9 +44,13 @@ All major components have been enhanced with the following types of data attribu
 | Cancel Button | `[data-testid="scenario-modal-cancel-button"]` | Button to cancel scenario creation |
 | Create Button | `[data-testid="scenario-modal-create-button"]` | Button to create the scenario |
 | Scenario Conditions Section | `[data-testid="scenario-conditions-section"]` | Container for scenario conditions |
+| Scenario Conditions Section Header | `[data-testid="scenario-conditions-section-header"]` | Header of the scenario conditions section |
+| Scenario Conditions Section Expander | `[data-testid="scenario-conditions-section-expander"]` | Button to expand/collapse the scenario conditions section |
 | Scenario Conditions List | `[data-testid="scenario-conditions-list"]` | List of available scenario conditions |
 | Scenario Condition Item | `[data-testid^="scenario-condition-item-"]` | A specific condition item in the list |
 | Scenario Condition Radio | `[data-testid^="scenario-condition-radio-"]` | Radio button to select a condition |
+| Scenario Condition Radio for Specific Condition | `[data-testid="scenario-condition-radio-{conditionName}"]` | Radio button for a specific named condition |
+| No Scenario Conditions Message | `[data-testid="no-scenario-conditions-message"]` | Message shown when no conditions are available |
 | Add Scenario Condition Button | `[data-testid="add-scenario-condition-button"]` | Button to add a new condition |
 
 ## Workflow Steps
@@ -217,6 +221,20 @@ const validationResult = await validateFeedbackGrouping();
 console.log('Validation result:', validationResult);
 ```
 
+## Scenario Condition Form
+
+**Note: This section documents recommended data-testid attributes that need to be implemented**
+
+| Element | Recommended Selector | Description |
+|---------|----------|-------------|
+| Condition Name Input | `[data-testid="scenario-condition-name-input"]` | Input field for the condition name |
+| Entity Dropdown | `[data-testid="scenario-condition-entity-select"]` | Dropdown to select the entity type |
+| Property Dropdown | `[data-testid="scenario-condition-property-select"]` | Dropdown to select the entity property |
+| Comparison Dropdown | `[data-testid="scenario-condition-comparison-select"]` | Dropdown to select the comparison operator |
+| Value Input | `[data-testid="scenario-condition-value-input"]` | Input field for the condition value |
+| Save Condition Button | `[data-testid="scenario-condition-save-button"]` | Button to save the condition |
+| Cancel Condition Button | `[data-testid="scenario-condition-cancel-button"]` | Button to cancel condition creation |
+
 ### 5. Working with Scenarios
 
 ```javascript
@@ -231,6 +249,26 @@ await page.type('[data-testid="scenario-name-input"]', 'Homeschool Students');
 
 // Select the base scenario
 await page.select('[data-testid="base-scenario-select"]', 'main');
+
+// Expand the scenario conditions section (IMPORTANT: Use this selector for the expander)
+await page.click('[data-testid="scenario-conditions-section-expander"]');
+
+// Wait for the conditions content to be visible
+await page.waitForTimeout(500);
+
+// Add a new condition
+await page.click('[data-testid="add-scenario-condition-button"]');
+
+// Fill in the condition name
+await page.type('[data-testid="scenario-condition-name-input"]', 'homeschool_student');
+
+// After adding and saving the condition, select it by its specific testid
+await page.click('[data-testid="scenario-condition-radio-homeschool_student"]');
+
+// Or select a specific condition if you know its name
+// This is a more robust approach than using generic selectors
+const conditionName = 'homeschool_student';
+await page.click(`[data-testid="scenario-condition-radio-${conditionName}"]`);
 
 // Create the scenario
 await page.click('[data-testid="scenario-modal-create-button"]');
@@ -273,11 +311,11 @@ await page.click('[data-testid="manage-scenarios-close-button"]');
 // Open Add Step modal
 await page.click('[data-testid="add-step-button"]');
 
-// Select a role
-await page.select('[data-testid="field-role"]', 'high_school');
+// Select a role (IMPORTANT: Use the exact displayed text value with spaces and proper capitalization)
+await page.select('[data-testid="field-role"]', 'High School');  // NOT 'high_school'
 
-// Select a subworkflow
-await page.select('[data-testid="field-subworkflow"]', 'per_course');
+// Select a subworkflow (IMPORTANT: Use the exact displayed text value with spaces and proper capitalization)
+await page.select('[data-testid="field-subworkflow"]', 'Per Course');  // NOT 'per_course'
 ```
 
 ### 7. Working with Confirmation Dialogs
@@ -359,6 +397,20 @@ const { parentId } = await createTestWorkflow();
 3. **Validate step properties**: Check data attributes to validate step properties
 4. **Use proper timeouts**: Allow time for animations and UI updates
 5. **Test with real scenarios**: Test common user flows like adding, editing, and moving steps
+6. **Use exact values for select options**: When using `page.select()`, always use the exact text value with proper spacing and capitalization, not kebab-case or snake_case variants
+
+## Scenario Tab Management
+
+**Note: This section documents recommended data-testid attributes and features that need to be implemented**
+
+| Element | Recommended Selector | Description |
+|---------|----------|-------------|
+| Named Scenario Tab | `[data-testid="scenario-tab-{scenarioId}"]` | Tab for a specific scenario with consistent ID pattern |
+| Edit Scenario Button | `[data-testid="edit-scenario-{scenarioId}"]` | Button to edit an existing scenario |
+| Edit Scenario Modal | `[data-testid="edit-scenario-modal"]` | Modal for editing scenario properties |
+| Scenario Condition List Item | `[data-testid="scenario-condition-{conditionId}"]` | List item for a specific condition |
+| Edit Condition Button | `[data-testid="edit-condition-{conditionId}"]` | Button to edit a specific condition |
+| Delete Condition Button | `[data-testid="delete-condition-{conditionId}"]` | Button to delete a specific condition |
 
 ## Troubleshooting
 
@@ -370,6 +422,8 @@ If tests are failing, check:
 4. **Browser console**: Check for JavaScript errors in the browser console
 5. **Screenshots**: Take screenshots at key points to debug visual issues
 6. **Scrolling issues**: Elements might be outside the viewport, especially in modals
+7. **Select option values**: Ensure you're using the exact text value from the dropdown, not an assumed value based on naming conventions
+8. **Consistent scenario tab selectors**: When working with named scenario tabs, make sure to use a consistent pattern for the data-testid attributes
 
 ### Scrolling in Modals
 
@@ -386,6 +440,14 @@ await page.screenshot({ path: 'after-scroll.png' });
 ```
 
 This approach is particularly useful for accessing sections like feedback loops that may be at the bottom of a form.
+
+## Known Issues and Limitations
+
+1. **Condition Creation Form**: The form for creating scenario conditions lacks proper data-testid attributes, making it difficult to interact with reliably via Puppeteer. Implementation of the recommended attributes in the "Scenario Condition Form" section is needed.
+
+2. **Scenario Management Limitations**: The current implementation only allows for creating and deleting scenarios, but not editing existing ones (including their conditions). A proper "Edit Scenario" functionality should be implemented as documented in the "Scenario Tab Management" section.
+
+3. **Inconsistent Scenario Tab IDs**: Scenario tabs should follow a consistent naming pattern for their data-testid attributes to enable reliable selection in tests.
 
 ## Additional Notes
 
@@ -537,7 +599,9 @@ await page.click('[data-testid="crn-field-checkbox-time"]');
 | Confirmation Confirm Button | `[data-testid="confirmation-confirm-button"]` | Button to confirm deletion in confirmation dialog |
 | Modal Close Button | `[data-testid="modal-close-button"]` | X button to close any modal dialog |
 
-## Base Step Form Fields
+## Step Form Fields and Select Options
+
+### Base Step Form Fields
 | Element | Selector | Description |
 |---------|----------|-------------|
 | Step Type Select | `[data-testid="field-stepType"]` | Select step type dropdown |
@@ -545,6 +609,29 @@ await page.click('[data-testid="crn-field-checkbox-time"]');
 | Step Title Input | `[data-testid="field-title"]` | Input for step title |
 | Role Select | `[data-testid="field-role"]` | Select role dropdown |
 | Description Input | `textarea[name="description"]` | Textarea for step description (no data-testid) |
+
+### Role Select Options
+The Role select dropdown (`[data-testid="field-role"]`) contains the following options:
+
+| Label | Value | Description |
+|-------|-------|-------------|
+| "College" | `"College"` | Role for college staff or administrators |
+| "High School" | `"High School"` | Role for high school staff or counselors |
+| "Student" | `"Student"` | Role for students |
+| "Parent" | `"Parent"` | Role for parents or guardians |
+| "Approver" | `"Approver"` | Role for general approval authority |
+| "Dean" | `"Dean"` | Role for academic deans |
+| "System" | `"System"` | Role for automated system operations |
+
+### Sub-workflow Select Options
+The Sub-workflow select dropdown (`[data-testid="field-subworkflow"]`) contains the following options:
+
+| Label | Value | Description |
+|-------|-------|-------------|
+| "Once Ever" | `"Once Ever"` | Step occurs only once for a student |
+| "Per Year" | `"Per Year"` | Step occurs once per academic year |
+| "Per Term" | `"Per Term"` | Step occurs once per academic term |
+| "Per Course" | `"Per Course"` | Step occurs for each course registration |
 
 ### Feedback Loop Controls
 

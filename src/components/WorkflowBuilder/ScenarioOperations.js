@@ -34,6 +34,24 @@ export const deleteScenario = (scenarios, scenarioId) => {
 };
 
 /**
+ * Update a scenario's properties (name, condition)
+ */
+export const updateScenario = (scenarios, updatedScenario) => {
+  if (!updatedScenario || !updatedScenario.id || !scenarios[updatedScenario.id]) {
+    return scenarios;
+  }
+  
+  return {
+    ...scenarios,
+    [updatedScenario.id]: {
+      ...scenarios[updatedScenario.id],
+      name: updatedScenario.name,
+      condition: updatedScenario.condition
+    }
+  };
+};
+
+/**
  * Get a merged view of all scenarios for the master view
  */
 export const getMergedWorkflow = (scenarios) => {

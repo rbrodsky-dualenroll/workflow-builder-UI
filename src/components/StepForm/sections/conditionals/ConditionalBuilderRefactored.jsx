@@ -277,6 +277,7 @@ const ConditionalBuilderRefactored = ({
             onChange={handleEntityChange}
             options={entityOptions}
             placeholder="Select entity type"
+            data-testid="scenario-condition-entity-select"
           />
           
           <div>
@@ -288,6 +289,7 @@ const ConditionalBuilderRefactored = ({
               onChange={handlePropertyChange}
               options={currentPropertyOptions}
               disabled={!localCondition.entity}
+              data-testid="scenario-condition-property-select"
             />
             
             {showCustomProperty && (
@@ -298,6 +300,7 @@ const ConditionalBuilderRefactored = ({
                   onChange={handleCustomPropertyChange}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                   placeholder="Enter custom property"
+                  data-testid="scenario-condition-custom-property-input"
                 />
               </div>
             )}
@@ -313,6 +316,7 @@ const ConditionalBuilderRefactored = ({
             value={localCondition.comparison}
             onChange={handleChange}
             options={comparisonOptions}
+            data-testid="scenario-condition-comparison-select"
           />
           
           <FormField
@@ -324,6 +328,7 @@ const ConditionalBuilderRefactored = ({
             disabled={isValueDisabled}
             placeholder={isValueDisabled ? "Not needed" : "e.g., High School, 18, 3.0"}
             helpText={isValueDisabled ? 'Not needed for this comparison' : null}
+            data-testid="scenario-condition-value-input"
           />
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ManageScenariosModal from './modals/ManageScenariosModal';
+import EditScenarioModal from './modals/EditScenarioModal';
 
 /**
  * Component for managing workflow scenarios
@@ -12,9 +13,18 @@ const ScenarioManager = ({
   setMasterView,
   onAddScenario,
   onDeleteScenario,
+  onUpdateScenario,
   workflowConditions = {}
 }) => {
   const [showManageModal, setShowManageModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [scenarioToEdit, setScenarioToEdit] = useState(null);
+  
+  const handleEditScenario = (scenarioId) => {
+    setScenarioToEdit(scenarios[scenarioId]);
+    setShowEditModal(true);
+    setShowManageModal(false); // Close the manage modal if it's open
+  };
   return (
     <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
       <div className="flex justify-between items-center mb-2">
@@ -55,6 +65,25 @@ const ScenarioManager = ({
         onClose={() => setShowManageModal(false)}
         scenarios={scenarios}
         onDeleteScenario={onDeleteScenario}
+        onEditScenario={handleEditScenario}
+        workflowConditions={workflowConditions}
+      />
+      
+      {/* Edit Scenario Modal */}
+      <EditScenarioModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        scenario={scenarioToEdit}
+        workflowConditions={workflowConditions}
+        onUpdateScenario={(updatedScenario) => {
+          onUpdateScenario(updatedScenario);
+          setShowEditModal(false);
+        }}
+        onManageWorkflowConditions={(updatedConditions) => {
+          // Update the conditions in the parent component
+          // This is typically handled by the WorkflowBuilder component
+          // which will need to be updated to support this functionality
+        }}
       />
       </div>
       
