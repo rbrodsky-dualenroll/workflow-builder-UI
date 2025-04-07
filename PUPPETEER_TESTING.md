@@ -223,14 +223,13 @@ console.log('Validation result:', validationResult);
 
 ## Scenario Condition Form
 
-**Note: This section documents recommended data-testid attributes that need to be implemented**
-
-| Element | Recommended Selector | Description |
+| Element | Selector | Description |
 |---------|----------|-------------|
 | Condition Name Input | `[data-testid="scenario-condition-name-input"]` | Input field for the condition name |
-| Entity Dropdown | `[data-testid="scenario-condition-entity-select"]` | Dropdown to select the entity type |
-| Property Dropdown | `[data-testid="scenario-condition-property-select"]` | Dropdown to select the entity property |
-| Comparison Dropdown | `[data-testid="scenario-condition-comparison-select"]` | Dropdown to select the comparison operator |
+| Entity Select | `[data-testid="scenario-condition-entity-select"]` | Dropdown to select the entity type |
+| Property Select | `[data-testid="scenario-condition-property-select"]` | Dropdown to select the entity property |
+| Custom Property Input | `[data-testid="scenario-condition-custom-property-input"]` | Input field for custom property name when "Custom property..." is selected |
+| Comparison Select | `[data-testid="scenario-condition-comparison-select"]` | Dropdown to select the comparison operator |
 | Value Input | `[data-testid="scenario-condition-value-input"]` | Input field for the condition value |
 | Save Condition Button | `[data-testid="scenario-condition-save-button"]` | Button to save the condition |
 | Cancel Condition Button | `[data-testid="scenario-condition-cancel-button"]` | Button to cancel condition creation |
@@ -311,6 +310,12 @@ await page.click('[data-testid="manage-scenarios-close-button"]');
 // Open Add Step modal
 await page.click('[data-testid="add-step-button"]');
 
+// Select a step type (IMPORTANT: Use the exact displayed text value with spaces and proper capitalization)
+await page.select('[data-testid="step-form-type"]', 'Approval');
+
+// Set the step title
+await page.type('[data-testid="step-form-title"]', 'High School Approval');
+
 // Select a role (IMPORTANT: Use the exact displayed text value with spaces and proper capitalization)
 await page.select('[data-testid="field-role"]', 'High School');  // NOT 'high_school'
 
@@ -349,9 +354,9 @@ const createTestWorkflow = async () => {
   await page.waitForSelector('[data-testid="modal-content"]');
   
   // Fill in step details
-  await page.type('[data-testid="field-title"]', 'Parent Step');
-  await page.select('[data-testid="field-stepType"]', 'approval');
-  await page.select('[data-testid="field-role"]', 'college');
+  await page.select('[data-testid="step-form-type"]', 'Approval');
+  await page.type('[data-testid="step-form-title"]', 'Parent Step');
+  await page.select('[data-testid="field-role"]', 'College');
   
   // Submit the form
   await page.click('[data-testid="modal-save-button"]');
@@ -443,11 +448,9 @@ This approach is particularly useful for accessing sections like feedback loops 
 
 ## Known Issues and Limitations
 
-1. **Condition Creation Form**: The form for creating scenario conditions lacks proper data-testid attributes, making it difficult to interact with reliably via Puppeteer. Implementation of the recommended attributes in the "Scenario Condition Form" section is needed.
+1. **Scenario Management Limitations**: The current implementation only allows for creating and deleting scenarios, but not editing existing ones (including their conditions). A proper "Edit Scenario" functionality should be implemented as documented in the "Scenario Tab Management" section.
 
-2. **Scenario Management Limitations**: The current implementation only allows for creating and deleting scenarios, but not editing existing ones (including their conditions). A proper "Edit Scenario" functionality should be implemented as documented in the "Scenario Tab Management" section.
-
-3. **Inconsistent Scenario Tab IDs**: Scenario tabs should follow a consistent naming pattern for their data-testid attributes to enable reliable selection in tests.
+2. **Inconsistent Scenario Tab IDs**: Scenario tabs should follow a consistent naming pattern for their data-testid attributes to enable reliable selection in tests.
 
 ## Additional Notes
 
@@ -539,6 +542,21 @@ console.log('Relationship is correct:', feedbackParentLabel.includes(parentTitle
 | CRN Field Checkbox | `[data-testid^="crn-field-checkbox-"]` | Checkbox to toggle a CRN field |
 | CRN Display Info | `[data-testid="crn-display-info"]` | Information about CRN display |
 
+### File Upload Controls
+
+| Element | Selector | Description |
+|---------|----------|-------------|
+| File Uploads Section | `[data-testid="file-uploads-section"]` | Container for the file uploads section |
+| File Uploads Section Header | `[data-testid="file-uploads-section-header"]` | Header of the file uploads section |
+| File Uploads Section Content | `[data-testid="file-uploads-section-content"]` | Content of the file uploads section |
+| File Label Input | `[data-testid="file-label-input"]` | Input field for file label |
+| File Type Input | `[data-testid="file-type-input"]` | Input field for file type |
+| Add File Button | `[data-testid="add-file-button"]` | Button to add a new file upload |
+| File Upload List | `[data-testid="file-upload-list"]` | Container for all uploaded files |
+| File Upload Item | `[data-testid^="file-upload-item-"]` | A single file upload item |
+| Remove File Button | `[data-testid^="remove-file-"][data-action="remove-file"]` | Button to remove a file upload |
+| No Files Message | `[data-testid="no-files-message"]` | Message shown when no files are added |
+
 ### Testing Collapsible Sections Example
 
 ```javascript
@@ -604,9 +622,9 @@ await page.click('[data-testid="crn-field-checkbox-time"]');
 ### Base Step Form Fields
 | Element | Selector | Description |
 |---------|----------|-------------|
-| Step Type Select | `[data-testid="field-stepType"]` | Select step type dropdown |
+| Step Type Select | `[data-testid="step-form-type"]` | Select step type dropdown |
 | Sub-workflow Select | `[data-testid="field-subworkflow"]` | Select sub-workflow type |
-| Step Title Input | `[data-testid="field-title"]` | Input for step title |
+| Step Title Input | `[data-testid="step-form-title"]` | Input for step title |
 | Role Select | `[data-testid="field-role"]` | Select role dropdown |
 | Description Input | `textarea[name="description"]` | Textarea for step description (no data-testid) |
 
