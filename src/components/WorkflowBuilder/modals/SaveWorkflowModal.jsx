@@ -22,6 +22,7 @@ const SaveWorkflowModal = ({
             value={workflowName}
             onChange={(e) => setWorkflowName(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            data-testid="workflow-name-input"
           />
         </div>
         
@@ -29,12 +30,14 @@ const SaveWorkflowModal = ({
           <button 
             onClick={onClose}
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-800"
+            data-testid="save-workflow-cancel-button"
           >
             Cancel
           </button>
           <button 
             onClick={onSave}
             className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded"
+            data-testid="save-workflow-confirm-button"
           >
             Save
           </button>

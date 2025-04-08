@@ -13,6 +13,7 @@ const StepHeader = ({
   isExpanded, 
   setIsExpanded,
   isConditionalStep,
+  hasWorkflowConditions,
   isFeedbackStep 
 }) => {
   const getSubworkflowBadge = () => {
@@ -75,7 +76,7 @@ const StepHeader = ({
             
             {isConditionalStep && (
               <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">
-                Conditional
+                Scenario Step
               </span>
             )}
             

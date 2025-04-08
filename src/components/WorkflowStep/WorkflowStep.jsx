@@ -27,7 +27,10 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Check if this step is part of a conditional scenario in master view
-  const isConditionalStep = step.conditional || (step.scenarioId && step.scenarioId !== 'main');
+  const isConditionalStep = step.scenarioId && step.scenarioId !== 'main';
+  
+  // Check if this step has workflow conditions
+  const hasWorkflowConditions = step.conditional && step.workflowCondition && step.workflowCondition.length > 0;
   
   // Check if this is a feedback step
   const isFeedbackStep = step.isFeedbackStep && step.feedbackRelationship;
@@ -134,6 +137,7 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
         isExpanded={isExpanded} 
         setIsExpanded={setIsExpanded}
         isConditionalStep={isConditionalStep}
+        hasWorkflowConditions={hasWorkflowConditions}
         isFeedbackStep={isFeedbackStep}
       />
       

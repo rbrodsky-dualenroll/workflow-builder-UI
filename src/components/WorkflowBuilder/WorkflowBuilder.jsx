@@ -133,7 +133,7 @@ const WorkflowBuilder = () => {
   
   // Handler for creating a new scenario
   const handleCreateScenario = () => {
-    if (!newScenarioName.trim()) return;
+    if (!newScenarioName.trim() || !scenarioCondition) return;
     
     const updatedScenarios = createScenario(
       scenarios, 

@@ -69,6 +69,7 @@ const ScenarioModal = ({
           >
             <p className="text-sm mb-4" data-testid="scenario-conditions-intro">
               A scenario condition determines when this scenario will be active. All steps in this scenario will inherit this condition.
+              <span className="text-red-600 font-semibold"> A condition is required to create a scenario.</span>
             </p>
             
             {/* Display available conditions as radio buttons */}
@@ -142,7 +143,7 @@ const ScenarioModal = ({
             onClick={onCreate}
             className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded"
             data-testid="scenario-modal-create-button"
-            disabled={!scenarioName.trim()}
+            disabled={!scenarioName.trim() || !scenarioCondition}
           >
             Create
           </button>
