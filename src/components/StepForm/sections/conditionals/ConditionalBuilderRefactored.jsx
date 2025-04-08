@@ -14,78 +14,70 @@ const ConditionalBuilderRefactored = ({
   const [showCustomProperty, setShowCustomProperty] = useState(false);
   const [customProperty, setCustomProperty] = useState('');
   
-  // Available entities to check
+  // Available entities to check - updated to match documentation
   const entityOptions = [
     { value: '', label: '-- Select an entity --' },
-    { value: 'student', label: 'Student' },
-    { value: 'course', label: 'Course' },
-    { value: 'section', label: 'Course Section' },
-    { value: 'instructor', label: 'Instructor' },
-    { value: 'high_school', label: 'High School' },
-    { value: 'term', label: 'Term' },
-    { value: 'registration', label: 'Registration' }
+    { value: 'Course', label: 'Course' },
+    { value: 'Student', label: 'Student' },
+    { value: 'HighSchool', label: 'High School' },
+    { value: 'Instructor', label: 'Instructor' },
+    { value: 'Step', label: 'Step' }
   ];
   
-  // Properties available for each entity type
+  // Properties available for each entity type - updated to match documentation
   const propertyOptions = {
-    student: [
-      { value: 'age', label: 'Age' },
-      { value: 'gpa', label: 'GPA' },
-      { value: 'grade_level', label: 'Grade Level' },
-      { value: 'has_financial_aid', label: 'Has Financial Aid' },
-      { value: 'is_first_time', label: 'First-Time Student' },
-      { value: 'has_parent_consent', label: 'Has Parent Consent' }
-    ],
-    course: [
-      { value: 'credits', label: 'Credits' },
+    Course: [
+      { value: 'subject', label: 'Subject' },
+      { value: 'department', label: 'Department' },
+      { value: 'courseNumber', label: 'Course Number' },
+      { value: 'title', label: 'Title' },
       { value: 'category', label: 'Category' },
-      { value: 'discipline', label: 'Discipline' },
-      { value: 'has_prerequisites', label: 'Has Prerequisites' }
+      { value: 'custom', label: 'Custom property...' }
     ],
-    section: [
-      { value: 'location', label: 'Location' },
-      { value: 'format', label: 'Format' },
-      { value: 'instructor_type', label: 'Instructor Type' },
-      { value: 'capacity', label: 'Capacity' },
-      { value: 'enrollment_count', label: 'Enrollment Count' }
+    Student: [
+      { value: 'gradeLevel', label: 'Grade Level' },
+      { value: 'age', label: 'Age' },
+      { value: 'program', label: 'Program' },
+      { value: 'highSchool', label: 'High School' },
+      { value: 'gpa', label: 'GPA' },
+      { value: 'custom', label: 'Custom property...' }
     ],
-    instructor: [
-      { value: 'is_high_school', label: 'Is High School Instructor' },
-      { value: 'is_college', label: 'Is College Instructor' },
-      { value: 'credentials', label: 'Credentials' },
-      { value: 'discipline', label: 'Discipline' }
+    HighSchool: [
+      { value: 'name', label: 'Name' },
+      { value: 'type', label: 'Type' },
+      { value: 'district', label: 'District' },
+      { value: 'custom', label: 'Custom property...' }
     ],
-    high_school: [
-      { value: 'has_feeder_schools', label: 'Has Feeder Schools' },
-      { value: 'payment_policy', label: 'Payment Policy' },
-      { value: 'is_home_school', label: 'Is Home School' }
+    Instructor: [
+      { value: 'name', label: 'Name' },
+      { value: 'department', label: 'Department' },
+      { value: 'highSchool', label: 'High School' },
+      { value: 'experience', label: 'Years of Experience' },
+      { value: 'custom', label: 'Custom property...' }
     ],
-    term: [
-      { value: 'past_withdraw_deadline', label: 'Past Withdraw Deadline' },
-      { value: 'past_drop_deadline', label: 'Past Drop Deadline' },
-      { value: 'is_current', label: 'Is Current Term' }
-    ],
-    registration: [
-      { value: 'past_due', label: 'Has Past Due Payment' },
-      { value: 'has_refund', label: 'Has Refund' },
-      { value: 'approval_status', label: 'Approval Status' }
+    Step: [
+      { value: 'status', label: 'Status' },
+      { value: 'action', label: 'Action' },
+      { value: 'comment', label: 'Comment' },
+      { value: 'custom', label: 'Custom property...' }
     ]
   };
   
-  // Available comparison operators
+  // Available comparison operators - updated to match documentation
   const comparisonOptions = [
     { value: '', label: '-- Select a comparison --' },
-    { value: '==', label: 'Equals (==)' },
-    { value: '!=', label: 'Not equals (!=)' },
-    { value: '>', label: 'Greater than (>)' },
-    { value: '<', label: 'Less than (<)' },
-    { value: '>=', label: 'Greater than or equal (>=)' },
-    { value: '<=', label: 'Less than or equal (<=)' },
-    { value: 'includes', label: 'Includes' },
-    { value: 'present', label: 'Is present' },
-    { value: 'blank', label: 'Is blank' },
-    { value: 'true', label: 'Is true' },
-    { value: 'false', label: 'Is false' }
+    { value: 'equals', label: 'equals' },
+    { value: 'not-equals', label: 'does not equal' },
+    { value: 'contains', label: 'contains' },
+    { value: 'not-contains', label: 'does not contain' },
+    { value: 'starts-with', label: 'starts with' },
+    { value: 'ends-with', label: 'ends with' },
+    { value: 'gt', label: 'greater than' },
+    { value: 'lt', label: 'less than' },
+    { value: 'gte', label: 'greater than or equal to' },
+    { value: 'lte', label: 'less than or equal to' },
+    { value: 'is-set', label: 'is set' },
+    { value: 'is-not-set', label: 'is not set' }
   ];
   
   // Initialize state from props and update when props change
@@ -209,7 +201,7 @@ const ConditionalBuilderRefactored = ({
   };
   
   // Check if value field should be disabled based on comparison type
-  const isValueDisabled = ['present', 'blank', 'true', 'false'].includes(localCondition.comparison);
+  const isValueDisabled = ['is-set', 'is-not-set'].includes(localCondition.comparison);
   
   // Get property options for current entity
   const getPropertyOptions = () => {
@@ -217,9 +209,8 @@ const ConditionalBuilderRefactored = ({
     
     const options = propertyOptions[localCondition.entity] || [];
     return [
-      { value: '', label: '-- Select a property --' }, 
-      ...options,
-      { value: 'custom', label: '🔧 Custom property...' }
+      { value: '', label: '-- Select entity first --' }, 
+      ...options
     ];
   };
   

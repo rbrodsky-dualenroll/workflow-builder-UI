@@ -57,11 +57,33 @@ const FormField = ({
             required={required}
             data-testid={customTestId || `field-${name}`}
           >
-            {options.map((option) => (
-              <option key={typeof option === 'object' ? option.value : option} value={typeof option === 'object' ? option.value : option}>
-                {typeof option === 'object' ? option.label : option}
-              </option>
-            ))}
+            {options.map((option) => {
+              const optionValue = typeof option === 'object' ? option.value : option;
+              const optionLabel = typeof option === 'object' ? option.label : option;
+              const optionType = name.includes('entity') ? 'entity' : 
+                                name.includes('property') ? 'property' : 
+                                name.includes('comparison') ? 'comparison' : '';
+              
+              let dataTestId = '';
+              if (optionType === 'entity') {
+                dataTestId = optionValue ? `entity-option-${optionValue}` : 'entity-option-empty';
+              } else if (optionType === 'property') {
+                const entityValue = value.split('-').pop();
+                dataTestId = optionValue ? `property-option-${entityValue}-${optionValue}` : 'property-option-empty';
+              } else if (optionType === 'comparison') {
+                dataTestId = optionValue ? `comparison-option-${optionValue}` : 'comparison-option-empty';
+              }
+              
+              return (
+                <option 
+                  key={optionValue} 
+                  value={optionValue}
+                  data-testid={dataTestId}
+                >
+                  {optionLabel}
+                </option>
+              );
+            })}
           </select>
         );
       case 'checkbox':

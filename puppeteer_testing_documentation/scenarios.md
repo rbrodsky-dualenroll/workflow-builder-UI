@@ -44,6 +44,85 @@ This document details the scenario management features of the Workflow Builder a
 | Save Condition Button | `[data-testid="scenario-condition-save-button"]` | Button to save the condition |
 | Cancel Condition Button | `[data-testid="scenario-condition-cancel-button"]` | Button to cancel condition creation |
 
+### Entity Select Options
+
+The Entity dropdown (`[data-testid="scenario-condition-entity-select"]`) contains these options:
+
+| Label | Value | Selector |
+|-------|-------|----------|
+| "-- Select an entity --" | "" | `[data-testid="entity-option-empty"]` |
+| "Course" | "Course" | `[data-testid="entity-option-course"]` |
+| "Student" | "Student" | `[data-testid="entity-option-student"]` |
+| "High School" | "HighSchool" | `[data-testid="entity-option-highschool"]` |
+| "Instructor" | "Instructor" | `[data-testid="entity-option-instructor"]` |
+
+### Property Select Options by Entity
+
+Properties available depend on the selected entity:
+
+#### Course Properties
+
+| Label | Value | Selector |
+|-------|-------|----------|
+| "-- Select entity first --" | "" | `[data-testid="property-option-empty"]` |
+| "Subject" | "subject" | `[data-testid="property-option-course-subject"]` |
+| "Department" | "department" | `[data-testid="property-option-course-department"]` |
+| "Course Number" | "courseNumber" | `[data-testid="property-option-course-number"]` |
+| "Title" | "title" | `[data-testid="property-option-course-title"]` |
+| "Category" | "category" | `[data-testid="property-option-course-category"]` |
+| "Custom property..." | "custom" | `[data-testid="property-option-course-custom"]` |
+
+#### Student Properties
+
+| Label | Value | Selector |
+|-------|-------|----------|
+| "-- Select entity first --" | "" | `[data-testid="property-option-empty"]` |
+| "Grade Level" | "gradeLevel" | `[data-testid="property-option-student-gradelevel"]` |
+| "Age" | "age" | `[data-testid="property-option-student-age"]` |
+| "Program" | "program" | `[data-testid="property-option-student-program"]` |
+| "High School" | "highSchool" | `[data-testid="property-option-student-highschool"]` |
+| "GPA" | "gpa" | `[data-testid="property-option-student-gpa"]` |
+| "Custom property..." | "custom" | `[data-testid="property-option-student-custom"]` |
+
+#### High School Properties
+
+| Label | Value | Selector |
+|-------|-------|----------|
+| "-- Select entity first --" | "" | `[data-testid="property-option-empty"]` |
+| "Name" | "name" | `[data-testid="property-option-highschool-name"]` |
+| "Type" | "type" | `[data-testid="property-option-highschool-type"]` |
+| "District" | "district" | `[data-testid="property-option-highschool-district"]` |
+| "Custom property..." | "custom" | `[data-testid="property-option-highschool-custom"]` |
+
+#### Instructor Properties
+
+| Label | Value | Selector |
+|-------|-------|----------|
+| "-- Select entity first --" | "" | `[data-testid="property-option-empty"]` |
+| "Name" | "name" | `[data-testid="property-option-instructor-name"]` |
+| "Department" | "department" | `[data-testid="property-option-instructor-department"]` |
+| "High School" | "highSchool" | `[data-testid="property-option-instructor-highschool"]` |
+| "Years of Experience" | "experience" | `[data-testid="property-option-instructor-experience"]` |
+| "Custom property..." | "custom" | `[data-testid="property-option-instructor-custom"]` |
+
+### Comparison Select Options
+
+The Comparison dropdown (`[data-testid="scenario-condition-comparison-select"]`) contains these options:
+
+| Label | Value | Selector |
+|-------|-------|----------|
+| "-- Select a comparison --" | "" | `[data-testid="comparison-option-empty"]` |
+| "equals" | "equals" | `[data-testid="comparison-option-equals"]` |
+| "does not equal" | "not-equals" | `[data-testid="comparison-option-not-equals"]` |
+| "contains" | "contains" | `[data-testid="comparison-option-contains"]` |
+| "does not contain" | "not-contains" | `[data-testid="comparison-option-not-contains"]` |
+| "starts with" | "starts-with" | `[data-testid="comparison-option-starts-with"]` |
+| "ends with" | "ends-with" | `[data-testid="comparison-option-ends-with"]` |
+| "greater than" | "gt" | `[data-testid="comparison-option-gt"]` |
+| "less than" | "lt" | `[data-testid="comparison-option-lt"]` |
+| "greater than or equal to" | "gte" | `[data-testid="comparison-option-gte"]` |
+| "less than or equal to" | "lte" | `[data-testid="comparison-option-lte"]` |
+
 ## Manage Scenarios Modal Elements
 
 | Element | Selector | Description |
@@ -90,6 +169,21 @@ await page.click('[data-testid="add-scenario-condition-button"]');
 
 // Fill in the condition name
 await page.type('[data-testid="scenario-condition-name-input"]', 'homeschool_student');
+
+// Select entity type 
+await page.select('[data-testid="scenario-condition-entity-select"]', 'Student');
+// Note: Use the exact value from the "Value" column in the Entity Options table
+
+// Select property
+await page.select('[data-testid="scenario-condition-property-select"]', 'highSchool');
+// Note: Use the exact value from the "Value" column in the Property Options table
+
+// Select comparison
+await page.select('[data-testid="scenario-condition-comparison-select"]', 'equals');
+// Note: Use the exact value from the "Value" column in the Comparison Options table
+
+// Enter value
+await page.type('[data-testid="scenario-condition-value-input"]', 'Homeschool');
 
 // Save the condition
 await page.click('[data-testid="scenario-condition-save-button"]');
@@ -140,14 +234,14 @@ await page.click('[data-testid="confirmation-confirm-button"]');
 await page.click('[data-testid="manage-scenarios-close-button"]');
 ```
 
-### Creating a Complex Condition
+### Creating a Welding Courses Condition Example
 
 ```javascript
 // Click the New Scenario button
 await page.click('[data-testid="new-scenario-button"]');
 
 // Fill in the scenario name
-await page.type('[data-testid="scenario-name-input"]', 'Advanced Placement Students');
+await page.type('[data-testid="scenario-name-input"]', 'Welding Courses');
 
 // Expand the scenario conditions section
 await page.click('[data-testid="scenario-conditions-section-expander"]');
@@ -156,25 +250,25 @@ await page.click('[data-testid="scenario-conditions-section-expander"]');
 await page.click('[data-testid="add-scenario-condition-button"]');
 
 // Fill in the condition name
-await page.type('[data-testid="scenario-condition-name-input"]', 'ap_student');
+await page.type('[data-testid="scenario-condition-name-input"]', 'welding_course');
 
-// Select entity type
-await page.select('[data-testid="scenario-condition-entity-select"]', 'Student');
+// Select entity type (Course)
+await page.select('[data-testid="scenario-condition-entity-select"]', 'Course');
 
-// Select property
-await page.select('[data-testid="scenario-condition-property-select"]', 'program');
+// Select property (Department)
+await page.select('[data-testid="scenario-condition-property-select"]', 'department');
 
-// Select comparison
+// Select comparison (equals)
 await page.select('[data-testid="scenario-condition-comparison-select"]', 'equals');
 
 // Enter value
-await page.type('[data-testid="scenario-condition-value-input"]', 'Advanced Placement');
+await page.type('[data-testid="scenario-condition-value-input"]', 'Welding');
 
 // Save the condition
 await page.click('[data-testid="scenario-condition-save-button"]');
 
 // Select the condition
-await page.click('[data-testid="scenario-condition-radio-ap_student"]');
+await page.click('[data-testid="scenario-condition-radio-welding_course"]');
 
 // Create the scenario
 await page.click('[data-testid="scenario-modal-create-button"]');
@@ -187,3 +281,4 @@ await page.click('[data-testid="scenario-modal-create-button"]');
 3. **Condition Validation**: When creating conditions, verify that they appear in the condition list.
 4. **Wait for UI Updates**: Always wait for UI updates after changing scenarios or creating new ones.
 5. **Screenshot Verification**: Take screenshots to verify scenario tabs and condition badges.
+6. **Dropdown Values**: Always use the exact values from the tables above when selecting options from dropdowns.
