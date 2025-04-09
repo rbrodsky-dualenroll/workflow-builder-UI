@@ -55,37 +55,134 @@ export const updateScenario = (scenarios, updatedScenario) => {
  * Get a merged view of all scenarios for the master view
  */
 export const getMergedWorkflow = (scenarios) => {
-  // Start with main workflow steps
-  const mainSteps = [...(scenarios.main?.steps || [])];
+  console.log('Building master view with scenarios:', Object.keys(scenarios));
   
-  // For each conditional scenario
+  // Start with main workflow steps
+  let mergedSteps = [...(scenarios.main?.steps || [])];
+  console.log('Starting with main steps:', mergedSteps.map(s => ({ id: s.id, title: s.title })));
+  
+  // Identify unique scenario steps and track their insertion positions
+  const scenarioSteps = [];
+  
+  // First pass: collect all scenario-specific steps
   Object.keys(scenarios).forEach(scenarioId => {
     if (scenarioId === 'main') return;
     
     const scenario = scenarios[scenarioId];
     
-    // Add scenario information to custom steps
-    const scenarioSteps = scenario.steps.map(step => {
+    scenario.steps.forEach(step => {
       // Skip steps that already exist in main workflow
       const originalId = step.originalStepId || step.id;
-      const existsInMain = mainSteps.some(mainStep => mainStep.id === originalId);
+      const existsInMain = mergedSteps.some(mainStep => mainStep.id === originalId);
+      
+      // For debugging
+      console.log(`Checking step '${step.title}' (id: ${step.id}, originalId: ${originalId}) from ${scenarioId} - in main: ${existsInMain}`);
+      console.log('Context:', { 
+        addedAfterId: step.addedAfterStepId, 
+        originalId: step.originalStepId,
+        index: scenario.steps.findIndex(s => s.id === step.id) 
+      });
       
       if (!existsInMain) {
-        return {
+        // Prepare step with scenario metadata
+        const enhancedStep = {
           ...step,
           scenarioId,
-          scenarioName: scenario.name, // Add the human-readable scenario name
-          scenarioCondition: scenario.condition, // Add scenario condition
+          scenarioName: scenario.name,
+          scenarioCondition: scenario.condition,
           conditional: true,
-          workflowCondition: step.workflowCondition || scenario.condition // Use step condition or inherit from scenario
+          workflowCondition: step.workflowCondition || scenario.condition,
+          // For debugging
+          _scenarioContext: {
+            stepIndex: scenario.steps.findIndex(s => s.id === step.id),
+            prevStepId: step.addedAfterStepId,
+            originalStepId: step.originalStepId
+          }
         };
+        
+        // Find which step in the original scenario comes before this one
+        // This is crucial for determining insertion order
+        const stepIndex = scenario.steps.findIndex(s => s.id === step.id);
+        let insertAfterStepId = null;
+        
+        if (stepIndex > 0) {
+          // Get the previous step in this scenario
+          const prevStep = scenario.steps[stepIndex - 1];
+          
+          // Use its ID or original ID if it's a modified main step
+          insertAfterStepId = prevStep.originalStepId || prevStep.id;
+        } else if (step.addedAfterStepId) {
+          // Use explicitly tracked insertion point if available
+          insertAfterStepId = step.addedAfterStepId;
+        }
+        
+        // Add to our collection with insertion reference
+        scenarioSteps.push({
+          step: enhancedStep,
+          insertAfterStepId: insertAfterStepId,
+          scenarioId
+        });
       }
-      return null;
-    }).filter(Boolean);
-    
-    // Merge scenario steps with main steps
-    mainSteps.push(...scenarioSteps);
+    });
   });
   
-  return mainSteps;
+  // Topologically sort the scenario steps for insertion
+  const insertedStepIds = new Set(mergedSteps.map(step => step.id));
+  let remainingSteps = [...scenarioSteps];
+  let insertedThisPass = true;
+  
+  // Continue inserting steps as long as we're making progress
+  while (remainingSteps.length > 0 && insertedThisPass) {
+    insertedThisPass = false;
+    
+    // Find steps whose dependencies are satisfied
+    const stepsToInsert = [];
+    remainingSteps = remainingSteps.filter(item => {
+      if (!item.insertAfterStepId || insertedStepIds.has(item.insertAfterStepId)) {
+        stepsToInsert.push(item);
+        return false; // Remove from remaining
+      }
+      return true; // Keep in remaining
+    });
+    
+    console.log('Ready to insert steps:', stepsToInsert.map(s => ({
+      id: s.step.id,
+      title: s.step.title,
+      insertAfter: s.insertAfterStepId
+    })));
+    
+    // Insert the steps
+    stepsToInsert.forEach(item => {
+      let insertIndex = mergedSteps.length; // Default to end
+      
+      if (item.insertAfterStepId) {
+        // Find the referenced step
+        const refIndex = mergedSteps.findIndex(s => s.id === item.insertAfterStepId);
+        if (refIndex !== -1) {
+          insertIndex = refIndex + 1;
+          console.log(`Inserting step ${item.step.title} after ${mergedSteps[refIndex].title} at index ${insertIndex}`);
+        } else {
+          console.warn(`Referenced step ${item.insertAfterStepId} not found in merged steps for ${item.step.title}`);
+        }
+      } else {
+        console.log(`No reference step for ${item.step.title}, appending to end`);
+      }
+      
+      // Insert the step
+      mergedSteps.splice(insertIndex, 0, item.step);
+      insertedStepIds.add(item.step.id);
+      insertedThisPass = true;
+    });
+  }
+  
+  // If any steps couldn't be inserted due to circular dependencies,
+  // append them at the end as a fallback
+  if (remainingSteps.length > 0) {
+    console.warn(`${remainingSteps.length} scenario steps had unresolvable ordering and were appended to the end`);
+    remainingSteps.forEach(item => {
+      mergedSteps.push(item.step);
+    });
+  }
+  
+  return mergedSteps;
 };

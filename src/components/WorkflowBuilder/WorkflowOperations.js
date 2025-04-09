@@ -60,30 +60,49 @@ export const addStep = (stepData, activeScenarioId, setScenarios) => {
       }
     }
     
-    // If not a feedback step or parent not found, add to the end as before
+    // For scenario steps, record the preceding step for proper ordering in master view
+    if (activeScenarioId !== 'main') {
+      // Try to identify the step after which this new step is being added
+      let addedAfterStepId = null;
+      
+      if (currentSteps.length > 0) {
+        // By default, we're adding after the last step
+        addedAfterStepId = currentSteps[currentSteps.length - 1].id;
+        
+        // If we're inserting at a specific position (rather than at the end),
+        // we can optionally track which step we're inserting after
+        if (stepData.insertAfterStepId) {
+          addedAfterStepId = stepData.insertAfterStepId;
+        }
+      }
+      
+      // Store the referential information in the step
+      newStep.addedAfterStepId = addedAfterStepId;
+    }
+    
     // If this is a scenario step, ensure it gets the scenario condition
     if (activeScenarioId !== 'main' && !newStep.isFeedbackStep) {
-    // Get the scenario condition and name
-    const scenarioCondition = prevScenarios[activeScenarioId].condition;
-    const scenarioName = prevScenarios[activeScenarioId].name;
-    
-    // Make sure step has the right conditional settings
-    if (!newStep.workflowCondition || newStep.workflowCondition.length === 0) {
-    newStep.conditional = true;
-    newStep.workflowCondition = [scenarioCondition];
-    }
+      // Get the scenario condition and name
+      const scenarioCondition = prevScenarios[activeScenarioId].condition;
+      const scenarioName = prevScenarios[activeScenarioId].name;
       
-    // Always set the scenario name for display purposes
-    newStep.scenarioName = scenarioName;
-  }
-  
-  return {
-    ...prevScenarios,
-    [activeScenarioId]: {
-      ...prevScenarios[activeScenarioId],
-      steps: [...currentSteps, newStep]
+      // Make sure step has the right conditional settings
+      if (!newStep.workflowCondition || newStep.workflowCondition.length === 0) {
+        newStep.conditional = true;
+        newStep.workflowCondition = [scenarioCondition];
+      }
+      
+      // Always set the scenario name for display purposes
+      newStep.scenarioName = scenarioName;
     }
-  };
+  
+    return {
+      ...prevScenarios,
+      [activeScenarioId]: {
+        ...prevScenarios[activeScenarioId],
+        steps: [...currentSteps, newStep]
+      }
+    };
   });
   
   return newStep;
@@ -110,6 +129,27 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
       ...stepData,      // Merge in new data
       id: stepToUpdate.id  // EXPLICITLY keep the original ID
     };
+    
+    // When editing a step in a scenario (not main), track its relationship to main workflow
+    if (activeScenarioId !== 'main') {
+      // If we're editing a step that exists in the main workflow, record original ID
+      const mainSteps = prevScenarios.main.steps;
+      const mainStepWithSameId = mainSteps.find(s => s.id === updatedStep.id);
+      
+      if (mainStepWithSameId) {
+        // This is a modified version of a main step
+        updatedStep.originalStepId = mainStepWithSameId.id;
+      } else if (!updatedStep.originalStepId && !updatedStep.addedAfterStepId) {
+        // This is a scenario-specific step that doesn't yet have reference information
+        // Determine which step it follows in the scenario
+        const currentSteps = updatedScenarios[activeScenarioId].steps;
+        const stepIndex = currentSteps.findIndex(s => s.id === editingStep);
+        
+        if (stepIndex > 0) {
+          updatedStep.addedAfterStepId = currentSteps[stepIndex - 1].id;
+        }
+      }
+    }
     
     // Update the step in the scenario's steps array
     updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.map(
@@ -182,7 +222,8 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
               return { 
                 ...step, 
                 ...stepData,
-                id: step.id  // PRESERVE ORIGINAL ID
+                id: step.id,  // PRESERVE ORIGINAL ID
+                originalStepId: editingStep  // Make sure we track its relation to the main step
               };
             }
             

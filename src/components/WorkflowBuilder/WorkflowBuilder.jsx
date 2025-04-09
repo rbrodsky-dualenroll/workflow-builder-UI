@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -36,6 +36,14 @@ const WorkflowBuilder = () => {
     setWorkflowName,
     workflow  // This is calculated from the scenarios and active/master view
   } = useWorkflowState(getMergedWorkflow);
+  
+  // Expose scenarios to window for StepForm to use
+  useEffect(() => {
+    window.workflowBuilderState = { scenarios, activeScenarioId };
+    return () => {
+      delete window.workflowBuilderState;
+    };
+  }, [scenarios, activeScenarioId]);
   
   // Workflow conditions state
   const [workflowConditions, setWorkflowConditions] = useState({});

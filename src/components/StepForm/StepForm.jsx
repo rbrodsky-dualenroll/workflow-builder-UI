@@ -241,6 +241,19 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
       // First submit the main step
       const stepData = { ...formData };
       
+      // Explicitly track insertion context for scenarios
+      if (isConditionalScenario) {
+        // Try to get the previous step ID in the scenario
+        // This will be used for proper ordering in the master view
+        const scenarios = window.workflowBuilderState?.scenarios || {};
+        const currentScenarioSteps = scenarios[scenarioId]?.steps || [];
+        
+        if (currentScenarioSteps.length > 0) {
+          // By default, this step would be inserted after the last step
+          stepData.addedAfterStepId = currentScenarioSteps[currentScenarioSteps.length - 1].id;
+        }
+      }
+      
       // Remove the pendingFeedbackSteps array from main step data
       const pendingFeedbackSteps = [...(stepData.pendingFeedbackSteps || [])];
       delete stepData.pendingFeedbackSteps;
@@ -278,6 +291,19 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
       try {
         // First submit the main step
         const stepData = { ...formData };
+        
+        // Explicitly track insertion context for scenarios
+        if (isConditionalScenario) {
+          // Try to get the previous step ID in the scenario
+          // This will be used for proper ordering in the master view
+          const scenarios = window.workflowBuilderState?.scenarios || {};
+          const currentScenarioSteps = scenarios[scenarioId]?.steps || [];
+          
+          if (currentScenarioSteps.length > 0) {
+            // By default, this step would be inserted after the last step
+            stepData.addedAfterStepId = currentScenarioSteps[currentScenarioSteps.length - 1].id;
+          }
+        }
         
         // Remove the pendingFeedbackSteps array from main step data
         const pendingFeedbackSteps = [...(stepData.pendingFeedbackSteps || [])];
