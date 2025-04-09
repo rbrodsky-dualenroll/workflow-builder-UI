@@ -1,5 +1,43 @@
 // Utility functions for the workflow builder
 
+
+
+/**
+ * Determine if a step can potentially terminate a workflow
+ * @param {Object} step The step data
+ * @returns {boolean} Whether the step can terminate the workflow
+ */
+export const canStepTerminateWorkflow = (step) => {
+  // Explicitly marked steps can terminate workflows
+  if (step.causes_termination) {
+    return true;
+  }
+  
+  // Approval steps with terminates_workflow or canTerminate options can terminate workflows
+  if (step.stepType === 'Approval' && step.actionOptions?.length > 0) {
+    return step.actionOptions.some(option => 
+      option.terminates_workflow || option.canTerminate || option.value === 'decline-no'
+    );
+  }
+  
+  return false;
+};
+
+/**
+ * Get termination options from a step
+ * @param {Object} step The step data
+ * @returns {Array} Array of action options that can terminate the workflow
+ */
+export const getTerminationOptions = (step) => {
+  if (step.stepType !== 'Approval' || !step.actionOptions?.length) {
+    return [];
+  }
+  
+  return step.actionOptions.filter(option => 
+    option.terminates_workflow || option.canTerminate || option.value === 'decline-no'
+  );
+};
+
 /**
  * Generate a unique ID for a step
  * @returns {string} Unique identifier
@@ -38,6 +76,12 @@ export const validateStep = (formData) => {
     if (!formData.workflowCondition || !Array.isArray(formData.workflowCondition) || formData.workflowCondition.length === 0) {
       errors.workflowCondition = "At least one workflow condition must be selected when step is marked as conditional";
     }
+  }
+  
+  // For non-Approval steps that can terminate, we enforce comments as required
+  // No need to validate Approval steps - comments will be dynamically required for terminating actions
+  if (canStepTerminateWorkflow(formData) && formData.stepType !== 'Approval' && !formData.comments?.required) {
+    errors.comments = "Comments must be required for non-Approval steps that can terminate the workflow";
   }
   
   return errors;

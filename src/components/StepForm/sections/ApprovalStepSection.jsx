@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FormField from '../../common/FormField';
 import CollapsibleCard from '../../common/CollapsibleCard';
+import { getTerminationOptions } from '../../../utils/workflowUtils';
 
 /**
  * Approval step section for step forms
@@ -10,16 +11,47 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
     label: '', 
     value: '',
     requiresAdditionalInfo: false,
-    additionalInfoLabel: ''
+    additionalInfoLabel: '',
+    canTerminate: false
   });
   const [showActionTemplates, setShowActionTemplates] = useState(false);
   
-  // Template data for action options (removed feedback options)
+  // Template data for action options
   const commonActionOptionTemplates = [
-    { label: 'Approve', value: 'approve-yes' },
-    { label: 'Decline', value: 'decline-no' },
-    { label: 'Defer', value: 'defer' }
+    { label: 'Approve', value: 'approve-yes', canTerminate: false, terminates_workflow: false },
+    { label: 'Decline', value: 'decline-no', canTerminate: true, terminates_workflow: true },
+    { label: 'Defer', value: 'defer', canTerminate: false, terminates_workflow: false }
   ];
+  
+  // Auto-set termination flag and update comments requirement based on action options
+  useEffect(() => {
+    // Skip if there are no action options or this is initial setup
+    if (!formData.actionOptions || formData.actionOptions.length === 0) return;
+    
+    // Get the terminating options
+    const terminatingOptions = getTerminationOptions(formData);
+    const hasTerminatingOption = terminatingOptions.length > 0;
+    
+    // Create a copy of the form data for updates
+    const updatedData = { ...formData };
+    
+    // Always set canTerminate based on whether there are terminating options
+    updatedData.canTerminate = hasTerminatingOption;
+    
+    // If there are terminating options, ensure comments are required
+    if (hasTerminatingOption) {
+      updatedData.comments = {
+        ...(formData.comments || {}),
+        required: true
+      };
+    }
+    
+    // Only update if something changed
+    if (updatedData.canTerminate !== formData.canTerminate || 
+        updatedData.comments?.required !== formData.comments?.required) {
+      setFormData(updatedData);
+    }
+  }, [formData.actionOptions, setFormData]);
 
   const addActionOption = () => {
     if (tempActionOption.label.trim() === '') return;
@@ -60,7 +92,7 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
       
       <div className="space-y-2 mb-4">
         {formData.actionOptions?.map((option, index) => (
-          <div key={index} className="bg-gray-50 p-2 rounded-md border border-gray-200">
+          <div key={index} className={`bg-gray-50 p-2 rounded-md border ${option.canTerminate ? 'border-red-200' : 'border-gray-200'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <span className="inline-block w-4 h-4 border border-gray-400 rounded-full mr-2"></span>
@@ -77,56 +109,102 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
               </button>
             </div>
             <div className="mt-2 pt-2 border-t border-gray-200">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id={`requires-additional-info-${index}`}
-                  checked={option.requiresAdditionalInfo || false}
-                  onChange={(e) => {
-                    const updatedOptions = [...(formData.actionOptions || [])];
-                    updatedOptions[index] = {
-                      ...updatedOptions[index],
-                      requiresAdditionalInfo: e.target.checked
-                    };
-                    setFormData({
-                      ...formData,
-                      actionOptions: updatedOptions
-                    });
-                  }}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  data-testid={`action-option-additional-info-checkbox-${index}`}
-                />
-                <label htmlFor={`requires-additional-info-${index}`} className="ml-2 text-sm text-gray-700">
-                  Requires additional information
-                </label>
-              </div>
-              
-              {option.requiresAdditionalInfo && (
-                <div className="mt-2 pl-6">
-                  <label htmlFor={`additional-info-label-${index}`} className="block text-sm text-gray-700 mb-1">
-                    Label for additional information
-                  </label>
+              <div className="flex flex-col space-y-2">
+                {/* Show termination indicator for default options */}
+                {formData.actionOptions[index].value === 'decline-no' ? (
+                  <div className="flex items-center">
+                    <div className="h-4 w-4 rounded-full bg-red-600"></div>
+                    <span className="ml-2 text-sm text-gray-700">
+                      Terminates workflow
+                      <span className="ml-1 text-xs text-gray-500">(Default behavior)</span>
+                    </span>
+                  </div>
+                ) : formData.actionOptions[index].value === 'approve-yes' || formData.actionOptions[index].value === 'defer' ? (
+                  <div className="flex items-center">
+                    <div className="h-4 w-4 rounded-full bg-green-600"></div>
+                    <span className="ml-2 text-sm text-gray-700">
+                      Continues workflow
+                      <span className="ml-1 text-xs text-gray-500">(Default behavior)</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`can-terminate-${index}`}
+                      checked={option.canTerminate || option.terminates_workflow || false}
+                      onChange={(e) => {
+                        const updatedOptions = [...(formData.actionOptions || [])];
+                        updatedOptions[index] = {
+                          ...updatedOptions[index],
+                          canTerminate: e.target.checked,
+                          terminates_workflow: e.target.checked
+                        };
+                        setFormData({
+                          ...formData,
+                          actionOptions: updatedOptions
+                        });
+                      }}
+                      className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                      data-testid={`action-option-can-terminate-checkbox-${index}`}
+                    />
+                    <label htmlFor={`can-terminate-${index}`} className="ml-2 text-sm text-gray-700">
+                      This action will terminate the workflow
+                    </label>
+                  </div>
+                )}
+                
+                <div className="flex items-center">
                   <input
-                    type="text"
-                    id={`additional-info-label-${index}`}
-                    value={option.additionalInfoLabel || ''}
+                    type="checkbox"
+                    id={`requires-additional-info-${index}`}
+                    checked={option.requiresAdditionalInfo || false}
                     onChange={(e) => {
                       const updatedOptions = [...(formData.actionOptions || [])];
                       updatedOptions[index] = {
                         ...updatedOptions[index],
-                        additionalInfoLabel: e.target.value
+                        requiresAdditionalInfo: e.target.checked
                       };
                       setFormData({
                         ...formData,
                         actionOptions: updatedOptions
                       });
                     }}
-                    placeholder="e.g., Student ID, Reason, etc."
-                    className="w-full rounded-md border border-gray-300 px-3 py-1 text-sm"
-                    data-testid={`action-option-additional-info-label-${index}`}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    data-testid={`action-option-additional-info-checkbox-${index}`}
                   />
+                  <label htmlFor={`requires-additional-info-${index}`} className="ml-2 text-sm text-gray-700">
+                    Requires additional information
+                  </label>
                 </div>
-              )}
+                
+                {option.requiresAdditionalInfo && (
+                  <div className="mt-2 pl-6">
+                    <label htmlFor={`additional-info-label-${index}`} className="block text-sm text-gray-700 mb-1">
+                      Label for additional information
+                    </label>
+                    <input
+                      type="text"
+                      id={`additional-info-label-${index}`}
+                      value={option.additionalInfoLabel || ''}
+                      onChange={(e) => {
+                        const updatedOptions = [...(formData.actionOptions || [])];
+                        updatedOptions[index] = {
+                          ...updatedOptions[index],
+                          additionalInfoLabel: e.target.value
+                        };
+                        setFormData({
+                          ...formData,
+                          actionOptions: updatedOptions
+                        });
+                      }}
+                      placeholder="e.g., Student ID, Reason, etc."
+                      className="w-full rounded-md border border-gray-300 px-3 py-1 text-sm"
+                      data-testid={`action-option-additional-info-label-${index}`}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -210,21 +288,46 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
       </div>
       
       <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="new-option-requires-additional-info"
-            checked={tempActionOption.requiresAdditionalInfo || false}
-            onChange={(e) => setTempActionOption({ 
-              ...tempActionOption, 
-              requiresAdditionalInfo: e.target.checked 
-            })}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            data-testid="new-action-option-additional-info-checkbox"
-          />
-          <label htmlFor="new-option-requires-additional-info" className="ml-2 text-sm text-gray-700">
-            Requires additional information
-          </label>
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="new-option-can-terminate"
+              checked={tempActionOption.canTerminate || false}
+              onChange={(e) => {
+                setTempActionOption({ 
+                  ...tempActionOption, 
+                  canTerminate: e.target.checked,
+                  terminates_workflow: e.target.checked
+                });
+              }}
+              className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+              data-testid="new-action-option-can-terminate-checkbox"
+            />
+            <label htmlFor="new-option-can-terminate" className="ml-2 text-sm text-gray-700">
+              This action will terminate the workflow
+              {tempActionOption.label && tempActionOption.label.toLowerCase() === 'decline' && (
+                <span className="ml-1 text-xs text-gray-500">(Recommended for "Decline" actions)</span>
+              )}
+            </label>
+          </div>
+          
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="new-option-requires-additional-info"
+              checked={tempActionOption.requiresAdditionalInfo || false}
+              onChange={(e) => setTempActionOption({ 
+                ...tempActionOption, 
+                requiresAdditionalInfo: e.target.checked 
+              })}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              data-testid="new-action-option-additional-info-checkbox"
+            />
+            <label htmlFor="new-option-requires-additional-info" className="ml-2 text-sm text-gray-700">
+              Requires additional information
+            </label>
+          </div>
         </div>
         
         {tempActionOption.requiresAdditionalInfo && (

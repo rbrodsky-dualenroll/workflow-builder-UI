@@ -1,6 +1,7 @@
 import React from 'react';
 import { getStepTypeColor } from './stepUtils';
 import ConditionalDisplay from './ConditionalDisplay';
+import { canStepTerminateWorkflow, getTerminationOptions } from '../../utils/workflowUtils';
 
 /**
  * Header component for workflow steps
@@ -16,6 +17,10 @@ const StepHeader = ({
   hasWorkflowConditions,
   isFeedbackStep 
 }) => {
+  // Check if this step can terminate the workflow
+  const canTerminate = canStepTerminateWorkflow(step);
+  // Get the number of terminating options if this is an approval step
+  const terminatingOptions = step.stepType === 'Approval' ? getTerminationOptions(step) : [];
   const getWorkflowCategoryBadge = () => {
     if (!step.workflow_category) return null;
     
@@ -85,6 +90,12 @@ const StepHeader = ({
             {isFeedbackStep && (
               <span className="ml-2 text-xs bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded">
                 Feedback
+              </span>
+            )}
+            {canTerminate && (
+              <span className="ml-2 text-xs bg-red-100 text-red-800 px-1.5 py-0.5 rounded">
+                Can Terminate
+                {terminatingOptions.length > 0 && ` (${terminatingOptions.length} options)`}
               </span>
             )}
           </div>

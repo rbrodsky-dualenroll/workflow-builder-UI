@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { validateStep } from '../../utils/workflowUtils';
+import { validateStep, canStepTerminateWorkflow } from '../../utils/workflowUtils';
 
 // Import all section components
 import BaseStepSection from './sections/BaseStepSection';
@@ -42,13 +42,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
   // Form errors
   const [errors, setErrors] = useState({});
   
-  // Default action options for Approval steps
-  const defaultApprovalOptions = [
-    { label: 'Approve', value: 'approve-yes' },
-    { label: 'Decline', value: 'decline-no' },
-    { label: 'Defer', value: 'defer' }
-  ];
-
   // Default form data
   const defaultFormData = {
     stepType: 'Approval',
@@ -93,7 +86,17 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
       (!initialData.id || !initialData.actionOptions || initialData.actionOptions.length === 0) && 
       (initialData.stepType === 'Approval' || !initialData.stepType)
     ) {
-      initialFormData.actionOptions = [...defaultApprovalOptions];
+      initialFormData.actionOptions = [
+        { label: 'Approve', value: 'approve-yes', canTerminate: false, terminates_workflow: false },
+        { label: 'Decline', value: 'decline-no', canTerminate: true, terminates_workflow: true },
+        { label: 'Defer', value: 'defer', canTerminate: false, terminates_workflow: false }
+      ];
+      
+      // Since we have a Decline option that terminates the workflow, ensure canTerminate is set
+      initialFormData.canTerminate = true;
+      
+      // And ensure comments are required
+      initialFormData.comments = { ...initialFormData.comments, required: true };
     }
     
     // Handle migration from subworkflow to workflow_category
@@ -174,7 +177,17 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
       
       // If changing step type to Approval and no action options exist, add defaults
       if (value === 'Approval' && (!formData.actionOptions || formData.actionOptions.length === 0)) {
-        updatedFormData.actionOptions = [...defaultApprovalOptions];
+        // Default Approve and Defer options don't terminate, but Decline always does
+        updatedFormData.actionOptions = [
+          { label: 'Approve', value: 'approve-yes', canTerminate: false, terminates_workflow: false },
+          { label: 'Decline', value: 'decline-no', canTerminate: true, terminates_workflow: true },
+          { label: 'Defer', value: 'defer', canTerminate: false, terminates_workflow: false }
+        ];
+        
+        // Since Decline terminates the workflow, ensure comments are required
+        updatedFormData.comments = { ...updatedFormData.comments, required: true };
+        // Set canTerminate at the step level based on action options
+        updatedFormData.canTerminate = true;
       }
       
       // If changing to ProvideConsent, clear action options and other unnecessary fields

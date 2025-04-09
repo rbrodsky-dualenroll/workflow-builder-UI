@@ -1,5 +1,6 @@
 import React from 'react';
 import FormField from '../../common/FormField';
+import { canStepTerminateWorkflow, getTerminationOptions } from '../../../utils/workflowUtils';
 
 /**
  * Base step section for common fields shared across all step types
@@ -119,6 +120,8 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
         error={errors.description}
         data-testid="step-form-description"
       />
+      
+      {/* Step termination is now handled silently in the background */}
     </>
   );
 };

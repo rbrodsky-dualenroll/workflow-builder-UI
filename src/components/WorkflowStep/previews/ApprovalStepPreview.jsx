@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PreviewContainer from './PreviewContainer';
 import CrnCell from './CrnCell';
 import { placeholderData } from '../stepUtils';
@@ -12,10 +12,37 @@ const ApprovalStepPreview = ({ step }) => {
   
   // State to track the selected action option
   const [selectedOption, setSelectedOption] = useState(null);
+  // State to track if a comment is required based on the selected option
+  const [commentRequired, setCommentRequired] = useState(false);
   
   // Find the selected option from step.actionOptions
   const selectedActionOption = selectedOption !== null && step.actionOptions ? 
     step.actionOptions[selectedOption] : null;
+    
+  // Update comment requirement when action option changes
+  useEffect(() => {
+    if (!selectedActionOption) {
+      setCommentRequired(false);
+      return;
+    }
+    
+    // Comments are always required for terminating actions
+    if (selectedActionOption.terminates_workflow || 
+        selectedActionOption.canTerminate || 
+        selectedActionOption.value === 'decline-no') {
+      setCommentRequired(true);
+      return;
+    }
+    
+    // Comments are never required for Defer actions
+    if (selectedActionOption.value === 'defer') {
+      setCommentRequired(false);
+      return;
+    }
+    
+    // For all other actions, comments are required if the step has comments.required = true
+    setCommentRequired(step.comments?.required || false);
+  }, [selectedOption, selectedActionOption, step.comments]);
   
   return (
     <PreviewContainer step={step}>
@@ -49,13 +76,16 @@ const ApprovalStepPreview = ({ step }) => {
                             type="radio" 
                             id={`option-${idx}`} 
                             name="actionOption" 
-                            className="h-4 w-4"
+                            className={`h-4 w-4 ${(option.terminates_workflow || option.canTerminate || option.value === 'decline-no') ? 'text-red-500' : ''}`}
                             checked={selectedOption === idx}
                             onChange={() => setSelectedOption(idx)}
                             data-testid={`approval-option-radio-${idx}`}
                           />
-                          <label htmlFor={`option-${idx}`} className="ml-2 text-sm">
+                          <label htmlFor={`option-${idx}`} className={`ml-2 text-sm ${(option.terminates_workflow || option.canTerminate || option.value === 'decline-no') ? 'text-red-600 font-medium' : ''}`}>
                             {option.label}
+                            {(option.terminates_workflow || option.canTerminate || option.value === 'decline-no') && (
+                              <span className="ml-1 text-xs">(Terminates workflow)</span>
+                            )}
                           </label>
                         </div>
                         {selectedOption === idx && option.requiresAdditionalInfo && (
@@ -105,6 +135,32 @@ const ApprovalStepPreview = ({ step }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Comment field */}
+      {selectedOption !== null && (
+        <div className="mt-4">
+          <div className="flex items-center mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Comments
+              {commentRequired && (
+                <span className="ml-1 text-xs text-red-600 font-normal">
+                  {(selectedActionOption?.terminates_workflow || 
+                   selectedActionOption?.canTerminate || 
+                   selectedActionOption?.value === 'decline-no') 
+                    ? "(Required for workflow termination)" 
+                    : "(Required)"
+                  }
+                </span>
+              )}
+            </label>
+          </div>
+          <textarea
+            className={`w-full border ${commentRequired ? 'border-red-300 bg-red-50' : 'border-gray-300'} rounded-md p-2 text-sm`}
+            placeholder={commentRequired ? "Comment required for this action" : "Add optional comment..."}
+            rows="3"
+          />
+        </div>
+      )}
     </PreviewContainer>
   );
 };
