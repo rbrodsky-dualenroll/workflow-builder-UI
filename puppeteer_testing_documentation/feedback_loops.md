@@ -34,7 +34,7 @@ await page.click('[data-testid="add-step-button"]');
 await page.select('[data-testid="step-form-type"]', 'Approval');
 await page.type('[data-testid="step-form-title"]', 'College Review');
 await page.select('[data-testid="field-role"]', 'College');
-await page.select('[data-testid="field-subworkflow"]', 'Per Course');
+await page.select('[data-testid="field-workflow-category"]', 'Per Course');
 
 // Open the feedback loops section
 await page.click('[data-testid="feedback-loops-section-expander"]');

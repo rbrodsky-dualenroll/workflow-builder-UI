@@ -16,21 +16,22 @@ const StepHeader = ({
   hasWorkflowConditions,
   isFeedbackStep 
 }) => {
-  const getSubworkflowBadge = () => {
-    if (!step.subworkflow) return null;
+  const getWorkflowCategoryBadge = () => {
+    if (!step.workflow_category) return null;
     
     let bgColor;
-    switch (step.subworkflow) {
-      case 'Once Ever': bgColor = 'bg-purple-100 text-purple-800'; break;
-      case 'Per Year': bgColor = 'bg-blue-100 text-blue-800'; break;
+    switch (step.workflow_category) {
+      case 'One Time': bgColor = 'bg-purple-100 text-purple-800'; break;
+      case 'Per Academic Year': bgColor = 'bg-blue-100 text-blue-800'; break;
       case 'Per Term': bgColor = 'bg-green-100 text-green-800'; break;
       case 'Per Course': bgColor = 'bg-orange-100 text-orange-800'; break;
+      case 'Drop/Withdraw': bgColor = 'bg-red-100 text-red-800'; break;
       default: bgColor = 'bg-gray-100 text-gray-800';
     }
     
     return (
-      <span className={`text-xs px-2 py-0.5 rounded-full ${bgColor}`}>
-        {step.subworkflow}
+      <span className={`text-xs px-2 py-0.5 rounded-full ${bgColor}`} data-testid="workflow-category-badge">
+        {step.workflow_category}
       </span>
     );
   };
@@ -87,7 +88,7 @@ const StepHeader = ({
               </span>
             )}
           </div>
-          {getSubworkflowBadge()}
+          {getWorkflowCategoryBadge()}
         </div>
         
         {/* Feedback relationship indicator */}

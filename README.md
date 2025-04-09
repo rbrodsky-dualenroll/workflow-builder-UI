@@ -128,7 +128,7 @@ Each step type has unique configuration options:
   "stepType": "Approval | Upload | Information | ProvideConsent | CheckHolds | RegisterViaApi | ResolveIssue",
   "title": "Step Title",
   "role": "College | High School | Student | Parent | Approver | Dean | System",
-  "subworkflow": "Once Ever | Per Year | Per Term | Per Course",
+  "workflow_category": "Once Ever | Per Year | Per Term | Per Course",
   "description": "Description of this step",
   "conditional": true | false,
   "workflowCondition": ["condition-name-1", "condition-name-2"],

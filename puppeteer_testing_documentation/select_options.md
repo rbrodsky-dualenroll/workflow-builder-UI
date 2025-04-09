@@ -64,7 +64,7 @@ This pattern should be applied to all select elements throughout the application
 2. **Step Form:**
    - Step type select: `step-form-type-Approval`
    - Role select: `field-role-College`
-   - Sub-workflow select: `field-subworkflow-PerCourse`
+   - Sub-workflow select: `field-workflow_category-PerCourse`
 
 3. **Any other select elements in the application**
 

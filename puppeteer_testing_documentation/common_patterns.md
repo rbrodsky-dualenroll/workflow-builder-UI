@@ -110,7 +110,7 @@ const createTestWorkflow = async (page) => {
   await page.select('[data-testid="step-form-type"]', 'Approval');
   await page.type('[data-testid="step-form-title"]', 'College Approval');
   await page.select('[data-testid="field-role"]', 'College');
-  await page.select('[data-testid="field-subworkflow"]', 'Per Course');
+  await page.select('[data-testid="field-workflow-category"]', 'Per Course');
   await page.click('[data-testid="modal-save-button"]');
   await page.waitForSelector('[data-testid^="workflow-step-"]');
   
@@ -120,7 +120,7 @@ const createTestWorkflow = async (page) => {
   await page.select('[data-testid="step-form-type"]', 'Approval');
   await page.type('[data-testid="step-form-title"]', 'High School Approval');
   await page.select('[data-testid="field-role"]', 'High School');
-  await page.select('[data-testid="field-subworkflow"]', 'Per Course');
+  await page.select('[data-testid="field-workflow-category"]', 'Per Course');
   await page.click('[data-testid="modal-save-button"]');
   
   // Add third step (Student Upload)
@@ -129,7 +129,7 @@ const createTestWorkflow = async (page) => {
   await page.select('[data-testid="step-form-type"]', 'Document Upload');
   await page.type('[data-testid="step-form-title"]', 'Student Upload Document');
   await page.select('[data-testid="field-role"]', 'Student');
-  await page.select('[data-testid="field-subworkflow"]', 'Once Ever');
+  await page.select('[data-testid="field-workflow-category"]', 'Once Ever');
   
   // Add file upload option (need to scroll down to see it)
   await page.evaluate(() => {
@@ -316,7 +316,7 @@ const runWorkflowBuilderTest = async () => {
     await page.select('[data-testid="step-form-type"]', 'Document Upload');
     await page.type('[data-testid="step-form-title"]', 'Parent Upload MOU');
     await page.select('[data-testid="field-role"]', 'Parent');
-    await page.select('[data-testid="field-subworkflow"]', 'Once Ever');
+    await page.select('[data-testid="field-workflow-category"]', 'Once Ever');
     
     // Add file upload option
     await page.evaluate(() => {

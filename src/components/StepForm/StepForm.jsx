@@ -54,7 +54,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
     stepType: 'Approval',
     title: '',
     role: 'College',
-    subworkflow: 'Per Course',
+    workflow_category: 'Per Course', // Updated from subworkflow
     description: '',
     conditional: false,
     workflowCondition: [],
@@ -94,6 +94,19 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
       (initialData.stepType === 'Approval' || !initialData.stepType)
     ) {
       initialFormData.actionOptions = [...defaultApprovalOptions];
+    }
+    
+    // Handle migration from subworkflow to workflow_category
+    if (initialFormData.subworkflow && !initialFormData.workflow_category) {
+      // Map old subworkflow values to new workflow_category values
+      const mappings = {
+        'Once Ever': 'One Time',
+        'Per Year': 'Per Academic Year',
+        'Per Term': 'Per Term',
+        'Per Course': 'Per Course'
+      };
+      initialFormData.workflow_category = mappings[initialFormData.subworkflow] || 'Per Course';
+      delete initialFormData.subworkflow; // Remove the old property
     }
     
     // Ensure conditional is properly initialized as a boolean

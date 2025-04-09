@@ -61,7 +61,7 @@
   @apply flex-grow font-medium text-sm;
 }
 
-.step-subworkflow {
+.step-workflow_category {
   @apply text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-700 mr-2;
 }
 

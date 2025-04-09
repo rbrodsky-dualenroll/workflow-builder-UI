@@ -35,7 +35,7 @@ await page.type('[data-testid="step-form-title"]', 'Parent Upload MOU Document')
 await page.select('[data-testid="field-role"]', 'Parent');
 
 // Set sub-workflow to Once Ever
-await page.select('[data-testid="field-subworkflow"]', 'Once Ever');
+await page.select('[data-testid="field-workflow-category"]', 'Once Ever');
 
 // Scroll down to see the File Uploads section
 await page.evaluate(() => {

@@ -17,16 +17,17 @@ export const getStepTypeColor = (stepType) => {
 };
 
 /**
- * Get subworkflow badge class based on subworkflow type
- * @param {string} subworkflow The subworkflow type
+ * Get workflow_category badge class based on workflow_category type
+ * @param {string} workflow_category The workflow_category type
  * @returns {string} CSS class for the badge
  */
-export const getSubworkflowBadgeClass = (subworkflow) => {
-  switch (subworkflow) {
-    case 'Once Ever': return 'bg-purple-100 text-purple-800';
-    case 'Per Year': return 'bg-blue-100 text-blue-800';
+export const getWorkflowCategoryBadgeClass = (workflow_category) => {
+  switch (workflow_category) {
+    case 'One Time': return 'bg-purple-100 text-purple-800';
+    case 'Per Academic Year': return 'bg-blue-100 text-blue-800';
     case 'Per Term': return 'bg-green-100 text-green-800';
     case 'Per Course': return 'bg-orange-100 text-orange-800';
+    case 'Drop/Withdraw': return 'bg-red-100 text-red-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };

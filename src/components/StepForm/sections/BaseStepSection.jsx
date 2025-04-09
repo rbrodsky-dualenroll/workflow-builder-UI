@@ -18,11 +18,12 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
     { value: 'PendingCompletionOfPerYearSteps', label: 'Pending Completion of Per Year Steps' },
   ];
 
-  const subworkflowOptions = [
-    { value: 'Once Ever', label: 'Once Ever' },
-    { value: 'Per Year', label: 'Per Year' },
-    { value: 'Per Term', label: 'Per Term' },
-    { value: 'Per Course', label: 'Per Course' },
+  const workflowCategoryOptions = [
+    { value: 'One Time', label: 'One Time', description: 'Steps that only run once for each student (CollegeStudentApplication + registration_one_time)' },
+    { value: 'Per Academic Year', label: 'Per Academic Year', description: 'Steps that run once per academic year (StudentTerm + registration_academic_year)' },
+    { value: 'Per Term', label: 'Per Term', description: 'Steps that run once per term for each student (StudentTerm + registration)' },
+    { value: 'Per Course', label: 'Per Course', description: 'Steps that run for each course registration (StudentDeCourse + registration)' },
+    { value: 'Drop/Withdraw', label: 'Drop/Withdraw', description: 'Steps for dropping or withdrawing from courses (StudentDeCourse + registration_drop_withdraw)' },
   ];
 
   const roleOptions = [
@@ -58,14 +59,15 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
         />
 
         <FormField
-          label="Sub-workflow"
-          name="subworkflow"
+          label="Workflow Category"
+          name="workflow_category"
           type="select"
-          value={formData.subworkflow}
+          value={formData.workflow_category}
           onChange={handleChange}
-          options={subworkflowOptions}
-          error={errors.subworkflow}
-          data-testid="field-subworkflow"
+          options={workflowCategoryOptions}
+          error={errors.workflow_category}
+          data-testid="field-workflow-category"
+          helpText="Defines the level at which this workflow operates"
         />
       </div>
 

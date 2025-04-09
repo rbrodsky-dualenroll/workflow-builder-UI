@@ -33,7 +33,7 @@ export const createFeedbackStep = ({
   const inheritedProperties = {
     conditional: parentStepData.conditional || false,
     workflowCondition: parentStepData.workflowCondition || [],
-    subworkflow: parentStepData.subworkflow || 'Per Course',
+    workflow_category: parentStepData.workflow_category || 'Per Course',
     tableColumns: parentStepData.tableColumns || ['Student Name', 'Document', 'Upload Status']
   };
 
