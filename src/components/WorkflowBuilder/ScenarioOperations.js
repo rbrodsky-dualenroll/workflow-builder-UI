@@ -61,6 +61,9 @@ export const getMergedWorkflow = (scenarios) => {
   let mergedSteps = [...(scenarios.main?.steps || [])];
   console.log('Starting with main steps:', mergedSteps.map(s => ({ id: s.id, title: s.title })));
   
+  // Track which main steps have been overridden by scenario-specific versions
+  const overriddenMainStepIds = new Set();
+  
   // Identify unique scenario steps and track their insertion positions
   const scenarioSteps = [];
   
@@ -71,7 +74,35 @@ export const getMergedWorkflow = (scenarios) => {
     const scenario = scenarios[scenarioId];
     
     scenario.steps.forEach(step => {
-      // Skip steps that already exist in main workflow
+      // Check if this is a scenario-specific override of a main step
+      if (step.scenarioSpecific && step.originalStepId) {
+        // Mark the original step as having a scenario-specific override
+        overriddenMainStepIds.add(step.originalStepId);
+        
+        // For this type of step, we want to insert it right after its original
+        const enhancedStep = {
+          ...step,
+          scenarioId,
+          scenarioName: scenario.name,
+          scenarioCondition: scenario.condition,
+          conditional: true,
+          workflowCondition: step.workflowCondition || scenario.condition,
+          _isOverride: true, // Flag for UI to show it's an override
+        };
+        
+        // Add to collection with reference to the original step
+        scenarioSteps.push({
+          step: enhancedStep,
+          insertAfterStepId: step.originalStepId,
+          scenarioId,
+          isOverride: true
+        });
+        
+        // Skip the rest of the logic for this step
+        return;
+      }
+      
+      // Handle regular scenario-specific steps that don't exist in main
       const originalId = step.originalStepId || step.id;
       const existsInMain = mergedSteps.some(mainStep => mainStep.id === originalId);
       
@@ -120,7 +151,8 @@ export const getMergedWorkflow = (scenarios) => {
         scenarioSteps.push({
           step: enhancedStep,
           insertAfterStepId: insertAfterStepId,
-          scenarioId
+          scenarioId,
+          isOverride: false
         });
       }
     });

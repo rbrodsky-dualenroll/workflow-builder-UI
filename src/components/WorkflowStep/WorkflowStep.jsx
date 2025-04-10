@@ -29,6 +29,9 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
   // Check if this step is part of a scenario other than main
   const isConditionalStep = step.scenarioId && step.scenarioId !== 'main';
   
+  // Check if this is a scenario-specific override of a main step
+  const isScenarioSpecificOverride = step.scenarioSpecific && step.originalStepId;
+  
   // Get the scenario name for display if it's a non-main scenario
   const scenarioName = isConditionalStep ? (step.scenarioName || step.scenarioId) : null;
   
@@ -127,11 +130,15 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
       data-step-role={step.role || ''}
       data-scenario-id={step.scenarioId || ''}
       data-in-non-main-scenario={isConditionalStep ? 'true' : 'false'}
+      data-is-scenario-specific={isScenarioSpecificOverride ? 'true' : 'false'}
+      data-original-step-id={step.originalStepId || ''}
       style={{
         // Only add extra styling for feedback steps
         borderLeft: isFeedbackStep ? `4px solid ${parentStepColor}` : '',
         // Set a CSS variable for the connector styling
-        '--parent-color': parentStepColor
+        '--parent-color': parentStepColor,
+        // Add amber left border for scenario-specific overrides
+        borderLeft: isScenarioSpecificOverride ? '4px solid #f59e0b' : (isFeedbackStep ? `4px solid ${parentStepColor}` : '')
       }}
     >
       <StepHeader 
@@ -144,7 +151,8 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
         isConditionalStep={isConditionalStep}
         hasWorkflowConditions={hasWorkflowConditions}
         isFeedbackStep={isFeedbackStep}
-        scenarioName={scenarioName}
+        scenarioName={isScenarioSpecificOverride ? `${scenarioName} (Override)` : scenarioName}
+        isScenarioSpecificOverride={isScenarioSpecificOverride}
       />
       
       {isExpanded && <StepPreview step={step} />}

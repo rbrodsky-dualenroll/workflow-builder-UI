@@ -93,3 +93,20 @@
 .workflow-step:has(+ .feedback-child) {
   cursor: move !important;
 }
+
+/* Scenario-specific overrides styling */
+.workflow-step[data-is-scenario-specific="true"] {
+  position: relative;
+  border-left: 4px solid #f59e0b !important; /* Amber color to indicate override */
+}
+
+/* Add spacing for master view when showing both original and override */
+.workflow-step[data-is-scenario-specific="true"] {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Highlight scenario-specific steps */
+.scenario-specific-override {
+  background-color: rgba(253, 246, 236, 0.5) !important; /* Light amber background */
+}

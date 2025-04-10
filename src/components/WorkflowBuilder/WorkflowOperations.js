@@ -123,6 +123,63 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
       return prevScenarios;
     }
     
+    // Check if we're trying to edit a step from the main scenario while in a different scenario
+    if (activeScenarioId !== 'main') {
+      const mainSteps = prevScenarios.main.steps;
+      const mainStepWithSameId = mainSteps.find(s => s.id === editingStep);
+      
+      // If this step exists in the main scenario and is not already a scenario-specific override
+      if (mainStepWithSameId && !stepToUpdate.scenarioSpecific) {
+        console.log('Creating scenario-specific version of a main step');
+        
+        // Generate a new ID for the scenario-specific version
+        const newStepId = generateUniqueId(`${editingStep}_${activeScenarioId}_`);
+        
+        // Create a new step based on the original, but with updated data
+        const scenarioSpecificStep = {
+          ...stepToUpdate,   // Start with the existing step
+          ...stepData,      // Apply the edits
+          id: newStepId,    // New ID for the scenario-specific version
+          originalStepId: editingStep,  // Track the original step ID
+          scenarioSpecific: true,       // Mark as scenario-specific
+          scenarioId: activeScenarioId, // Record which scenario it belongs to
+          scenarioName: prevScenarios[activeScenarioId].name, // Include scenario name
+          conditional: true,  // Scenario-specific steps should be conditional
+          workflowCondition: prevScenarios[activeScenarioId].condition ? 
+            [prevScenarios[activeScenarioId].condition] : [], // Use scenario condition
+        };
+        
+        // Find the step's index in the scenario
+        const stepIndex = updatedScenarios[activeScenarioId].steps.findIndex(s => s.id === editingStep);
+        
+        // Replace the original step with the scenario-specific version
+        if (stepIndex !== -1) {
+          updatedScenarios[activeScenarioId].steps[stepIndex] = scenarioSpecificStep;
+          
+          // Update any references to the original step ID within this scenario
+          updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.map(step => {
+            let updatedStep = { ...step };
+            
+            // Update parent references for feedback steps
+            if (step.isFeedbackStep && step.feedbackRelationship && step.feedbackRelationship.parentStepId === editingStep) {
+              updatedStep.feedbackRelationship = {
+                ...step.feedbackRelationship,
+                parentStepId: newStepId
+              };
+            }
+            
+            // Update any other references here
+            // For example, sequence references, dependencies, etc.
+            
+            return updatedStep;
+          });
+          
+          return updatedScenarios;
+        }
+      }
+    }
+    
+    // Regular update for main scenario steps or already-scenario-specific steps
     // Merge new data WITHOUT changing the ID
     const updatedStep = {
       ...stepToUpdate,  // Preserve the original step

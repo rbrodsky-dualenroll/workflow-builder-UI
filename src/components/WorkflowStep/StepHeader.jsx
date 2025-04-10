@@ -16,7 +16,8 @@ const StepHeader = ({
   isConditionalStep,
   hasWorkflowConditions,
   isFeedbackStep,
-  scenarioName
+  scenarioName,
+  isScenarioSpecificOverride = false
 }) => {
   // Check if this step can terminate the workflow
   const canTerminate = canStepTerminateWorkflow(step);
@@ -52,6 +53,7 @@ const StepHeader = ({
         shadow-sm 
         ${isConditionalStep ? 'border-l-dashed ml-4' : ''}
         ${isFeedbackStep ? 'feedback-header' : ''}
+        ${isScenarioSpecificOverride ? 'scenario-specific-override' : ''}
       `}
       data-testid={`step-header-${step.id}`}
       data-step-id={step.id}
@@ -61,8 +63,16 @@ const StepHeader = ({
       data-is-conditional={isConditionalStep ? 'true' : 'false'}
       data-role={step.role || ''}
       data-step-type={step.stepType || ''}
+      data-is-scenario-override={isScenarioSpecificOverride ? 'true' : 'false'}
     >
-      <div className="step-header flex-grow">
+      <div className="step-header flex-grow relative">
+        {/* Scenario override badge */}
+        {isScenarioSpecificOverride && (
+          <span className="absolute right-2 top-2 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium" 
+                data-testid="scenario-override-badge">
+            Scenario Override
+          </span>
+        )}
         <div className="step-number">{index + 1}</div>
         <div className="flex flex-col md:flex-row md:items-center">
           <div className="step-type font-medium flex items-center">
@@ -106,13 +116,14 @@ const StepHeader = ({
           </div>
         )}
         
-        {step.conditional && step.workflowCondition && step.workflowCondition.length > 0 && (
+        {/* Display conditional logic info */}
+        {(step.conditional && step.workflowCondition && step.workflowCondition.length > 0) || isScenarioSpecificOverride ? (
           <div className="pl-9">
             <ConditionalDisplay 
-              workflowConditionNames={step.workflowCondition}
+              workflowConditionNames={step.workflowCondition || []}
             />
           </div>
-        )}
+        ) : null}
       </div>
       
       <div className="step-controls p-2 flex items-start gap-1">

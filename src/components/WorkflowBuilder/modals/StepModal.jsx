@@ -17,6 +17,15 @@ const StepModal = ({
   workflowConditions = {},
   onManageWorkflowConditions
 }) => {
+  // Check if we're editing a step from main workflow in a scenario
+  const isMainStepInScenario = 
+    scenarioId && 
+    scenarioId !== 'main' && 
+    initialData && 
+    initialData.id && 
+    !initialData.scenarioSpecific && 
+    window.workflowBuilderState?.scenarios?.main?.steps?.some(step => step.id === initialData.id);
+  
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
       <div className="px-6 pb-6">

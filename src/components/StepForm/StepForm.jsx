@@ -25,6 +25,11 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
   // Display scenario info if in a scenario other than main
   const isConditionalScenario = scenarioId && scenarioId !== 'main';
   
+  // Check if this is a step from the main workflow being edited in a scenario
+  const isMainStepInScenario = isConditionalScenario && initialData && initialData.id 
+    && !initialData.scenarioSpecific && window.workflowBuilderState?.scenarios?.main?.steps
+    ?.some(step => step.id === initialData.id);
+  
   // Find scenario name in workflowConditions
   let scenarioName = scenarioId;
   // If scenarioCondition is provided, use it for new steps
@@ -361,6 +366,16 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
 
   return (
     <form className="space-y-0" onSubmit={handleSubmit} id="stepForm">
+      {/* Warning when editing a main workflow step in a scenario */}
+      {isMainStepInScenario && (
+        <div className="bg-amber-100 border border-amber-400 text-amber-800 p-4 rounded-md mb-4" data-testid="scenario-override-warning">
+          <h4 className="font-bold text-sm mb-1">Creating Scenario-Specific Version</h4>
+          <p className="text-sm">
+            You're editing a step that comes from the Main workflow. Your changes will create 
+            a scenario-specific version of this step that only applies to the current scenario.
+          </p>
+        </div>
+      )}
       {/* Base Step Information */}
       <BaseStepSection 
         formData={formData} 
