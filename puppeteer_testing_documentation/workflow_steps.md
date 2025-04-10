@@ -9,6 +9,8 @@ This document details the workflow steps elements and how to interact with them 
 | Any Workflow Step | `[data-testid^="workflow-step-"]` | Any workflow step element |
 | Step by ID | `[data-step-id="step1"]` | Step with specific ID |
 | Step by Role | `[data-step-role="College"]` | Step with specific role |
+| Scenario-Specific Step | `[data-is-scenario-specific="true"]` | Step that is a scenario-specific override |
+| Step with Original Reference | `[data-original-step-id="stepId"]` | Step that references an original main workflow step |
 | Parent Steps | `[data-is-feedback="false"]` | All non-feedback steps |
 | Feedback Steps | `[data-is-feedback="true"]` | All feedback child steps |
 | Parent Steps with Feedback | `[data-has-feedback="true"]` | Parent steps that have feedback children |

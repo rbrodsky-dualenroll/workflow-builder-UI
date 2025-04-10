@@ -100,3 +100,33 @@ await page.waitForSelector('[data-testid="add-step-button"]');
 - If you're having issues with elements not being found, check the browser console for errors
 - Take screenshots at key points to help debug issues visually
 - Use page.evaluate() to run JavaScript in the page context for complex verifications
+
+## Testing Scenario-Specific Overrides
+
+```javascript
+// Create a scenario-specific override by editing a main step in a scenario
+// First switch to a non-main scenario
+await page.click('[data-testid^="scenario-tab-"]');
+
+// Find a step to edit
+const stepToEdit = await page.$('[data-testid^="workflow-step-"]');
+const stepId = await stepToEdit.evaluate(el => el.getAttribute('data-step-id'));
+
+// Click the edit button
+await page.click(`[data-action="edit-step"][data-for-step="${stepId}"]`);
+
+// Make a change and save
+await page.type('[data-testid="step-form-title"]', ' - Scenario Version');
+await page.click('[data-testid="modal-save-button"]');
+
+// Verify a scenario-specific step was created
+const scenarioSpecificStep = await page.waitForSelector('[data-is-scenario-specific="true"]');
+
+// Check for the scenario override badge
+const hasBadge = await page.evaluate(() => {
+  return document.querySelector('[data-testid="scenario-override-badge"]') !== null;
+});
+console.log('Created scenario-specific override:', hasBadge);
+```
+
+For more detailed testing of scenario-specific overrides, see [scenario_specific_overrides.md](./workflow_scenarios/scenario_specific_overrides.md).

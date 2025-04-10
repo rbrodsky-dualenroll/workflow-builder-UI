@@ -132,6 +132,7 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
       data-in-non-main-scenario={isConditionalStep ? 'true' : 'false'}
       data-is-scenario-specific={isScenarioSpecificOverride ? 'true' : 'false'}
       data-original-step-id={step.originalStepId || ''}
+      data-testid-scenario-override={isScenarioSpecificOverride ? 'true' : 'false'}
       style={{
         // Only add extra styling for feedback steps
         borderLeft: isFeedbackStep ? `4px solid ${parentStepColor}` : '',

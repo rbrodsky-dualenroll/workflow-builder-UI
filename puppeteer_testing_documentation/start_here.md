@@ -32,6 +32,7 @@ This documentation is organized into component-specific files to make it easier 
 | [modals.md](./modals.md) | Modal dialogs, including confirmation dialogs and generic modal controls |
 | [step_form.md](./step_form.md) | Step creation/editing form, fields, and options |
 | [scenarios.md](./scenarios.md) | Scenario management, conditions, and tab controls |
+| [scenario_specific_overrides.md](./workflow_scenarios/scenario_specific_overrides.md) | Scenario-specific step overrides and testing |
 | [form_sections.md](./form_sections.md) | Collapsible form sections (conditionals, table columns, etc.) |
 | [file_uploads.md](./file_uploads.md) | File upload controls and interactions |
 | [feedback_loops.md](./feedback_loops.md) | Feedback loop creation and management |
