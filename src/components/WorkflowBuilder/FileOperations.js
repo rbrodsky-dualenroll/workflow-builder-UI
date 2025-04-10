@@ -79,3 +79,51 @@ export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveSce
     reader.readAsText(file);
   });
 };
+
+/**
+ * Load a template workflow
+ */
+export const loadTemplateWorkflow = async (templateName, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions) => {
+  try {
+    const response = await fetch(`/templates/${templateName}.json`);
+    if (!response.ok) {
+      throw new Error(`Failed to load template: ${response.statusText}`);
+    }
+    
+    const templateData = await response.json();
+    
+    // Set the workflow data from the template
+    if (templateData.scenarios) {
+      setScenarios(templateData.scenarios);
+      if (templateData.name) {
+        setWorkflowName(templateData.name);
+      } else {
+        setWorkflowName('Template Workflow');
+      }
+      
+      // Import conditions if available
+      if (templateData.conditions && setWorkflowConditions) {
+        setWorkflowConditions(templateData.conditions);
+      }
+    } else {
+      // Old format with just a workflow array
+      setScenarios({
+        main: {
+          id: 'main',
+          name: 'Main Workflow',
+          condition: null,
+          steps: templateData
+        }
+      });
+      setWorkflowName('Template Workflow');
+    }
+    
+    setActiveScenarioId('main');
+    setMasterView(true); // Show master view initially for templates
+    
+    return true;
+  } catch (error) {
+    console.error('Error loading template:', error);
+    throw error;
+  }
+};

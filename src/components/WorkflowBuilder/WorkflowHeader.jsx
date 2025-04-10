@@ -8,6 +8,7 @@ const WorkflowHeader = ({
   onSave, 
   onImport,
   onNew,
+  onStartFromTemplate,
 }) => {
   return (
     <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
@@ -20,6 +21,14 @@ const WorkflowHeader = ({
           data-action="new-workflow"
         >
           New Workflow
+        </button>
+        <button
+          onClick={onStartFromTemplate}
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm"
+          data-testid="start-from-template-button"
+          data-action="start-from-template"
+        >
+          Start from Template
         </button>
         <input 
           type="file" 

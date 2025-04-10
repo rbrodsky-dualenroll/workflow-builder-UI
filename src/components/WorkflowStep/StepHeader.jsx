@@ -15,12 +15,14 @@ const StepHeader = ({
   setIsExpanded,
   isConditionalStep,
   hasWorkflowConditions,
-  isFeedbackStep 
+  isFeedbackStep,
+  scenarioName
 }) => {
   // Check if this step can terminate the workflow
   const canTerminate = canStepTerminateWorkflow(step);
   // Get the number of terminating options if this is an approval step
   const terminatingOptions = step.stepType === 'Approval' ? getTerminationOptions(step) : [];
+  
   const getWorkflowCategoryBadge = () => {
     if (!step.workflow_category) return null;
     
@@ -80,22 +82,10 @@ const StepHeader = ({
             {step.role ? `${step.role}: ` : ''}
             {step.title || `${step.stepType} Step`}
             
-            {isConditionalStep && (
-              <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">
-                Scenario Step
-              </span>
-            )}
-            
             {/* Feedback badge */}
             {isFeedbackStep && (
               <span className="ml-2 text-xs bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded">
                 Feedback
-              </span>
-            )}
-            {canTerminate && (
-              <span className="ml-2 text-xs bg-red-100 text-red-800 px-1.5 py-0.5 rounded">
-                Can Terminate
-                {terminatingOptions.length > 0 && ` (${terminatingOptions.length} options)`}
               </span>
             )}
           </div>
@@ -109,9 +99,10 @@ const StepHeader = ({
           </div>
         )}
         
-        {isConditionalStep && (
-          <div className="mt-1 text-xs text-blue-600 pl-9">
-            <span className="font-medium">Scenario:</span> {step.scenarioName || step.scenarioId}
+        {/* Display scenario info for steps with scenarioName */}
+        {step.scenarioName && (
+          <div className="mt-1 text-xs text-blue-600 pl-9" data-testid="scenario-info">
+            <span className="font-medium">Scenario:</span> {step.scenarioName}
           </div>
         )}
         

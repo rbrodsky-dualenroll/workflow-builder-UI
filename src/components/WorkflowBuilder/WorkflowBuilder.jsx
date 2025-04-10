@@ -21,7 +21,7 @@ import useModalState from './hooks/useModalState';
 // Import operations
 import { addStep, updateStep, deleteStep, deleteFeedbackStep, moveStep } from './WorkflowOperations';
 import { createScenario, deleteScenario, updateScenario, getMergedWorkflow } from './ScenarioOperations';
-import { saveWorkflow, importWorkflow } from './FileOperations';
+import { saveWorkflow, importWorkflow, loadTemplateWorkflow } from './FileOperations';
 
 const WorkflowBuilder = () => {
   // Get workflow state from custom hook
@@ -210,6 +210,11 @@ const WorkflowBuilder = () => {
     setWorkflowName('New Workflow');
     setWorkflowConditions({});
     setShowNewWorkflowModal(false);
+    
+    // If we were trying to load a template, do that now
+    if (window.loadingTemplate) {
+      loadTemplate();
+    }
   };
 
   // Handler for importing a workflow
@@ -227,15 +232,39 @@ const WorkflowBuilder = () => {
       });
   };
 
+  // Handler for starting from a template
+  const handleStartFromTemplate = () => {
+    // Show confirmation modal if there are existing steps
+    if (Object.values(scenarios).some(scenario => scenario.steps.length > 0)) {
+      setShowNewWorkflowModal(true);
+      // Store that we're trying to load a template
+      window.loadingTemplate = true;
+    } else {
+      loadTemplate();
+    }
+  };
+
+  // Function to load the template
+  const loadTemplate = async () => {
+    try {
+      await loadTemplateWorkflow('standard-recommended-workflow', setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions);
+      // Clear the flag
+      window.loadingTemplate = false;
+    } catch (error) {
+      alert('Error loading template: ' + error.message);
+    }
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8 h-auto">
         {/* Header with workflow name and import/save buttons */}
         <WorkflowHeader 
           workflowName={workflowName}
           onSave={() => setShowSaveModal(true)}
           onImport={handleFileUpload}
           onNew={handleNewWorkflow}
+          onStartFromTemplate={handleStartFromTemplate}
         />
         
         {/* Scenario manager */}

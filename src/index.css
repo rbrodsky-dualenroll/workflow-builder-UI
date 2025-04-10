@@ -30,11 +30,29 @@
   body {
     @apply bg-gray-50 text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-y: scroll; /* Always show scrollbar to prevent layout shifts */
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  html {
+    overflow-y: scroll;
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
 }
 
+/* Specific container for workflow content to fix scrolling issues */
+.workflow-content-wrapper {
+  width: 100%;
+  height: auto;
+  min-height: 200px;
+}
+
 .workflow-step {
-  @apply relative mb-4 rounded-md bg-white shadow-card border border-gray-200 overflow-hidden;
+  @apply relative mb-4 rounded-md bg-white shadow-card border border-gray-200 overflow-visible;
 }
 
 .approval-step .step-header {

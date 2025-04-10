@@ -26,8 +26,11 @@ const getStepTypeColor = (stepType) => {
 const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Check if this step is part of a conditional scenario in master view
+  // Check if this step is part of a scenario other than main
   const isConditionalStep = step.scenarioId && step.scenarioId !== 'main';
+  
+  // Get the scenario name for display if it's a non-main scenario
+  const scenarioName = isConditionalStep ? (step.scenarioName || step.scenarioId) : null;
   
   // Check if this step has workflow conditions
   const hasWorkflowConditions = step.conditional && step.workflowCondition && step.workflowCondition.length > 0;
@@ -122,6 +125,8 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
       data-drag-handle="true"
       data-has-feedback={step.feedbackLoops && Object.keys(step.feedbackLoops).length > 0 ? 'true' : 'false'}
       data-step-role={step.role || ''}
+      data-scenario-id={step.scenarioId || ''}
+      data-in-non-main-scenario={isConditionalStep ? 'true' : 'false'}
       style={{
         // Only add extra styling for feedback steps
         borderLeft: isFeedbackStep ? `4px solid ${parentStepColor}` : '',
@@ -139,6 +144,7 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
         isConditionalStep={isConditionalStep}
         hasWorkflowConditions={hasWorkflowConditions}
         isFeedbackStep={isFeedbackStep}
+        scenarioName={scenarioName}
       />
       
       {isExpanded && <StepPreview step={step} />}

@@ -13,7 +13,7 @@ const WorkflowContent = ({
   masterView
 }) => {
   return (
-    <>
+    <div className="workflow-content-wrapper">
       {workflow.length === 0 ? (
         <div 
           className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300 mb-6"
@@ -24,7 +24,7 @@ const WorkflowContent = ({
         </div>
       ) : (
         <div 
-          className="space-y-4 mb-6"
+          className="space-y-4 mb-6 overflow-visible"
           data-testid="workflow-steps-container"
         >
           {workflow.map((step, index) => (
@@ -55,7 +55,7 @@ const WorkflowContent = ({
           Add Step
         </button>
       )}
-    </>
+    </div>
   );
 };
 
