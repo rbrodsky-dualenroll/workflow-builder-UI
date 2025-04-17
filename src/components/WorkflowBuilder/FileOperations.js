@@ -5,12 +5,13 @@
 /**
  * Save workflow to a JSON file
  */
-export const saveWorkflow = (workflowName, scenarios, workflowConditions = {}) => {
-  // Save the entire scenarios object and conditions
+export const saveWorkflow = (workflowName, scenarios, workflowConditions = {}, collegeInfo = {}) => {
+  // Save the entire scenarios object, conditions, and college info
   const workflowJson = JSON.stringify({
     name: workflowName,
     scenarios,
-    conditions: workflowConditions
+    conditions: workflowConditions,
+    collegeInfo
   }, null, 2);
   
   // Create a blob and download it
@@ -29,7 +30,7 @@ export const saveWorkflow = (workflowName, scenarios, workflowConditions = {}) =
 /**
  * Import workflow from a file
  */
-export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions) => {
+export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions, setCollegeInfo) => {
   return new Promise((resolve, reject) => {
     if (!file) {
       reject(new Error('No file provided'));
@@ -54,6 +55,11 @@ export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveSce
           // Import conditions if available
           if (importedData.conditions && setWorkflowConditions) {
             setWorkflowConditions(importedData.conditions);
+          }
+          
+          // Import college info if available
+          if (importedData.collegeInfo && setCollegeInfo) {
+            setCollegeInfo(importedData.collegeInfo);
           }
         } else {
           // Old format with just a workflow array
@@ -83,7 +89,7 @@ export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveSce
 /**
  * Load a template workflow
  */
-export const loadTemplateWorkflow = async (templateName, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions) => {
+export const loadTemplateWorkflow = async (templateName, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions, setCollegeInfo) => {
   try {
     const response = await fetch(`/templates/${templateName}.json`);
     if (!response.ok) {
@@ -104,6 +110,11 @@ export const loadTemplateWorkflow = async (templateName, setScenarios, setWorkfl
       // Import conditions if available
       if (templateData.conditions && setWorkflowConditions) {
         setWorkflowConditions(templateData.conditions);
+      }
+      
+      // Import college info if available
+      if (templateData.collegeInfo && setCollegeInfo) {
+        setCollegeInfo(templateData.collegeInfo);
       }
     } else {
       // Old format with just a workflow array

@@ -18,6 +18,18 @@ const useWorkflowState = () => {
   
   // UI state
   const [workflowName, setWorkflowName] = useState('New Workflow');
+  
+  // College information for export
+  const [collegeInfo, setCollegeInfo] = useState({
+    name: '',
+    id: '',
+    city: '',
+    state: '',
+    zip: '',
+    phone: '',
+    url: '',
+    type: 'Public: 2-year'
+  });
 
   // Helper to get current workflow based on active scenario
   const workflow = masterView 
@@ -33,6 +45,8 @@ const useWorkflowState = () => {
     setMasterView,
     workflowName,
     setWorkflowName,
+    collegeInfo,
+    setCollegeInfo,
     workflow
   };
 };

@@ -22,6 +22,7 @@ import useModalState from './hooks/useModalState';
 import { addStep, updateStep, deleteStep, deleteFeedbackStep, moveStep } from './WorkflowOperations';
 import { createScenario, deleteScenario, updateScenario, getMergedWorkflow } from './ScenarioOperations';
 import { saveWorkflow, importWorkflow, loadTemplateWorkflow } from './FileOperations';
+import DevTeamExport from './export/DevTeamExport';
 
 const WorkflowBuilder = () => {
   // Get workflow state from custom hook
@@ -34,6 +35,8 @@ const WorkflowBuilder = () => {
     setMasterView, 
     workflowName, 
     setWorkflowName,
+    collegeInfo,
+    setCollegeInfo,
     workflow  // This is calculated from the scenarios and active/master view
   } = useWorkflowState(getMergedWorkflow);
   
@@ -48,6 +51,7 @@ const WorkflowBuilder = () => {
   // Workflow conditions state
   const [workflowConditions, setWorkflowConditions] = useState({});
   const [showConditionModal, setShowConditionModal] = useState(false);
+  const [showDevTeamExportModal, setShowDevTeamExportModal] = useState(false);
   const [conditionToAdd, setConditionToAdd] = useState(null);
   
   // Get modal state from custom hook
@@ -184,8 +188,8 @@ const WorkflowBuilder = () => {
 
   // Handler for saving the workflow
   const handleSaveWorkflow = () => {
-    // Save both the workflow structure and conditions
-    saveWorkflow(workflowName, scenarios, workflowConditions);
+    // Save the workflow structure, conditions, and college info
+    saveWorkflow(workflowName, scenarios, workflowConditions, collegeInfo);
     setShowSaveModal(false);
   };
 
@@ -222,7 +226,7 @@ const WorkflowBuilder = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    importWorkflow(file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions)
+    importWorkflow(file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions, setCollegeInfo)
       .then(() => {
         // Reset the file input to allow importing the same file again
         event.target.value = '';
@@ -247,7 +251,7 @@ const WorkflowBuilder = () => {
   // Function to load the template
   const loadTemplate = async () => {
     try {
-      await loadTemplateWorkflow('standard-recommended-workflow', setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions);
+      await loadTemplateWorkflow('standard-recommended-workflow', setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions, setCollegeInfo);
       // Clear the flag
       window.loadingTemplate = false;
     } catch (error) {
@@ -265,6 +269,7 @@ const WorkflowBuilder = () => {
           onImport={handleFileUpload}
           onNew={handleNewWorkflow}
           onStartFromTemplate={handleStartFromTemplate}
+          onExportDevTeam={() => setShowDevTeamExportModal(true)}
         />
         
         {/* Scenario manager */}
@@ -367,6 +372,17 @@ const WorkflowBuilder = () => {
           confirmButtonText="Create New"
           confirmButtonClass="bg-blue-600 hover:bg-blue-700"
         />
+        
+        {/* Dev Team Export Modal */}
+        {showDevTeamExportModal && (
+          <DevTeamExport
+            scenarios={scenarios}
+            workflowName={workflowName}
+            collegeInfo={collegeInfo}
+            setCollegeInfo={setCollegeInfo}
+            onClose={() => setShowDevTeamExportModal(false)}
+          />
+        )}
       </div>
     </DndProvider>
   );

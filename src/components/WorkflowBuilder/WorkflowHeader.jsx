@@ -9,6 +9,7 @@ const WorkflowHeader = ({
   onImport,
   onNew,
   onStartFromTemplate,
+  onExportDevTeam,
 }) => {
   return (
     <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
@@ -53,6 +54,14 @@ const WorkflowHeader = ({
           data-action="save-workflow"
         >
           Save Workflow
+        </button>
+        <button 
+          onClick={onExportDevTeam}
+          className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded text-sm"
+          data-testid="export-dev-team-button"
+          data-action="export-dev-team"
+        >
+          Export for Dev Team
         </button>
       </div>
     </div>
