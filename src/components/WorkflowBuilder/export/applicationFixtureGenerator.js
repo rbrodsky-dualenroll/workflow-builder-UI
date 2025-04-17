@@ -14,11 +14,11 @@
 export const generateApplicationFixture = (collegeVarName, collegeId) => {
   return `
 # Always recreate CollegeStudentApplicationPage instances
-CollegeStudentApplicationPage.where(owner_id: ${collegeId}, owner_type: 'College').destroy_all
+CollegeStudentApplicationPage.where(owner_id: ${collegeVarName}_id, owner_type: 'College').destroy_all
 
 CollegeStudentApplicationPage.create!([
   {
-    owner_id: ${collegeId},
+    owner_id: ${collegeVarName}_id,
     owner_type: 'College',
     kind: 'default',
     order: 1,
@@ -26,7 +26,7 @@ CollegeStudentApplicationPage.create!([
     display_name: 'Student Information',
   },
   {
-    owner_id: ${collegeId},
+    owner_id: ${collegeVarName}_id,
     owner_type: 'College',
     kind: 'default',
     order: 2,
@@ -34,7 +34,7 @@ CollegeStudentApplicationPage.create!([
     display_name: 'Student Demographics',
   },
   {
-    owner_id: ${collegeId},
+    owner_id: ${collegeVarName}_id,
     owner_type: 'College',
     kind: 'default',
     order: 3,
@@ -42,7 +42,7 @@ CollegeStudentApplicationPage.create!([
     display_name: 'Parent Information',
   },
   {
-    owner_id: ${collegeId},
+    owner_id: ${collegeVarName}_id,
     owner_type: 'College',
     kind: 'default',
     order: 4,
@@ -50,7 +50,7 @@ CollegeStudentApplicationPage.create!([
     display_name: 'High School',
   },
   {
-    owner_id: ${collegeId},
+    owner_id: ${collegeVarName}_id,
     owner_type: 'College',
     kind: 'default',
     order: 5,
@@ -58,7 +58,7 @@ CollegeStudentApplicationPage.create!([
     display_name: 'FERPA Consent',
   },
   {
-    owner_id: ${collegeId},
+    owner_id: ${collegeVarName}_id,
     owner_type: 'College',
     kind: 'default',
     order: 6,
@@ -70,7 +70,7 @@ CollegeStudentApplicationPage.create!([
 
 # Create standard field groups and fields
 name_and_address_group = ApplicationFieldGroup.where({
-  owner_id: ${collegeId},
+  owner_id: ${collegeVarName}_id,
   owner_type: 'College',
   name: 'name_and_address',
 }).first_or_create
@@ -126,7 +126,7 @@ name_and_address_group.create_or_update_field({
 })
 
 demographics_group = ApplicationFieldGroup.where({
-  owner_id: ${collegeId},
+  owner_id: ${collegeVarName}_id,
   owner_type: 'College',
   name: 'citizenship',
 }).first_or_create
@@ -141,7 +141,7 @@ demographics_group.create_or_update_field({
 })
 
 high_school_group = ApplicationFieldGroup.where({
-  owner_id: ${collegeId},
+  owner_id: ${collegeVarName}_id,
   owner_type: 'College',
   name: 'high_school',
 }).first_or_create
@@ -165,7 +165,7 @@ high_school_group.create_or_update_field({
 })
 
 ferpa_group = ApplicationFieldGroup.where({
-  owner_id: ${collegeId},
+  owner_id: ${collegeVarName}_id,
   owner_type: 'College',
   name: 'ferpa',
 }).first_or_create
@@ -185,11 +185,11 @@ ferpa_group.create_or_update_field({
 })
 
 # Create a basic enrollment form
-Form.where(college_id: ${collegeId}).destroy_all
+Form.where(college_id: ${collegeVarName}_id).destroy_all
 
 Form.create([
   {
-    :college_id => ${collegeId},
+    :college_id => ${collegeVarName}_id,
     :name => "enrollment_form",
     :parts => "header,body,parent_heading,parent_accept,parent_signature,section_break,student_heading,student_accept,student_signature,footer",
     :header => "<h3>HIGH SCHOOL PARTNERSHIPS REGISTRATION & AUTHORIZATION FORM</h3>",

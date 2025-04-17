@@ -137,6 +137,7 @@ if College.exists?(id: ${collegeVarName}_id)
 else
   College.seed(:id,
     {
+      # id will be set by seed-fu based on the first argument
       ope_id: "00000000",
       type_label: "${collegeData.type || 'Public: 2-year'}",
       type_level: 2, profit: false,
