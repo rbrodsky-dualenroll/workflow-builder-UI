@@ -90,7 +90,7 @@ const identifyWorkflowCategories = (scenarios) => {
     },
     {
       name: 'registration',
-      targetObject: 'CourseRegistration',
+      targetObject: 'StudentDeCourse',
       category: 'registration',
       displayName: 'Registration'
     }
@@ -249,13 +249,16 @@ const generateStepsForCategory = (collegeVarName, category, versionNumber, scena
   });
   
   // Generate standard initialization step
+  // Special case: for StudentDeCourse category, use CourseRegistration in the initialize step class name
+  const initializeClassName = category.name === 'registration' ? 'CourseRegistration' : category.targetObject;
+  
   code += `      {
         active_flow_definitions: [${varName}],
         name: 'Initialize ${category.displayName} Workflow',
         version: ${collegeVarName}_${category.name}_active_flow_definition_version_number,
         description: '',
         participant: 'Processing',
-        step_class: 'Initialize${collegeVarName.charAt(0).toUpperCase() + collegeVarName.slice(1)}${category.targetObject}Step',
+        step_class: 'Initialize${collegeVarName.charAt(0).toUpperCase() + collegeVarName.slice(1)}${initializeClassName}Step',
         view_name_override: '',
         parameters: '',
         participant_role: 'system',
