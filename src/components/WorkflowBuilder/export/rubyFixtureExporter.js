@@ -6,7 +6,7 @@
  */
 
 import { generateApplicationFixture } from './applicationFixtureGenerator';
-
+import { getMergedWorkflow } from '../ScenarioOperations';
 /**
  * Generate a Ruby fixture file based on workflow data
  * @param {Object} workflowData - The workflow data from the WorkflowBuilder
@@ -68,8 +68,8 @@ const generateVersionNumbers = (scenarios) => {
  * @returns {Array} - List of workflow categories
  */
 const identifyWorkflowCategories = (scenarios) => {
-  // Default categories that are typically present in most workflows
-  const defaultCategories = [
+  // All possible workflow categories
+  const allPossibleCategories = [
     {
       name: 'college_student_application',
       targetObject: 'CollegeStudentApplication',
@@ -96,9 +96,34 @@ const identifyWorkflowCategories = (scenarios) => {
     }
   ];
   
-  // TODO: Custom logic to identify actual categories from the workflow scenarios
-  // For now, return the default categories
-  return defaultCategories;
+  // Get all merged steps from all scenarios
+  const allSteps = getMergedWorkflow(scenarios);
+  
+  // Check which workflow categories are actually used in the steps
+  const usedCategories = new Set();
+  
+  // Always include Registration workflow as it's the main entry point
+  usedCategories.add('registration');
+  
+  // Check for specific workflow categories in the steps
+  allSteps.forEach(step => {
+    const stepCategory = step.workflow_category ? step.workflow_category.toLowerCase() : '';
+    
+    if (stepCategory.includes('one time')) {
+      usedCategories.add('college_student_application');
+    }
+    
+    if (stepCategory.includes('academic year') || stepCategory.includes('per academic year')) {
+      usedCategories.add('student_term_academic_year');
+    }
+    
+    if (stepCategory.includes('per term')) {
+      usedCategories.add('student_term');
+    }
+  });
+  
+  // Return only the categories that are actually used in the workflow
+  return allPossibleCategories.filter(category => usedCategories.has(category.name));
 };
 
 /**
@@ -238,7 +263,8 @@ const getWorkflowCategoryKey = (workflowCategory) => {
 const generateStepsForCategory = (collegeVarName, category, versionNumber, scenarios) => {
   let code = '';
   const varName = `${collegeVarName}_${category.name}_active_flow_definition`;
-  
+  // Get all used categories to determine which ones to pend
+  const usedCategories = identifyWorkflowCategories(scenarios);
   // Get all merged steps from all scenarios
   const allSteps = getMergedWorkflow(scenarios);
   
@@ -247,123 +273,111 @@ const generateStepsForCategory = (collegeVarName, category, versionNumber, scena
     const stepCategory = getWorkflowCategoryKey(step.workflow_category);
     return stepCategory === category.category;
   });
+  const waitForCompletionOfOneTimeStepsStep = {
+    stepType: 'WaitForCompletionOfOneTimeSteps',
+    title: 'Completion of One-Time Steps',
+    version: `${collegeVarName}_student_term_academic_year_active_flow_definition_version_number`,
+    participant: 'Pending',
+    step_class: 'WaitForSubordinateRegistrationActiveFlowCompletionStep',
+    view_name_override: '',
+    parameters: {
+      'inject_subordinate_registration_active_flow_fields': [
+        'esign_enrollment_form_parent_date',
+        'esign_enrollment_form_parent_name',
+        'failure_reason',
+      ],
+      'subordinate_registration_active_flow_target_object_type': 'CollegeStudentApplication',
+      'subordinate_registration_active_flow_category': 'registration_one_time',
+      'completion_state': 'one_time_workflow_complete',
+    },
+    participant_role: 'system',
+    soft_required_fields: ['initialization_complete'],
+  };
+  const waitForCompletionOfAcademicYearStepsStep = {
+    id: 'step_3',
+    stepType: 'waitForCompletionOfAcademicYearSteps',
+    title: 'Completion of Academic Year Steps',
+    version: `${collegeVarName}_student_term_academic_year_active_flow_definition_version_number`,
+    participant: 'Pending',
+    step_class: 'WaitForSubordinateRegistrationActiveFlowCompletionStep',
+    view_name_override: '',
+    parameters: {
+      'inject_subordinate_registration_active_flow_fields': [
+        'esign_enrollment_form_parent_date',
+        'esign_enrollment_form_parent_name',
+      ],
+      'subordinate_registration_active_flow_target_object_type': 'StudentDeCourse',
+      'subordinate_registration_active_flow_category': 'registration_academic_year',
+      'completion_state': 'academic_year_workflow_complete',
+    },
+    participant_role: 'system',
+    soft_required_fields: ['initialization_complete'],
+  };
+  const waitForCompletionOfPerTermStepsStep = {
+    id: 'step_4',
+    stepType: 'waitForCompletionOfPerTermSteps',
+    title: 'Completion of Per Term Steps',
+    version: `${collegeVarName}_student_term_academic_year_active_flow_definition_version_number`,
+    participant: 'Pending',
+    step_class: 'WaitForSubordinateRegistrationActiveFlowCompletionStep',
+    view_name_override: '',
+    parameters: {
+      'inject_subordinate_registration_active_flow_fields': [],
+      'subordinate_registration_active_flow_target_object_type': 'StudentTerm',
+      'subordinate_registration_active_flow_category': 'registration',
+      'completion_state': 'student_term_complete',
+    },
+    participant_role: 'system',
+    soft_required_fields: ['initialization_complete'],
+  };
   
-  // Generate standard initialization step
-  // Special case: for StudentDeCourse category, use CourseRegistration in the initialize step class name
   const initializeClassName = category.name === 'registration' ? 'CourseRegistration' : category.targetObject;
-  
-  code += `      {
-        active_flow_definitions: [${varName}],
-        name: 'Initialize ${category.displayName} Workflow',
-        version: ${collegeVarName}_${category.name}_active_flow_definition_version_number,
-        description: '',
-        participant: 'Processing',
-        step_class: 'Initialize${collegeVarName.charAt(0).toUpperCase() + collegeVarName.slice(1)}${initializeClassName}Step',
-        view_name_override: '',
-        parameters: '',
-        participant_role: 'system',
-        soft_required_fields: []
-      },
-`;
-
+  const initializationStep = {
+    id: 'step_1',
+    stepType: 'Initialization',
+    title: `${category.displayName} Initialization`,
+    version: `${collegeVarName}_${category.name}_active_flow_definition_version_number`,
+    participant: 'Processing',
+    step_class: `Initialize${collegeVarName.charAt(0).toUpperCase() + collegeVarName.slice(1)}${initializeClassName}Step`,
+    view_name_override: '',
+    parameters: '',
+    participant_role: 'system',
+    soft_required_fields: [],
+  };
   // Add filtered steps based on workflow category
   if (categorySteps.length > 0) {
     // First add any default steps for this category
     switch (category.name) {
       case 'college_student_application':
-        // Only add initialization for one-time workflow
+        categorySteps.unshift(initializationStep);
         break;
       case 'student_term_academic_year':
-        // Add wait for one-time completion step
-        code += `
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Completion of One-Time Steps',
-        version: ${collegeVarName}_student_term_academic_year_active_flow_definition_version_number,
-        description: '',
-        participant: 'Pending',
-        step_class: 'WaitForSubordinateRegistrationActiveFlowCompletionStep',
-        view_name_override: '',
-        parameters: {
-          'inject_subordinate_registration_active_flow_fields' => [
-            'esign_enrollment_form_parent_date',
-            'esign_enrollment_form_parent_name',
-          ],
-          'subordinate_registration_active_flow_target_object_type' => 'CollegeStudentApplication',
-          'subordinate_registration_active_flow_category' => 'registration_one_time',
-          'completion_state' => 'one_time_workflow_complete',
-        },
-        participant_role: 'system',
-        soft_required_fields: ['initialization_complete']
-      },`;
+        categorySteps.unshift(waitForCompletionOfOneTimeStepsStep);
+        categorySteps.unshift(initializationStep);
         break;
       case 'student_term':
-        // No special steps needed
+        if (usedCategories.some(obj => obj.name === 'registration_academic_year')) {
+          categorySteps.unshift(waitForCompletionOfAcademicYearStepsStep);
+        }
+        categorySteps.unshift(waitForCompletionOfOneTimeStepsStep);
+        categorySteps.unshift(initializationStep);
         break;
       case 'registration':
-        // Add completion/wait steps
-        code += `
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Completion of One-Time Steps',
-        version: ${collegeVarName}_registration_active_flow_definition_version_number,
-        description: '',
-        participant: 'Pending',
-        step_class: 'WaitForSubordinateRegistrationActiveFlowCompletionStep',
-        view_name_override: '',
-        parameters: {
-          'inject_subordinate_registration_active_flow_fields' => ['esign_enrollment_form_parent_date','esign_enrollment_form_parent_name'],
-          'subordinate_registration_active_flow_target_object_type' => 'CollegeStudentApplication',
-          'subordinate_registration_active_flow_category' => 'registration_one_time',
-          'completion_state' => 'one_time_workflow_complete',
-        },
-        participant_role: 'system',
-        soft_required_fields: ['initialization_complete']
-      },
-
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Completion of Acad Year Steps',
-        version: ${collegeVarName}_registration_active_flow_definition_version_number,
-        description: '',
-        participant: 'Pending',
-        step_class: 'WaitForSubordinateRegistrationActiveFlowCompletionStep',
-        view_name_override: '',
-        parameters: {
-          'inject_subordinate_registration_active_flow_fields' => [],
-          'subordinate_registration_active_flow_target_object_type' => 'StudentTerm',
-          'subordinate_registration_active_flow_category' => 'registration_academic_year',
-          'completion_state' => 'student_acad_year_complete',
-        },
-        participant_role: 'system',
-        soft_required_fields: ['one_time_workflow_complete']
-      },
-
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Completion of Per Term Steps',
-        version: ${collegeVarName}_registration_active_flow_definition_version_number,
-        description: '',
-        participant: 'Pending',
-        step_class: 'WaitForSubordinateRegistrationActiveFlowCompletionStep',
-        view_name_override: '',
-        parameters: {
-          'inject_subordinate_registration_active_flow_fields' => [],
-          'subordinate_registration_active_flow_target_object_type' => 'StudentTerm',
-          'subordinate_registration_active_flow_category' => 'registration',
-          'completion_state' => 'student_term_complete',
-        },
-        participant_role: 'system',
-        soft_required_fields: ['student_acad_year_complete']
-      },`;
-        break;
+        if (usedCategories.some(obj => obj.name === 'registration_per_term')) {
+          categorySteps.unshift(waitForCompletionOfPerTermStepsStep);   
+        }
+        if (usedCategories.some(obj => obj.name === 'registration_academic_year')) {
+          categorySteps.unshift(waitForCompletionOfAcademicYearStepsStep);
+        }
+        categorySteps.unshift(waitForCompletionOfOneTimeStepsStep);
+        categorySteps.unshift(initializationStep);
+      break;
     }
-    
     // Now add the custom steps for this category
     categorySteps.forEach((step, index) => {
-      code += generateStepForCategory(step, collegeVarName, varName, index, allSteps);
+      code += generateStepForCategory(step, collegeVarName, varName, index, categorySteps);
     });
-    
+  
     // Add category-specific completion step
     switch (category.name) {
       case 'college_student_application':
@@ -466,324 +480,10 @@ const generateStepsForCategory = (collegeVarName, category, versionNumber, scena
       },`;
         break;
     }
-  } else {
-    // If no steps found for this category, add default steps
-    switch (category.name) {
-      case 'college_student_application':
-        code += generateCollegeStudentApplicationSteps(collegeVarName, varName);
-        break;
-      case 'student_term_academic_year':
-        code += generateStudentTermAcademicYearSteps(collegeVarName, varName);
-        break;
-      case 'student_term':
-        code += generateStudentTermSteps(collegeVarName, varName);
-        break;
-      case 'registration':
-        code += generateRegistrationSteps(collegeVarName, varName, scenarios);
-        break;
-    }
   }
-
   return code;
 };
 
-/**
- * Generate steps for CollegeStudentApplication workflow
- * @param {string} collegeVarName - The college variable name
- * @param {string} varName - The ActiveFlowDefinition variable name
- * @returns {string} - Ruby code for CollegeStudentApplication steps
- */
-const generateCollegeStudentApplicationSteps = (collegeVarName, varName) => {
-  return `
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Provide Consent',
-        version: ${collegeVarName}_college_student_application_active_flow_definition_version_number,
-        description: '',
-        participant: 'Parent',
-        step_class: 'ProvideConsentStep',
-        view_name_override: '',
-        parameters: { 'consent' => 'all' },
-        participant_role: 'parent',
-        soft_required_fields: ['initialization_complete']
-      },
-
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Complete One-Time Workflow',
-        version: ${collegeVarName}_college_student_application_active_flow_definition_version_number,
-        description: '',
-        participant: 'Processing',
-        step_class: 'CompleteSubordinateRegistrationActiveFlowStep',
-        view_name_override: '',
-        parameters: {
-          'subordinate_registration_active_flow_target_object_type' => 'CollegeStudentApplication',
-          'subordinate_registration_active_flow_category' => 'registration_one_time',
-        },
-        participant_role: 'system',
-        soft_required_fields: ['parent_consent_provided']
-      },
-
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Failed One-Time Workflow',
-        version: ${collegeVarName}_college_student_application_active_flow_definition_version_number,
-        description: '',
-        participant: 'Processing',
-        step_class: 'DeclineSubordinateRegistrationActiveFlowStep',
-        view_name_override: '',
-        parameters: {},
-        participant_role: 'system',
-        soft_required_fields: []
-      },
-`;
-};
-
-/**
- * Generate steps for StudentTerm Academic Year workflow
- * @param {string} collegeVarName - The college variable name
- * @param {string} varName - The ActiveFlowDefinition variable name
- * @returns {string} - Ruby code for StudentTerm Academic Year steps
- */
-const generateStudentTermAcademicYearSteps = (collegeVarName, varName) => {
-  return `
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Completion of One-Time Steps',
-        version: ${collegeVarName}_student_term_academic_year_active_flow_definition_version_number,
-        description: '',
-        participant: 'Pending',
-        step_class: 'WaitForSubordinateRegistrationActiveFlowCompletionStep',
-        view_name_override: '',
-        parameters: {
-          'inject_subordinate_registration_active_flow_fields' => [
-            'esign_enrollment_form_parent_date',
-            'esign_enrollment_form_parent_name',
-          ],
-          'subordinate_registration_active_flow_target_object_type' => 'CollegeStudentApplication',
-          'subordinate_registration_active_flow_category' => 'registration_one_time',
-          'completion_state' => 'one_time_workflow_complete',
-        },
-        participant_role: 'system',
-        soft_required_fields: ['initialization_complete']
-      },
-
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Approve Student Participation',
-        version: ${collegeVarName}_student_term_academic_year_active_flow_definition_version_number,
-        description: '',
-        participant: 'High School',
-        step_class: 'ApprovalStep',
-        view_name_override: 'active_flow_steps/course_registration/high_school/approve_student',
-        parameters: {
-          'completion_state' => 'approve_student',
-        },
-        participant_role: 'hs',
-        soft_required_fields: ['one_time_workflow_complete', 'high_school']
-      },
-
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Complete Academic Year Workflow',
-        version: ${collegeVarName}_student_term_academic_year_active_flow_definition_version_number,
-        description: '',
-        step_class: 'CompleteSubordinateRegistrationActiveFlowStep',
-        view_name_override: '',
-        parameters: {
-          'subordinate_registration_active_flow_target_object_type' => 'StudentTerm',
-          'subordinate_registration_active_flow_category' => 'registration_academic_year',
-        },
-        participant: 'Processing',
-        participant_role: 'system',
-        soft_required_fields: ['approve_student_yes']
-      },
-`;
-};
-
-/**
- * Generate steps for StudentTerm workflow
- * @param {string} collegeVarName - The college variable name
- * @param {string} varName - The ActiveFlowDefinition variable name
- * @returns {string} - Ruby code for StudentTerm steps
- */
-const generateStudentTermSteps = (collegeVarName, varName) => {
-  return `
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Complete Per Term Workflow',
-        version: ${collegeVarName}_student_term_active_flow_definition_version_number,
-        description: '',
-        step_class: 'CompleteSubordinateRegistrationActiveFlowStep',
-        view_name_override: '',
-        parameters: {
-          'subordinate_registration_active_flow_target_object_type' => 'StudentTerm',
-          'subordinate_registration_active_flow_category' => 'registration',
-        },
-        participant: 'Processing',
-        participant_role: 'system',
-        soft_required_fields: ['initialization_complete']
-      },
-
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Decline Per Term Workflow',
-        version: ${collegeVarName}_student_term_active_flow_definition_version_number,
-        description: '',
-        participant: 'Processing',
-        step_class: 'DeclineStudentTermStep',
-        view_name_override: '',
-        parameters: {
-          'mailer_signatures' => [
-          [:failure, { override_roles: 'student', template: 'student_college_rejection' }]
-          ]
-        },
-        participant_role: 'system',
-        soft_required_fields: []
-      },
-`;
-};
-
-/**
- * Import and adapt the getMergedWorkflow function for fixture generation
- * This creates a combined view of all steps from all scenarios
- */
-const getMergedWorkflow = (scenarios) => {
-  // Start with main workflow steps
-  let mergedSteps = [...(scenarios.main?.steps || [])];
-  
-  // Track which main steps have been overridden by scenario-specific versions
-  const overriddenMainStepIds = new Set();
-  
-  // Process each scenario to add its steps to the merged view
-  Object.keys(scenarios).forEach(scenarioId => {
-    if (scenarioId === 'main') return;
-    
-    const scenario = scenarios[scenarioId];
-    if (!scenario.steps || !scenario.condition) return;
-    
-    // Process each step in the scenario
-    scenario.steps.forEach(step => {
-      // Create a deep copy and enhance with scenario information
-      const enhancedStep = {
-        ...step,
-        scenarioId,
-        scenarioName: scenario.name,
-        scenarioCondition: scenario.condition,
-        conditional: true,
-        workflowCondition: Array.isArray(step.workflowCondition) && step.workflowCondition.length > 0 ? 
-                         step.workflowCondition : [scenario.condition]
-      };
-      
-      // Check if this is an override of a main step
-      const existsInMain = mergedSteps.some(mainStep => 
-        mainStep.id === step.id || 
-        (step.originalStepId && mainStep.id === step.originalStepId)
-      );
-      
-      if (existsInMain) {
-        // Override the main step with this scenario-specific version
-        const mainIndex = mergedSteps.findIndex(mainStep => 
-          mainStep.id === step.id || 
-          (step.originalStepId && mainStep.id === step.originalStepId)
-        );
-        
-        if (mainIndex !== -1) {
-          overriddenMainStepIds.add(mergedSteps[mainIndex].id);
-          mergedSteps[mainIndex] = enhancedStep;
-        }
-      } else {
-        // This is a new scenario-specific step that doesn't exist in the main workflow
-        // Try to determine the best position for it
-        let inserted = false;
-        
-        // If the step has addedAfterStepId, use that to find the insertion point
-        if (step.addedAfterStepId) {
-          const afterIndex = mergedSteps.findIndex(s => s.id === step.addedAfterStepId);
-          if (afterIndex !== -1) {
-            mergedSteps.splice(afterIndex + 1, 0, enhancedStep);
-            inserted = true;
-          }
-        }
-        
-        // If not inserted by addedAfterStepId, try to determine position from scenario order
-        if (!inserted) {
-          const stepIndex = scenario.steps.findIndex(s => s.id === step.id);
-          if (stepIndex > 0) {
-            // Find the previous step in the merged view
-            const previousStepInScenario = scenario.steps[stepIndex - 1];
-            const previousStepIndex = mergedSteps.findIndex(s => 
-              s.id === previousStepInScenario.id || 
-              (previousStepInScenario.originalStepId && s.id === previousStepInScenario.originalStepId)
-            );
-            
-            if (previousStepIndex !== -1) {
-              // Insert after the previous step
-              mergedSteps.splice(previousStepIndex + 1, 0, enhancedStep);
-              inserted = true;
-            }
-          }
-        }
-        
-        // If still not inserted, append to the end
-        if (!inserted) {
-          mergedSteps.push(enhancedStep);
-        }
-      }
-    });
-  });
-  
-  // Now handle feedback steps - they should appear after their parent steps
-  const feedbackSteps = mergedSteps.filter(step => step.isFeedbackStep && step.feedbackRelationship);
-  
-  // Remove feedback steps from the merged array (we'll reinsert them in the right positions)
-  mergedSteps = mergedSteps.filter(step => !step.isFeedbackStep);
-  
-  // Sort feedback steps by parent step's position
-  feedbackSteps.forEach(feedbackStep => {
-    const parentStepId = feedbackStep.feedbackRelationship.parentStepId;
-    const parentIndex = mergedSteps.findIndex(step => step.id === parentStepId);
-    
-    if (parentIndex !== -1) {
-      // Insert the feedback step right after its parent
-      mergedSteps.splice(parentIndex + 1, 0, feedbackStep);
-    } else {
-      // If parent not found, append to the end
-      mergedSteps.push(feedbackStep);
-    }
-  });
-  
-  return mergedSteps;
-};
-
-/**
- * Generate steps for Registration workflow
- * @param {string} collegeVarName - The college variable name
- * @param {string} varName - The ActiveFlowDefinition variable name
- * @param {Object} scenarios - All scenarios from the workflow
- * @returns {string} - Ruby code for Registration steps
- */
-const generateRegistrationSteps = (collegeVarName, varName, scenarios) => {
-  // This function is kept for backward compatibility but all the logic has been moved
-  // to the generateStepsForCategory function which handles category-specific filtering
-  let code = '';
-  
-  // Get all merged steps from all scenarios
-  const allSteps = getMergedWorkflow(scenarios);
-  
-  // Filter steps to only include those with 'Per Course' or default workflow category
-  const registrationSteps = allSteps.filter(step => {
-    const stepCategory = getWorkflowCategoryKey(step.workflow_category);
-    return stepCategory === 'registration';
-  });
-  
-  // Generate step code based on the filtered workflow steps
-  registrationSteps.forEach((step, index) => {
-    code += generateStepForCategory(step, collegeVarName, varName, index, allSteps);
-  });
-  
-  return code;
-};
 
 /**
  * Generate code for a single step in the Registration workflow
@@ -825,12 +525,19 @@ const generateStepForCategory = (step, collegeVarName, varName, index, allSteps)
  * @returns {string} - Completion state name
  */
 const getCompletionState = (step) => {
-  if (step.stepType === 'approval') {
+  if (step.stepType === 'Approval') {
+    if (step.title === 'Parent Consent') {
+      return 'parent_consent_provided';
+    }
     return snakeCase(step.title || 'approve');
-  } else if (step.stepType === 'upload') {
+  } else if (step.stepType === 'Upload') {
     return snakeCase(step.title || 'upload_document');
+  } else if (step.stepType === 'Initialization' ) {
+    return "initialization_complete"
+  } else if (step.stepType === 'WaitForCompletionOfOneTimeSteps') {
+    return "one_time_workflow_complete"
   } else {
-    return '';
+    return snakeCase(step.title || 'complete');
   }
 };
 
@@ -841,14 +548,14 @@ const getCompletionState = (step) => {
  */
 const getStepClass = (step) => {
   switch (step.stepType) {
-    case 'approval':
-      return 'ApprovalStep';
-    case 'upload':
+    case 'Approval':
+      return step.title === 'Parent Consent' ? 'ProvideConsentStep': 'ApprovalStep';
+    case 'Upload':
       return 'UploadDocumentStep';
-    case 'info':
+    case 'Info':
       return 'InfoStep';
     default:
-      return 'ApprovalStep';
+      return step.step_class;
   }
 };
 
@@ -858,7 +565,7 @@ const getStepClass = (step) => {
  * @returns {string} - View override path
  */
 const getViewOverride = (step) => {
-  if (step.stepType === 'system') {
+  if (step.participant_role === 'system' ){
     return '';
   }
   
@@ -893,7 +600,7 @@ const getActionName = (step) => {
  * @returns {string} - Ruby hash representation of parameters
  */
 const getParameters = (step, completionState) => {
-  if (step.stepType === 'system') {
+  if (step.stepType === 'system' || step.stepType === 'initialization') {
     // For system steps, if they have specific parameters, use those
     if (step.parameters && Object.keys(step.parameters).length > 0) {
       // Convert JavaScript object to Ruby hash representation
@@ -1053,6 +760,9 @@ const getParticipant = (step) => {
         return 'Approver';
       case 'processing':
       case 'system':
+        if (step.participant){
+          return step.participant;
+        }
         return 'Processing';
       default:
         return step.role;
@@ -1092,10 +802,11 @@ const getCompletionStateValues = (step) => {
  * Get the soft required fields for a step
  * @param {Object} step - Step data from the workflow
  * @param {number} index - The step index
- * @param {Array} allSteps - All steps in the workflow
+ * @param {Array} allSteps - All steps in the workflow category
  * @returns {string} - Comma-separated list of soft required fields
  */
 const getSoftRequiredFields = (step, index, allSteps) => {
+  console.log('getSoftRequiredFields', step, index, allSteps);
   const fields = [];
   
   // Special handling for feedback steps
@@ -1123,22 +834,7 @@ const getSoftRequiredFields = (step, index, allSteps) => {
     }
   }
   
-  // For initialization steps or the first step
-  if (index === 0 || step.stepClass?.includes('Initialize') || step.name?.includes('Initialize')) {
-    fields.push('initialization_complete');
-    
-    // If the step has a condition, add it
-    if (step.conditional && step.workflowCondition && step.workflowCondition.length > 0) {
-      step.workflowCondition.forEach(condition => {
-        fields.push(snakeCase(condition));
-      });
-    }
-    
-    return fields.map(field => `'${field}'`).join(', ');
-  } 
-  
   // For non-first steps, we need to determine dependencies
-  
   // For scenario-specific steps, always add the scenario condition
   if (step.scenarioId && step.scenarioId !== 'main' && step.scenarioCondition) {
     fields.push(snakeCase(step.scenarioCondition));
@@ -1152,14 +848,22 @@ const getSoftRequiredFields = (step, index, allSteps) => {
   }
   
   // Get the previous step to create a dependency
-  const previousStep = allSteps[index - 1];
+
+  // If the previous step is scenario-specific and this one isn't, go back to the most recent non-scenario condition
+  let previousStep = allSteps[index - 1];
+  if (previousStep && previousStep.scenarioId && previousStep.scenarioId !== step.scenarioId) {
+    console.log('previousStep.scenarioId', previousStep.scenarioId);
+    console.log('step.scenarioId', step.scenarioId);
+    previousStep = allSteps.filter(s => s.scenarioId === step.scenarioId).reverse()[0];
+  }
+
   
   if (previousStep) {
     // If the previous step is a system step with a completion_state parameter, use that
-    if (previousStep.stepType === 'system' && previousStep.parameters && 
+    if (previousStep.parameters && 
         previousStep.parameters.completion_state) {
       fields.push(previousStep.parameters.completion_state);
-    } else {
+    }else {
       // Get the previous step's completion state values
       const previousStepCompletionStates = getCompletionStateValues(previousStep);
       
