@@ -373,113 +373,66 @@ const generateStepsForCategory = (collegeVarName, category, versionNumber, scena
         categorySteps.unshift(initializationStep);
       break;
     }
+
+    const completeOneTimeWorkflowStep = {
+      id: 'step_5',
+      stepType: 'CompleteOneTimeWorkflow',
+      title: 'Complete One-Time Workflow',
+      version: `${collegeVarName}_college_student_application_active_flow_definition_version_number`,
+      participant: 'Processing',
+      step_class: 'CompleteSubordinateRegistrationActiveFlowStep',
+      view_name_override: '',
+      parameters: {
+        'subordinate_registration_active_flow_target_object_type': 'CollegeStudentApplication',
+        'subordinate_registration_active_flow_category': 'registration_one_time',
+      },
+      participant_role: 'system'
+    }
+    const failedOneTimeWorkflowStep = {
+      id: 'step_6',
+      stepType: 'FailedOneTimeWorkflow',
+      title: 'Failed One-Time Workflow',
+      version: `${collegeVarName}_college_student_application_active_flow_definition_version_number`,
+      participant: 'Processing',
+      step_class: 'DeclineSubordinateRegistrationActiveFlowStep',
+      view_name_override: '',
+      parameters: {},
+      participant_role: 'system',
+      soft_required_fields: []
+    }
+    const completeRegistrationWorkflowStep = {
+      id: 'step_7',
+      stepType: 'CompleteRegistrationWorkflow',
+      title: 'Successful Registration',
+      version: `${collegeVarName}_registration_active_flow_definition_version_number`,
+      participant: 'Processing',
+      step_class: 'SuccessfulRegistrationActiveFlowStep',
+      view_name_override: '',
+      parameters: {
+        'subordinate_registration_active_flow_target_object_type': 'Registration',
+        'subordinate_registration_active_flow_category': 'registration',
+      },
+      participant_role: 'system',
+      soft_required_fields: ['registration_response_yes']
+    }
+    // Add category-specific completion step
+    switch (category.name) {
+      case 'college_student_application':
+        categorySteps.push(completeOneTimeWorkflowStep);
+        categorySteps.push(failedOneTimeWorkflowStep);
+        break;
+      case 'student_term_academic_year':
+        break;
+      case 'student_term':
+        break;
+      case 'registration':
+        categorySteps.push(completeRegistrationWorkflowStep);
+        break;
+    }
     // Now add the custom steps for this category
     categorySteps.forEach((step, index) => {
       code += generateStepForCategory(step, collegeVarName, varName, index, categorySteps);
     });
-  
-    // Add category-specific completion step
-    switch (category.name) {
-      case 'college_student_application':
-        code += `
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Complete One-Time Workflow',
-        version: ${collegeVarName}_college_student_application_active_flow_definition_version_number,
-        description: '',
-        participant: 'Processing',
-        step_class: 'CompleteSubordinateRegistrationActiveFlowStep',
-        view_name_override: '',
-        parameters: {
-          'subordinate_registration_active_flow_target_object_type' => 'CollegeStudentApplication',
-          'subordinate_registration_active_flow_category' => 'registration_one_time',
-        },
-        participant_role: 'system',
-        soft_required_fields: ['parent_consent_provided']
-      },
-
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Failed One-Time Workflow',
-        version: ${collegeVarName}_college_student_application_active_flow_definition_version_number,
-        description: '',
-        participant: 'Processing',
-        step_class: 'DeclineSubordinateRegistrationActiveFlowStep',
-        view_name_override: '',
-        parameters: {},
-        participant_role: 'system',
-        soft_required_fields: []
-      },`;
-        break;
-      case 'student_term_academic_year':
-        code += `
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Complete Academic Year Workflow',
-        version: ${collegeVarName}_student_term_academic_year_active_flow_definition_version_number,
-        description: '',
-        step_class: 'CompleteSubordinateRegistrationActiveFlowStep',
-        view_name_override: '',
-        parameters: {
-          'subordinate_registration_active_flow_target_object_type' => 'StudentTerm',
-          'subordinate_registration_active_flow_category' => 'registration_academic_year',
-        },
-        participant: 'Processing',
-        participant_role: 'system',
-        soft_required_fields: ['initialization_complete']
-      },`;
-        break;
-      case 'student_term':
-        code += `
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Complete Per Term Workflow',
-        version: ${collegeVarName}_student_term_active_flow_definition_version_number,
-        description: '',
-        step_class: 'CompleteSubordinateRegistrationActiveFlowStep',
-        view_name_override: '',
-        parameters: {
-          'subordinate_registration_active_flow_target_object_type' => 'StudentTerm',
-          'subordinate_registration_active_flow_category' => 'registration',
-        },
-        participant: 'Processing',
-        participant_role: 'system',
-        soft_required_fields: ['initialization_complete']
-      },
-
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Decline Per Term Workflow',
-        version: ${collegeVarName}_student_term_active_flow_definition_version_number,
-        description: '',
-        participant: 'Processing',
-        step_class: 'DeclineStudentTermStep',
-        view_name_override: '',
-        parameters: {
-          'mailer_signatures' => [
-          [:failure, { override_roles: 'student', template: 'student_college_rejection' }]
-          ]
-        },
-        participant_role: 'system',
-        soft_required_fields: []
-      },`;
-        break;
-      case 'registration':
-        code += `
-      {
-        active_flow_definitions: [${varName}],
-        name: 'Successful Registration',
-        version: ${collegeVarName}_registration_active_flow_definition_version_number,
-        description: '',
-        participant: 'Processing',
-        step_class: 'CompleteRegistrationStep',
-        view_name_override: '',
-        parameters: '',
-        participant_role: 'system',
-        soft_required_fields: ['registration_response_yes']
-      },`;
-        break;
-    }
   }
   return code;
 };
@@ -565,10 +518,21 @@ const getStepClass = (step) => {
  * @returns {string} - View override path
  */
 const getViewOverride = (step) => {
+  console.log(`GETTING VIEW OVERRIDE FOR STEP: ${JSON.stringify(step)}`);
   if (step.participant_role === 'system' ){
     return '';
   }
-  
+  if (step.viewNameOverride){
+    return step.viewNameOverride;
+  } else if (step.role === 'High School'){
+    if (step.workflow_category === 'Per Course' && step.stepType === 'Approval'){
+      return 'active_flow_steps/course_registration/high_school/confirm_enrollment'
+    }
+  } else if (step.role === 'College'){
+    if (step.workflow_category === 'Per Course' && step.stepType === 'Approval'){
+      return 'active_flow_steps/course_registration/college/review_course'
+    }
+  }
   const role = step.role || 'student';
   const action = getActionName(step);
   
@@ -867,6 +831,20 @@ const getSoftRequiredFields = (step, index, allSteps) => {
     }
 
 
+  }
+  // similar problem if the previous step is feedback step, gotta go back
+  if (previousStep && previousStep.isFeedbackStep && previousStep.feedbackRelationship) {
+    let matchingStepFound = false
+    while(!matchingStepFound) {
+      previousStep = allSteps[index - 1];
+      if (previousStep.isFeedbackStep && previousStep.feedbackRelationship) {
+        index--;
+      } else if (previousStep.scenarioId && previousStep.scenarioId !== step.scenarioId) {
+        index--;
+      } else {
+        matchingStepFound = true;
+      }
+    }
   }
 
   
