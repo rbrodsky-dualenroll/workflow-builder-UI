@@ -627,7 +627,7 @@ const getParameters = (step, completionState) => {
   }
   
   // For upload steps, add document class and types
-  if (step.stepType === 'upload') {
+  if (step.stepType === 'Upload') {
     params['document_class'] = 'StudentDocument';
     params['kinds'] = step.documentTypes || ['other'];
     
@@ -645,7 +645,7 @@ const getParameters = (step, completionState) => {
   }
   
   // For approval steps, add clear_states_by_completion to handle returns and feedback loops
-  if (step.stepType === 'approval' && completionState) {
+  if (step.stepType === 'Approval' && completionState) {
     // Handle feedback loops if present
     if (step.feedbackLoops && Object.keys(step.feedbackLoops).length > 0) {
       params['feedbackLoops'] = {};
@@ -785,12 +785,12 @@ const getCompletionStateValues = (step) => {
   }
   
   // For approval steps, we typically have yes/no/declined states
-  if (step.stepType === 'approval') {
+  if (step.stepType === 'Approval') {
     return [baseState, `${baseState}_yes`, `${baseState}_no`, `${baseState}_declined`];
   }
   
   // For upload steps, we typically have complete/return states
-  if (step.stepType === 'upload') {
+  if (step.stepType === 'Upload') {
     return [baseState, `${baseState}_complete`, `${baseState}_return`];
   }
   
@@ -854,7 +854,19 @@ const getSoftRequiredFields = (step, index, allSteps) => {
   if (previousStep && previousStep.scenarioId && previousStep.scenarioId !== step.scenarioId) {
     console.log('previousStep.scenarioId', previousStep.scenarioId);
     console.log('step.scenarioId', step.scenarioId);
-    previousStep = allSteps.filter(s => s.scenarioId === step.scenarioId).reverse()[0];
+    // Find the most recent step with a matching scenario or matching lack of scenario
+    // the main scenarios will just not have any scenarioId
+    let matchingStepFound = false
+    while(!matchingStepFound) {
+      previousStep = allSteps[index - 1];
+      if (previousStep.scenarioId && previousStep.scenarioId !== step.scenarioId) {
+        index--;
+      } else {
+        matchingStepFound = true;
+      }
+    }
+
+
   }
 
   
@@ -870,9 +882,11 @@ const getSoftRequiredFields = (step, index, allSteps) => {
       // Use the most appropriate completion state for dependency
       // For approval steps, we want to depend on the 'yes' state
       // For upload steps, we want to depend on the 'complete' state
-      if (previousStep.stepType === 'approval' && previousStepCompletionStates.includes(`${getCompletionState(previousStep)}_yes`)) {
+      if (previousStep.stepType === 'Approval' && previousStep.title === 'Parent Consent') {
+        fields.push('parent_consent_provided');
+      } else if (previousStep.stepType === 'Approval' && previousStepCompletionStates.includes(`${getCompletionState(previousStep)}_yes`)) {
         fields.push(`${getCompletionState(previousStep)}_yes`);
-      } else if (previousStep.stepType === 'upload' && previousStepCompletionStates.includes(`${getCompletionState(previousStep)}_complete`)) {
+      } else if (previousStep.stepType === 'Upload' && previousStepCompletionStates.includes(`${getCompletionState(previousStep)}_complete`)) {
         fields.push(`${getCompletionState(previousStep)}_complete`);
       } else if (previousStepCompletionStates.length > 0) {
         // Default to the first completion state if we can't determine a specific one
@@ -888,9 +902,9 @@ const getSoftRequiredFields = (step, index, allSteps) => {
       // Add completion state of the referenced step
       const afterStepCompletionState = getCompletionState(afterStep);
       if (afterStepCompletionState) {
-        if (afterStep.stepType === 'approval') {
+        if (afterStep.stepType === 'Approval') {
           fields.push(`${afterStepCompletionState}_yes`);
-        } else if (afterStep.stepType === 'upload') {
+        } else if (afterStep.stepType === 'Upload') {
           fields.push(`${afterStepCompletionState}_complete`);
         } else {
           fields.push(afterStepCompletionState);
@@ -920,7 +934,7 @@ const getSoftRequiredFields = (step, index, allSteps) => {
     // For steps that include 'Review' in their titles
     if (title.includes('review') && step.role && step.role.toLowerCase() === 'college') {
       // Add a dependency on the previous step's completion
-      if (previousStep && previousStep.stepType === 'upload') {
+      if (previousStep && previousStep.stepType === 'Upload') {
         fields.push(`${getCompletionState(previousStep)}_complete`);
       }
     }
