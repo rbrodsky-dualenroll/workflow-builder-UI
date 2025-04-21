@@ -52,8 +52,6 @@ export const generateRubyFixture = (workflowData, collegeData, options = {}) => 
     rubyCode += generateActiveFlowDefinition(collegeVarName, category, versionNumbers, scenarios);
   });
   
-
-  
   return rubyCode;
 };
 
@@ -460,21 +458,3 @@ const generateStepForCategory = (step, collegeVarName, varName, index, allSteps)
       },
 `;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
