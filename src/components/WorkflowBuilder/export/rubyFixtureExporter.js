@@ -7,6 +7,7 @@
 
 import { generateApplicationFixture } from './applicationFixtureGenerator';
 import { getMergedWorkflow } from '../ScenarioOperations';
+import getViewOverride from './getViewOverride';
 /**
  * Generate a Ruby fixture file based on workflow data
  * @param {Object} workflowData - The workflow data from the WorkflowBuilder
@@ -452,7 +453,7 @@ const generateStepForCategory = (step, collegeVarName, varName, index, allSteps)
   const completionState = getCompletionState(step);
   const stepClass = getStepClass(step);
   const viewOverride = getViewOverride(step);
-  const parameters = getParameters(step, completionState);
+  const parameters = getParameters(step, completionState, allSteps);
   const participantRole = getParticipantRole(step);
   const softRequiredFields = getSoftRequiredFields(step, index, allSteps);
   
@@ -512,58 +513,18 @@ const getStepClass = (step) => {
   }
 };
 
-/**
- * Get the view override path for a step
- * @param {Object} step - Step data from the workflow
- * @returns {string} - View override path
- */
-const getViewOverride = (step) => {
-  console.log(`GETTING VIEW OVERRIDE FOR STEP: ${JSON.stringify(step)}`);
-  if (step.participant_role === 'system' ){
-    return '';
-  }
-  if (step.viewNameOverride){
-    return step.viewNameOverride;
-  } else if (step.role === 'High School'){
-    if (step.workflow_category === 'Per Course' && step.stepType === 'Approval'){
-      return 'active_flow_steps/course_registration/high_school/confirm_enrollment'
-    }
-  } else if (step.role === 'College'){
-    if (step.workflow_category === 'Per Course' && step.stepType === 'Approval'){
-      return 'active_flow_steps/course_registration/college/review_course'
-    }
-  }
-  const role = step.role || 'student';
-  const action = getActionName(step);
-  
-  return `active_flow_steps/course_registration/${role.toLowerCase()}/${action}`;
-};
 
-/**
- * Get the action name for a view path
- * @param {Object} step - Step data from the workflow
- * @returns {string} - Action name for the view path
- */
-const getActionName = (step) => {
-  switch (step.stepType) {
-    case 'approval':
-      return 'approve';
-    case 'upload':
-      return 'provide_additional_info';
-    case 'info':
-      return 'info';
-    default:
-      return 'approve';
-  }
-};
+
+
 
 /**
  * Generate parameters hash for a step
  * @param {Object} step - Step data from the workflow
  * @param {string} completionState - Completion state name
+ * @param {Array} allSteps - All steps in the workflow category
  * @returns {string} - Ruby hash representation of parameters
  */
-const getParameters = (step, completionState) => {
+const getParameters = (step, completionState, allSteps) => {
   if (step.stepType === 'system' || step.stepType === 'initialization') {
     // For system steps, if they have specific parameters, use those
     if (step.parameters && Object.keys(step.parameters).length > 0) {
@@ -598,13 +559,46 @@ const getParameters = (step, completionState) => {
     // Add clear_states_by_completion parameters for upload steps
     // This allows steps to properly handle the 'return' case
     if (completionState) {
-      params['clear_states_by_completion'] = {
-        'return': [
-          completionState,
-          `${completionState}_return`,
-          `${completionState}_complete`
-        ]
-      };
+      // If this is a feedback step and has a parent relationship, handle special feedback step clearing
+      if (step.isFeedbackStep && step.feedbackRelationship) {
+        const parentStep = allSteps.find(s => s.id === step.feedbackRelationship.parentStepId);
+        if (parentStep) {
+          const parentCompletionState = getCompletionState(parentStep);
+          // Updated role-specific suffix to include parent
+          const roleSpecificSuffix = step.role && step.role.toLowerCase() === 'student' ? 'student_more_info' : 
+                                    (step.role && step.role.toLowerCase() === 'parent' ? 'parent_more_info' :
+                                    (step.role && (step.role.toLowerCase() === 'high school' || step.role.toLowerCase() === 'counselor') ? 'hs_more_info' : 
+                                    (step.role && step.role.toLowerCase() === 'approver' ? 'approver_more_info' : 'more_info')));
+          
+          // Updated to match the structure from the example
+          params['clear_states_by_completion'] = {
+            'complete': [
+              completionState, 
+              `${completionState}_complete`, 
+              parentCompletionState, 
+              `${parentCompletionState}_${roleSpecificSuffix}`
+            ]
+          };
+        } else {
+          // Fall back to standard behavior if parent not found
+          params['clear_states_by_completion'] = {
+            'return': [
+              completionState,
+              `${completionState}_return`,
+              `${completionState}_complete`
+            ]
+          };
+        }
+      } else {
+        // Standard behavior for non-feedback upload steps
+        params['clear_states_by_completion'] = {
+          'return': [
+            completionState,
+            `${completionState}_return`,
+            `${completionState}_complete`
+          ]
+        };
+      }
     }
   }
   
@@ -628,12 +622,20 @@ const getParameters = (step, completionState) => {
         params['clear_states_by_completion'] = {};
       }
       
-      // Add feedback trigger states to clear on completion
+      // For each feedback loop, add the proper role-specific suffix to the completion state
       Object.keys(step.feedbackLoops).forEach(feedbackId => {
+        const feedback = step.feedbackLoops[feedbackId];
+        const roleSpecificSuffix = feedback.recipient && feedback.recipient.toLowerCase() === 'student' ? 'student_more_info' : 
+                                  (feedback.recipient && feedback.recipient.toLowerCase() === 'parent' ? 'parent_more_info' :
+                                  (feedback.recipient && (feedback.recipient.toLowerCase() === 'high school' || feedback.recipient.toLowerCase() === 'counselor') ? 'hs_more_info' : 
+                                  (feedback.recipient && feedback.recipient.toLowerCase() === 'approver' ? 'approver_more_info' : 'more_info')));
+        
         if (!params['clear_states_by_completion']['yes']) {
           params['clear_states_by_completion']['yes'] = [];
         }
-        params['clear_states_by_completion']['yes'].push(`${completionState}_feedback_${feedbackId}`);
+        
+        // Add to the list of states to clear when approved
+        params['clear_states_by_completion']['yes'].push(`${completionState}_${roleSpecificSuffix}`);
       });
     }
   }
@@ -748,7 +750,25 @@ const getCompletionStateValues = (step) => {
     return [];
   }
   
-  // For approval steps, we typically have yes/no/declined states
+  // For approval steps with feedback loops, include the role-specific more_info states
+  if (step.stepType === 'Approval' && step.feedbackLoops && Object.keys(step.feedbackLoops).length > 0) {
+    const states = [baseState, `${baseState}_yes`, `${baseState}_no`, `${baseState}_declined`];
+    
+    // Add states for each feedback loop
+    Object.entries(step.feedbackLoops).forEach(([feedbackId, feedback]) => {
+      if (feedback.recipient) {
+        const roleSpecificSuffix = feedback.recipient.toLowerCase() === 'student' ? 'student_more_info' : 
+                                  (feedback.recipient.toLowerCase() === 'parent' ? 'parent_more_info' :
+                                  (feedback.recipient.toLowerCase() === 'high school' || feedback.recipient.toLowerCase() === 'counselor' ? 'hs_more_info' : 
+                                  (feedback.recipient.toLowerCase() === 'approver' ? 'approver_more_info' : 'more_info')));
+        states.push(`${baseState}_${roleSpecificSuffix}`);
+      }
+    });
+    
+    return states;
+  }
+  
+  // For standard approval steps, we typically have yes/no/declined states
   if (step.stepType === 'Approval') {
     return [baseState, `${baseState}_yes`, `${baseState}_no`, `${baseState}_declined`];
   }
@@ -780,8 +800,16 @@ const getSoftRequiredFields = (step, index, allSteps) => {
     const parentStep = allSteps.find(s => s.id === parentStepId);
     
     if (parentStep) {
-      // For feedback steps, depend on the appropriate feedback trigger state from the parent
-      const feedbackTriggerState = `${getCompletionState(parentStep)}_${step.title}`;
+      // For feedback steps, depend on the parent step's completion state + role-specific suffix
+      const parentCompletionState = getCompletionState(parentStep);
+      const roleSpecificSuffix = step.role && step.role.toLowerCase() === 'student' ? 'student_more_info' : 
+                                (step.role && step.role.toLowerCase() === 'parent' ? 'parent_more_info' :
+                                (step.role && (step.role.toLowerCase() === 'high school' || step.role.toLowerCase() === 'counselor') ? 'hs_more_info' : 
+                                (step.role && step.role.toLowerCase() === 'approver' ? 'approver_more_info' : 'more_info')));
+
+      // This follows the pattern: parent_completion_state_role_more_info
+      // Example: college_approval_student_more_info
+      const feedbackTriggerState = `${parentCompletionState}_${roleSpecificSuffix}`;
       fields.push(feedbackTriggerState);
       return fields.map(field => `'${field}'`).join(', ');
     }
