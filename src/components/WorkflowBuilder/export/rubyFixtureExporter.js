@@ -781,8 +781,7 @@ const getSoftRequiredFields = (step, index, allSteps) => {
     
     if (parentStep) {
       // For feedback steps, depend on the appropriate feedback trigger state from the parent
-      const feedbackId = step.feedbackRelationship.feedbackId;
-      const feedbackTriggerState = `${getCompletionState(parentStep)}_feedback_${feedbackId}`;
+      const feedbackTriggerState = `${getCompletionState(parentStep)}_${step.title}`;
       fields.push(feedbackTriggerState);
       return fields.map(field => `'${field}'`).join(', ');
     }
