@@ -32,6 +32,11 @@ const ConditionalBuilderRefactored = ({
       { value: 'courseNumber', label: 'Course Number' },
       { value: 'title', label: 'Title' },
       { value: 'category', label: 'Category' },
+      { value: 'hasPrerequisites', label: 'Has Prerequisites' },
+      { value: 'credits', label: 'Credits' },
+      { value: 'level', label: 'Level' },
+      { value: 'format', label: 'Format' },
+      { value: 'sectionLocation', label: 'Section Location' },
       { value: 'custom', label: 'Custom property...' }
     ],
     Student: [
@@ -40,12 +45,20 @@ const ConditionalBuilderRefactored = ({
       { value: 'program', label: 'Program' },
       { value: 'highSchool', label: 'High School' },
       { value: 'gpa', label: 'GPA' },
+      { value: 'isHomeschool', label: 'Is Homeschool' },
+      { value: 'studentNumber', label: 'Student ID/Number' },
+      { value: 'hasFinancialAid', label: 'Has Financial Aid' },
+      { value: 'isFirstTime', label: 'First-Time Student' },
+      { value: 'isMinor', label: 'Is Minor' },
       { value: 'custom', label: 'Custom property...' }
     ],
     HighSchool: [
       { value: 'name', label: 'Name' },
       { value: 'type', label: 'Type' },
       { value: 'district', label: 'District' },
+      { value: 'partnerStatus', label: 'Partner Status' },
+      { value: 'hasFeederSchools', label: 'Has Feeder Schools' },
+      { value: 'paymentPolicy', label: 'Payment Policy' },
       { value: 'custom', label: 'Custom property...' }
     ],
     Instructor: [
@@ -53,12 +66,16 @@ const ConditionalBuilderRefactored = ({
       { value: 'department', label: 'Department' },
       { value: 'highSchool', label: 'High School' },
       { value: 'experience', label: 'Years of Experience' },
+      { value: 'isHighSchool', label: 'Is High School Instructor' },
+      { value: 'isCollege', label: 'Is College Instructor' },
+      { value: 'credentials', label: 'Credentials' },
       { value: 'custom', label: 'Custom property...' }
     ],
     Step: [
       { value: 'status', label: 'Status' },
       { value: 'action', label: 'Action' },
       { value: 'comment', label: 'Comment' },
+      { value: 'completionState', label: 'Completion State' },
       { value: 'custom', label: 'Custom property...' }
     ]
   };
@@ -322,6 +339,33 @@ const ConditionalBuilderRefactored = ({
             data-testid="scenario-condition-value-input"
           />
         </div>
+        
+        {/* Fields to set */}
+        <div>
+          <FormField
+            label="Fields to Set (comma-separated)"
+            name="fieldsString"
+            type="text"
+            value={localCondition.fields ? localCondition.fields.join(', ') : ''}
+            onChange={handleFieldsChange}
+            placeholder="e.g., home_school, parent_consent_required"
+            data-testid="scenario-condition-fields-input"
+          />
+        </div>
+        
+        {/* Delete button */}
+        {onDelete && (
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={onDelete}
+              className="text-red-600 hover:text-red-800 text-sm"
+              data-testid="delete-condition-button"
+            >
+              Remove Condition
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

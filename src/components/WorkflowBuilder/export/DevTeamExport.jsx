@@ -6,7 +6,8 @@ import { exportZipArchive } from './multiFileExporter';
  * DevTeamExport - A component that allows exporting the current workflow 
  * in a format compatible with DualEnroll Ruby fixtures
  */
-const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, onClose }) => {
+const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, onClose, workflowConditions }) => {
+  console.log('Workflow conditions in DevTeamExport:', workflowConditions);
   const [localCollegeName, setLocalCollegeName] = useState(collegeInfo.name || '');
   const [localCollegeId, setLocalCollegeId] = useState(collegeInfo.id || '');
   const [localCollegeCity, setLocalCollegeCity] = useState(collegeInfo.city || '');
@@ -61,7 +62,11 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
       if (exportType === 'zip') {
         // Generate and download multiple files as a ZIP archive
         await exportZipArchive(
-          { scenarios, workflowName }, 
+          { 
+            scenarios, 
+            workflowName,
+            conditions: workflowConditions || {}
+          }, 
           collegeData,
           { 
             includeApplicationFields,

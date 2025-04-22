@@ -55,11 +55,9 @@ export const updateScenario = (scenarios, updatedScenario) => {
  * Get a merged view of all scenarios for the master view
  */
 export const getMergedWorkflow = (scenarios) => {
-  console.log('Building master view with scenarios:', Object.keys(scenarios));
   
   // Start with main workflow steps
   let mergedSteps = [...(scenarios.main?.steps || [])];
-  console.log('Starting with main steps:', mergedSteps.map(s => ({ id: s.id, title: s.title })));
   
   // Track which main steps have been overridden by scenario-specific versions
   const overriddenMainStepIds = new Set();
@@ -105,14 +103,6 @@ export const getMergedWorkflow = (scenarios) => {
       // Handle regular scenario-specific steps that don't exist in main
       const originalId = step.originalStepId || step.id;
       const existsInMain = mergedSteps.some(mainStep => mainStep.id === originalId);
-      
-      // For debugging
-      console.log(`Checking step '${step.title}' (id: ${step.id}, originalId: ${originalId}) from ${scenarioId} - in main: ${existsInMain}`);
-      console.log('Context:', { 
-        addedAfterId: step.addedAfterStepId, 
-        originalId: step.originalStepId,
-        index: scenario.steps.findIndex(s => s.id === step.id) 
-      });
       
       if (!existsInMain) {
         // Prepare step with scenario metadata
@@ -177,12 +167,6 @@ export const getMergedWorkflow = (scenarios) => {
       return true; // Keep in remaining
     });
     
-    console.log('Ready to insert steps:', stepsToInsert.map(s => ({
-      id: s.step.id,
-      title: s.step.title,
-      insertAfter: s.insertAfterStepId
-    })));
-    
     // Insert the steps
     stepsToInsert.forEach(item => {
       let insertIndex = mergedSteps.length; // Default to end
@@ -192,7 +176,6 @@ export const getMergedWorkflow = (scenarios) => {
         const refIndex = mergedSteps.findIndex(s => s.id === item.insertAfterStepId);
         if (refIndex !== -1) {
           insertIndex = refIndex + 1;
-          console.log(`Inserting step ${item.step.title} after ${mergedSteps[refIndex].title} at index ${insertIndex}`);
         } else {
           console.warn(`Referenced step ${item.insertAfterStepId} not found in merged steps for ${item.step.title}`);
         }

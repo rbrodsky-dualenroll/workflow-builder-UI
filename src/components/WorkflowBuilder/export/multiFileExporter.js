@@ -18,6 +18,7 @@ import { snakeCase } from './utils';
  * @returns {Promise} - Promise that resolves when the zip file is generated and downloaded
  */
 export const exportZipArchive = async (workflowData, collegeData, options = {}) => {
+  console.log('Workflow conditions for initializer:', workflowData.conditions);
   try {
     // Create a safe variable name for the college
     const collegeVarName = collegeData.name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -42,8 +43,16 @@ export const exportZipArchive = async (workflowData, collegeData, options = {}) 
         const targetObjectType = category.targetObject;
         
         // Generate the initializer class code
+        // Ensure we're passing the workflow conditions explicitly to the initializer generator
+        const enhancedWorkflowData = {
+          ...workflowData,
+          conditions: workflowData.conditions || {}
+        };
+        
+        console.log(`Generating initializer for ${targetObjectType} with ${Object.keys(enhancedWorkflowData.conditions || {}).length} conditions`);
+        
         const initializerCode = generateInitializerClass(
-          workflowData,
+          enhancedWorkflowData,
           collegeVarName,
           targetObjectType
         );

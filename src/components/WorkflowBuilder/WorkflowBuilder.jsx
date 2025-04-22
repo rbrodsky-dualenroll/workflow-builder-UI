@@ -381,6 +381,7 @@ const WorkflowBuilder = () => {
             collegeInfo={collegeInfo}
             setCollegeInfo={setCollegeInfo}
             onClose={() => setShowDevTeamExportModal(false)}
+            workflowConditions={workflowConditions}
           />
         )}
       </div>
