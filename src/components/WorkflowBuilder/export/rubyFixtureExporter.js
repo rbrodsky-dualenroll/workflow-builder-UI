@@ -74,7 +74,7 @@ const generateVersionNumbers = (scenarios) => {
  * @param {Object} scenarios - All scenarios from the workflow
  * @returns {Array} - List of workflow categories
  */
-const identifyWorkflowCategories = (scenarios) => {
+export const identifyWorkflowCategories = (scenarios) => {
   // All possible workflow categories
   const allPossibleCategories = [
     {

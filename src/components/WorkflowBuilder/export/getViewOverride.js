@@ -4,7 +4,6 @@
  * @returns {string} - View override path
  */
 const getViewOverride = (step) => {
-  console.log(`GETTING VIEW OVERRIDE FOR STEP: ${JSON.stringify(step)}`);
   
   // Return empty for system steps
   if (step.participant_role === 'system' || step.role === 'System' || 
@@ -47,6 +46,8 @@ const getViewOverride = (step) => {
         return 'active_flow_steps/course_registration/high_school/confirm_enrollment';
       } else if (step.title && step.title.toLowerCase().includes('resolve')) {
         return 'active_flow_steps/course_registration/high_school/registration_resolve_issues';
+      } else if (step.workflow_category === 'One Time') {
+        return 'active_flow_steps/course_registration/high_school/registration_one_time';
       }
     } else if (step.stepType === 'Upload') {
       if (step.title && (step.title.toLowerCase().includes('transcript') || 
@@ -97,7 +98,10 @@ const getViewOverride = (step) => {
   
   // Handle parent steps
   else if (role === 'parent') {
+    console.log(`PARENT STEP: ${JSON.stringify(step)}`);
+    console.log(` step.stepType: ${step.stepType}`);
     if (step.stepType === 'Approval' || step.stepType === 'ProvideConsent') {
+      console.log('returning provide_consent')
       return 'active_flow_steps/course_registration/parent/provide_consent'; 
     } else if (step.stepType === 'Upload') {
       if (step.title && step.title.toLowerCase().includes('affidavit')) {

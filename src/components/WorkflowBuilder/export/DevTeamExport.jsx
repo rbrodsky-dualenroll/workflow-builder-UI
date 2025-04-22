@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { generateRubyFixture } from './rubyFixtureExporter';
+import { exportZipArchive } from './multiFileExporter';
 
 /**
  * DevTeamExport - A component that allows exporting the current workflow 
@@ -15,14 +16,16 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
   const [localCollegeUrl, setLocalCollegeUrl] = useState(collegeInfo.url || '');
   const [localCollegeType, setLocalCollegeType] = useState(collegeInfo.type || 'Public: 2-year');
   const [includeApplicationFields, setIncludeApplicationFields] = useState(true);
+  const [includeInitializers, setIncludeInitializers] = useState(true);
+  const [exportType, setExportType] = useState('zip'); // 'zip' or 'single'
   const [exportedCode, setExportedCode] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   /**
-   * Generate the Ruby fixture code
+   * Generate the workflow files
    */
-  const generateFixture = () => {
+  const generateFixture = async () => {
     if (!localCollegeName || !localCollegeId) {
       alert('College Name and ID are required');
       return;
@@ -55,16 +58,29 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
         type: localCollegeType
       };
       
-      // Generate the Ruby fixture code with options
-      const rubyCode = generateRubyFixture(
-        { scenarios, workflowName }, 
-        collegeData,
-        { includeApplicationFields }
-      );
-      
-      setExportedCode(rubyCode);
-      setShowPreview(true);
-      setIsExporting(false);
+      if (exportType === 'zip') {
+        // Generate and download multiple files as a ZIP archive
+        await exportZipArchive(
+          { scenarios, workflowName }, 
+          collegeData,
+          { 
+            includeApplicationFields,
+            includeInitializers
+          }
+        );
+        setIsExporting(false);
+      } else {
+        // Generate the Ruby fixture code with options for preview
+        const rubyCode = generateRubyFixture(
+          { scenarios, workflowName }, 
+          collegeData,
+          { includeApplicationFields }
+        );
+        
+        setExportedCode(rubyCode);
+        setShowPreview(true);
+        setIsExporting(false);
+      }
     } catch (error) {
       console.error('Error generating fixture:', error);
       alert('Error generating fixture: ' + error.message);
@@ -113,7 +129,8 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
         {!showPreview ? (
           <div className="space-y-4">
             <p className="text-gray-600 mb-4">
-              This will generate a Ruby fixture file that can be used by the development team to implement your workflow.
+              This will generate Ruby files that can be used by the development team to implement your workflow.
+              You can choose to export a single fixture file or a ZIP archive containing multiple files.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -240,7 +257,44 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
               </div>
             </div>
             
-            <div className="mt-4">
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Export Type</label>
+                <div className="flex space-x-4">
+                  <div className="flex items-center">
+                    <input
+                      id="exportTypeZip"
+                      name="exportType"
+                      type="radio"
+                      value="zip"
+                      checked={exportType === 'zip'}
+                      onChange={() => setExportType('zip')}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                    />
+                    <label htmlFor="exportTypeZip" className="ml-2 block text-sm text-gray-700">
+                      ZIP Archive (Multiple Files)
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      id="exportTypeSingle"
+                      name="exportType"
+                      type="radio"
+                      value="single"
+                      checked={exportType === 'single'}
+                      onChange={() => setExportType('single')}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                    />
+                    <label htmlFor="exportTypeSingle" className="ml-2 block text-sm text-gray-700">
+                      Single Fixture File
+                    </label>
+                  </div>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  The ZIP archive includes initializer classes that handle scenario conditions
+                </p>
+              </div>
+              
               <div className="flex items-center">
                 <input
                   id="includeApplicationFields"
@@ -257,6 +311,22 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
               <p className="mt-1 text-xs text-gray-500">
                 Adds common student application fields, pages and a basic enrollment form to the fixture
               </p>
+              
+              {exportType === 'zip' && (
+                <div className="flex items-center">
+                  <input
+                    id="includeInitializers"
+                    name="includeInitializers"
+                    type="checkbox"
+                    checked={includeInitializers}
+                    onChange={(e) => setIncludeInitializers(e.target.checked)}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="includeInitializers" className="ml-2 block text-sm text-gray-700">
+                    Include initializer classes
+                  </label>
+                </div>
+              )}
             </div>
             
             <div className="flex justify-end mt-6 space-x-3">
@@ -275,7 +345,7 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
                     : 'bg-indigo-600 hover:bg-indigo-700'
                 }`}
               >
-                {isExporting ? 'Generating...' : 'Generate Fixture'}
+                {isExporting ? 'Generating...' : exportType === 'zip' ? 'Generate ZIP Archive' : 'Generate Fixture'}
               </button>
             </div>
           </div>
