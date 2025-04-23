@@ -9,7 +9,24 @@ import { getCompletionState, getCompletionStateValues } from './getCompletionSta
  * @returns {string} - Comma-separated list of soft required fields
  */
 const getSoftRequiredFields = (step, index, allSteps) => {
+  // Special handling for Registration Failure and Successful Registration steps
+  // These steps should use their own soft_required_fields directly
+  if (step.stepType === 'Registration Failure' || step.stepType === 'Successful Registration') {
+    // For these special steps, just use the soft_required_fields directly from the step
+    // Don't apply the standard dependency logic
+    if (step.soft_required_fields) {
+      return step.soft_required_fields.join(', ');
+    }
+    return '';
+  }
+
   const fields = [];
+
+  // Special handling for ReviewFailedRegistration
+  if (step.stepType === "ReviewFailedRegistration"){
+    fields.push('registration_response_no')
+    return fields.map(field => `'${field}'`).join(', ');
+  }
   
   // Special handling for feedback steps
   if (step.isFeedbackStep && step.feedbackRelationship) {
@@ -122,6 +139,45 @@ const getSoftRequiredFields = (step, index, allSteps) => {
         fields.push(previousStepCompletionStates[0]);
       }
     }
+    // If the previous step was a conditional, find the nearest non conditional, non scenario, non feedback ancestor and add THEIR completion state as well
+    if (previousStep.conditional) {
+      let tempIndex = index - 1;
+      while(tempIndex > 0) {
+        const currentStep = allSteps[tempIndex];
+        if (currentStep.conditional || currentStep.scenarioId || currentStep.isFeedbackStep) {
+          tempIndex--;
+        } else {
+          if (currentStep.parameters && currentStep.parameters.completion_state) {
+            fields.push(currentStep.parameters.completion_state);
+          } else {
+            // Get the previous step's completion state values
+            const currentStepCompletionStates = getCompletionStateValues(currentStep);
+            
+            // Use the most appropriate completion state for dependency
+            // For approval steps, we want to depend on the 'yes' state
+            // For upload steps, we want to depend on the 'complete' state
+            if (currentStep.stepType === 'Approval' && currentStep.title === 'Parent Consent') {
+              fields.push('parent_consent_provided');
+            } else if (currentStep.stepType === 'Approval' && currentStepCompletionStates.includes(`${getCompletionState(currentStep)}_yes`)) {
+              fields.push(`${getCompletionState(currentStep)}_yes`);
+            } else if (currentStep.stepType === 'Upload' && currentStepCompletionStates.includes(`${getCompletionState(currentStep)}_complete`)) {
+              fields.push(`${getCompletionState(currentStep)}_complete`);
+            } else if (currentStep.stepType === 'CheckHolds') {
+              // For CheckHolds steps, set up the dependency on the result
+              if (step.title && step.title.toLowerCase().includes('resolve')) {
+                fields.push(`${getCompletionState(currentStep)}_has_holds`);
+              } else {
+                fields.push(`${getCompletionState(currentStep)}_no_holds`);
+              }
+            } else if (currentStepCompletionStates.length > 0) {
+              // Default to the first completion state if we can't determine a specific one
+              fields.push(currentStepCompletionStates[0]);
+            }
+          }
+          break;
+        }
+      }
+    }
   }
   
   // For steps that have a specific 'addedAfterStepId', add a dependency on that step
@@ -142,32 +198,6 @@ const getSoftRequiredFields = (step, index, allSteps) => {
     }
   }
   
-  // Handle special cases for common step types
-  if (step.title) {
-    const title = step.title.toLowerCase();
-    
-    // For student term related steps, add dependencies
-    if (title.includes('term') || title.includes('academic year')) {
-      if (!fields.some(f => f.includes('student_term_complete'))) {
-        fields.push('student_term_complete');
-      }
-    }
-    
-    // For prerequisite or transcript related steps
-    if (title.includes('prereq') || title.includes('transcript')) {
-      if (step.title.toLowerCase().includes('review') && !fields.some(f => f.includes('upload_transcript_complete'))) {
-        fields.push('upload_transcript_complete');
-      }
-    }
-    
-    // For steps that include 'Review' in their titles
-    if (title.includes('review') && step.role && step.role.toLowerCase() === 'college') {
-      // Add a dependency on the previous step's completion
-      if (previousStep && previousStep.stepType === 'Upload') {
-        fields.push(`${getCompletionState(previousStep)}_complete`);
-      }
-    }
-  }
   
   // For steps with no dependencies, use 'initialization_complete' as a fallback
   if (fields.length === 0 && step.stepType !== 'Initialization') {

@@ -14,6 +14,7 @@ const BaseStepSection = ({ formData, handleChange, errors = {} }) => {
     { value: 'CheckHolds', label: 'Check Holds' },
     { value: 'RegisterViaApi', label: 'Register Via API' },
     { value: 'ResolveIssue', label: 'Resolve Issue' },
+    { value: 'ReviewFailedRegistration', label: 'Review Failed Registration' },
     { value: 'PendingCompletionOfOneTimeSteps', label: 'Pending Completion of One-Time Steps' },
     { value: 'PendingCompletionOfPerTermSteps', label: 'Pending Completion of Per Term Steps' },
     { value: 'PendingCompletionOfPerYearSteps', label: 'Pending Completion of Per Year Steps' },

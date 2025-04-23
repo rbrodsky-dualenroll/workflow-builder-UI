@@ -1,6 +1,7 @@
 import React from 'react';
 import FormField from '../../common/FormField';
 import Card from '../../common/Card';
+import ReviewFailedRegistrationSection from './ReviewFailedRegistrationSection';
 
 /**
  * Section for the Provide Consent step type
@@ -143,3 +144,8 @@ export const PendingCompletionOfPerYearStepsSection = ({ formData, handleChange,
     </Card>
   );
 };
+
+/**
+ * Section for the Review Failed Registration step type
+ */
+export const ReviewFailedRegistrationStepSection = ReviewFailedRegistrationSection;

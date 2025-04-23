@@ -19,6 +19,13 @@ const getStepClass = (step) => {
       return 'RegisterViaEthosApiStep';
     case 'ResolveIssue':
       return 'ResolveIssueStep';
+    case 'ReviewFailedRegistration':
+      return 'ApprovalStep';
+    case 'Registration Failure':
+      return 'DeclineRegistrationStep';
+    case 'Successful Registration':
+      // Use CompleteRegistrationStep by default but allow override
+      return step.step_class || 'CompleteRegistrationStep';
     default:
       return step.step_class || 'ApprovalStep';
   }

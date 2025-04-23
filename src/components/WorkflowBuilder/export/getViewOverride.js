@@ -62,6 +62,9 @@ const getViewOverride = (step) => {
   
   // Handle college steps
   else if (role === 'college') {
+    if (step.stepType === 'ReviewFailedRegistration') {
+      return 'active_flow_steps/course_registration/college/review_declined_registration';
+    }
     if (step.stepType === 'Approval') {
       if (step.workflow_category === 'Per Course') {
         return 'active_flow_steps/course_registration/college/review_course';
@@ -71,8 +74,6 @@ const getViewOverride = (step) => {
         return 'active_flow_steps/course_registration/college/process_petitions';
       } else if (step.title && step.title.toLowerCase().includes('student record')) {
         return 'active_flow_steps/course_registration/college/review_student_record';
-      } else if (step.title && step.title.toLowerCase().includes('decline')) {
-        return 'active_flow_steps/course_registration/college/review_declined_registration';
       } else if (step.title && step.title.toLowerCase().includes('affidavit')) {
         return 'active_flow_steps/course_registration/college/review_home_school_affidavit';
       }

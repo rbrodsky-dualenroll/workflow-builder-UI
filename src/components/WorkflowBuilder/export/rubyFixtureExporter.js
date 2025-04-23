@@ -16,6 +16,7 @@ import { getCompletionState, getCompletionStateValues } from './getCompletionSta
 import getParameters from './getParameters';
 import getSoftRequiredFields from './getSoftRequiredFields';
 import { serializeToRubyHash, snakeCase, getWorkflowCategoryKey } from './utils';
+import { generateFailureSteps, generateCompletionSteps } from './completionStepGenerator';
 /**
  * Generate a Ruby fixture file based on workflow data
  * @param {Object} workflowData - The workflow data from the WorkflowBuilder
@@ -333,6 +334,9 @@ const generateStepsForCategory = (collegeVarName, category, versionNumber, scena
   };
   // Add filtered steps based on workflow category
   if (categorySteps.length > 0) {
+    // Generate failure and completion steps based on the workflow definition
+    const failureSteps = generateFailureSteps(categorySteps, collegeVarName, category.name, versionNumber);
+    const completionSteps = generateCompletionSteps(categorySteps, collegeVarName, category.name, versionNumber);
     // First add any default steps for this category
     switch (category.name) {
       case 'college_student_application':
@@ -419,6 +423,16 @@ const generateStepsForCategory = (collegeVarName, category, versionNumber, scena
     // Now add the custom steps for this category
     categorySteps.forEach((step, index) => {
       code += generateStepForCategory(step, collegeVarName, varName, index, categorySteps);
+    });
+    
+    // Add the failure steps after the normal steps
+    failureSteps.forEach((step, index) => {
+      code += generateStepForCategory(step, collegeVarName, varName, categorySteps.length + index, categorySteps.concat(failureSteps));
+    });
+    
+    // Add the completion steps after the failure steps
+    completionSteps.forEach((step, index) => {
+      code += generateStepForCategory(step, collegeVarName, varName, categorySteps.length + failureSteps.length + index, categorySteps.concat(failureSteps, completionSteps));
     });
   }
   return code;

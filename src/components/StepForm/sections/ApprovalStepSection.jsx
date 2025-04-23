@@ -110,7 +110,7 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
             </div>
             <div className="mt-2 pt-2 border-t border-gray-200">
               <div className="flex flex-col space-y-2">
-                {/* Show termination indicator for default options */}
+                {/* Show termination indicators for all options */}
                 {formData.actionOptions[index].value === 'decline-no' ? (
                   <div className="flex items-center">
                     <div className="h-4 w-4 rounded-full bg-red-600"></div>
@@ -119,7 +119,32 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
                       <span className="ml-1 text-xs text-gray-500">(Default behavior)</span>
                     </span>
                   </div>
-                ) : formData.actionOptions[index].value === 'approve-yes' || formData.actionOptions[index].value === 'defer' ? (
+                ) : formData.actionOptions[index].value === 'approve-yes' ? (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`approve-terminates-${index}`}
+                      checked={option.terminates_workflow || option.canTerminate || false}
+                      onChange={(e) => {
+                        const updatedOptions = [...(formData.actionOptions || [])];
+                        updatedOptions[index] = {
+                          ...updatedOptions[index],
+                          canTerminate: e.target.checked,
+                          terminates_workflow: e.target.checked
+                        };
+                        setFormData({
+                          ...formData,
+                          actionOptions: updatedOptions
+                        });
+                      }}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                      data-testid={`action-option-approve-terminates-checkbox-${index}`}
+                    />
+                    <label htmlFor={`approve-terminates-${index}`} className="ml-2 text-sm text-gray-700">
+                      Approval terminates workflow (success)
+                    </label>
+                  </div>
+                ) : formData.actionOptions[index].value === 'defer' ? (
                   <div className="flex items-center">
                     <div className="h-4 w-4 rounded-full bg-green-600"></div>
                     <span className="ml-2 text-sm text-gray-700">

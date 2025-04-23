@@ -6,9 +6,13 @@ import { snakeCase } from './utils';
  * @returns {string} - Completion state name
  */
 const getCompletionState = (step) => {
-  if (step.stepType === 'Approval') {
+  if (step.stepType === 'ReviewFailedRegistration') {
+    return 'college_resubmit_registration';
+  } else if (step.stepType === 'Approval') {
     if (step.title === 'Parent Consent') {
       return 'parent_consent_provided';
+    } else if (step.title === 'Review Declined Registration' || step.title === 'Resolve Failed Registration') {
+      return 'college_resubmit_registration';
     }
     return snakeCase(step.title || 'approve');
   } else if (step.stepType === 'Upload') {
@@ -19,10 +23,12 @@ const getCompletionState = (step) => {
     return "one_time_workflow_complete";
   } else if (step.stepType === 'ProvideConsent') {
     return 'parent_consent_provided';
-  } else if (step.stepType === 'CheckHolds') {
+  } else if (step.stepType === 'CheckHolds' || step.step_class === 'CheckHoldsViaEthosApiStep') {
     return 'holds_checked_via_ethos_api';
-  } else if (step.stepType === 'RegisterViaApi') {
-    return 'registration_via_colleague_api';
+  } else if (step.stepType === 'RegisterViaApi' || step.step_class === 'RegisterViaEthosApiStep') {
+    return 'registration_via_ethos_api';
+  } else if (step.stepType === 'CheckEligibility' || step.step_class === 'RegistrationEligibilityViaEthosApiStep') {
+    return 'student_eligibility_checked_via_ethos_api';
   } else {
     return snakeCase(step.title || 'complete');
   }
@@ -58,6 +64,18 @@ const getCompletionStateValues = (step) => {
     return states;
   }
   
+  // For special approval steps, provide custom state values
+  if (baseState === 'college_resubmit_registration' || step.stepType === 'ReviewFailedRegistration') {
+    return [
+      baseState, 
+      `${baseState}_yes`, 
+      `${baseState}_no`, 
+      `${baseState}_complete`,
+      `${baseState}_choose_new_section`,
+      // We don't include _student_resolve_issues or _hs_resolve_issues here as those are handled by feedback loops
+    ];
+  }
+  
   // For standard approval steps, we typically have yes/no/declined states
   if (step.stepType === 'Approval') {
     return [baseState, `${baseState}_yes`, `${baseState}_no`, `${baseState}_declined`];
@@ -73,8 +91,12 @@ const getCompletionStateValues = (step) => {
     return [baseState, `${baseState}_has_holds`, `${baseState}_no_holds`];
   }
   
-  if (step.stepType === 'RegisterViaApi') {
-    return [baseState, `${baseState}_processed`, `${baseState}_course_section_full`];
+  if (step.stepType === 'RegisterViaApi' || step.step_class === 'RegisterViaEthosApiStep') {
+    return [baseState, `registration_response_yes`, `registration_response_no`, `${baseState}_processed`, `${baseState}_course_section_full`, `registration_via_ethos_api_processed`];
+  }
+  
+  if (step.stepType === 'CheckEligibility' || step.step_class === 'RegistrationEligibilityViaEthosApiStep') {
+    return [baseState, `${baseState}_eligible`, `${baseState}_ineligible`, 'ineligibility_reasons'];
   }
   
   // Default case

@@ -16,6 +16,7 @@ import {
   CheckHoldsSection, 
   RegisterViaApiSection, 
   ResolveIssueSection,
+  ReviewFailedRegistrationStepSection,
   PendingCompletionOfOneTimeStepsSection,
   PendingCompletionOfPerTermStepsSection,
   PendingCompletionOfPerYearStepsSection
@@ -215,6 +216,12 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
         if (value.includes('Pending')) {
           updatedFormData.title = value;
         }
+      }
+      
+      // If changing to ReviewFailedRegistration, set role to College by default
+      if (value === 'ReviewFailedRegistration') {
+        updatedFormData.role = 'College';
+        updatedFormData.title = 'Review Failed Registration';
       }
       
       setFormData(updatedFormData);
@@ -472,6 +479,14 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
         />
       )}
 
+      {formData.stepType === 'ReviewFailedRegistration' && (
+        <ReviewFailedRegistrationStepSection 
+          formData={formData} 
+          setFormData={setFormData} 
+          errors={errors} 
+        />
+      )}
+
       {formData.stepType === 'PendingCompletionOfOneTimeSteps' && (
         <PendingCompletionOfOneTimeStepsSection 
           formData={formData} 
@@ -496,8 +511,8 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
         />
       )}
 
-      {/* Feedback Loops - only for Approval steps */}
-      {formData.stepType === 'Approval' && (
+      {/* Feedback Loops - only for Approval steps and ReviewFailedRegistration */}
+      {(formData.stepType === 'Approval' || formData.stepType === 'ReviewFailedRegistration') && (
         <FeedbackLoopsSection 
           formData={formData} 
           setFormData={setFormData} 

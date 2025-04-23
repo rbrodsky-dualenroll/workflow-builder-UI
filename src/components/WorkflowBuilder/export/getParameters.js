@@ -36,6 +36,27 @@ const getParameters = (step, completionState, allSteps) => {
     };
   }
   
+  // For ReviewFailedRegistration steps, add clear_states parameters
+  if (step.stepType === 'ReviewFailedRegistration') {
+    // Add state clearing parameters for the resubmit action
+    params['clear_states_by_completion'] = {
+      'yes': [
+        // Clear failure tracking fields
+        'failure_active_flow_step',
+        'failure_active_flow_step_id',
+        'failure_reason',
+        'college_declined_registration_comments',
+        'college_declined',
+        // Clear registration response fields
+        'registration_response_no',
+        'registration_xml_workflow_file_id',
+        'registration_via_ethos_api_processed',
+        'registration_via_colleague_api_processed',
+        // Any other fields that need to be reset
+      ]
+    };
+  }
+  
   // For upload steps, add document class and types
   if (step.stepType === 'Upload') {
     params['document_class'] = 'StudentDocument';
