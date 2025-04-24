@@ -18,6 +18,7 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
   const [localCollegeType, setLocalCollegeType] = useState(collegeInfo.type || 'Public: 2-year');
   const [includeApplicationFields, setIncludeApplicationFields] = useState(true);
   const [includeInitializers, setIncludeInitializers] = useState(true);
+  const [includeViewTemplates, setIncludeViewTemplates] = useState(true);
   const [exportType, setExportType] = useState('zip'); // 'zip' or 'single'
   const [exportedCode, setExportedCode] = useState('');
   const [showPreview, setShowPreview] = useState(false);
@@ -70,7 +71,8 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
           collegeData,
           { 
             includeApplicationFields,
-            includeInitializers
+            includeInitializers,
+            includeViewTemplates
           }
         );
         setIsExporting(false);
@@ -318,19 +320,38 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
               </p>
               
               {exportType === 'zip' && (
-                <div className="flex items-center">
-                  <input
-                    id="includeInitializers"
-                    name="includeInitializers"
-                    type="checkbox"
-                    checked={includeInitializers}
-                    onChange={(e) => setIncludeInitializers(e.target.checked)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="includeInitializers" className="ml-2 block text-sm text-gray-700">
-                    Include initializer classes
-                  </label>
-                </div>
+                <>
+                  <div className="flex items-center">
+                    <input
+                      id="includeInitializers"
+                      name="includeInitializers"
+                      type="checkbox"
+                      checked={includeInitializers}
+                      onChange={(e) => setIncludeInitializers(e.target.checked)}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="includeInitializers" className="ml-2 block text-sm text-gray-700">
+                      Include initializer classes
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      id="includeViewTemplates"
+                      name="includeViewTemplates"
+                      type="checkbox"
+                      checked={includeViewTemplates}
+                      onChange={(e) => setIncludeViewTemplates(e.target.checked)}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      data-testid="include-view-templates-checkbox"
+                    />
+                    <label htmlFor="includeViewTemplates" className="ml-2 block text-sm text-gray-700">
+                      Include view templates
+                    </label>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Generates view template files for each step in the workflow
+                  </p>
+                </>
               )}
             </div>
             

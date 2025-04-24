@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import WorkflowStep from '../WorkflowStep/WorkflowStep';
+import ViewTemplateModal from './modals/ViewTemplateModal';
 
 /**
  * Component to display the workflow content (steps)
@@ -12,6 +13,19 @@ const WorkflowContent = ({
   onAddStep,
   masterView
 }) => {
+  // State for view template modal
+  const [viewTemplateStep, setViewTemplateStep] = useState(null);
+  
+  // Handler for generating view template
+  const handleGenerateView = (step) => {
+    setViewTemplateStep(step);
+  };
+  
+  // Close the view template modal
+  const closeViewTemplateModal = () => {
+    setViewTemplateStep(null);
+  };
+  
   return (
     <div className="workflow-content-wrapper">
       {workflow.length === 0 ? (
@@ -35,6 +49,7 @@ const WorkflowContent = ({
               onEdit={() => onEditStep(step.id)}
               onDelete={() => onDeleteStep(step.id)}
               moveStep={moveStep}
+              onGenerateView={handleGenerateView}
             />
           ))}
         </div>
@@ -54,6 +69,14 @@ const WorkflowContent = ({
           </svg>
           Add Step
         </button>
+      )}
+      
+      {/* View Template Modal */}
+      {viewTemplateStep && (
+        <ViewTemplateModal 
+          step={viewTemplateStep} 
+          onClose={closeViewTemplateModal} 
+        />
       )}
     </div>
   );

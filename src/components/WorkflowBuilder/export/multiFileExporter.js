@@ -9,6 +9,7 @@ import { saveAs } from 'file-saver';
 import { generateRubyFixture, identifyWorkflowCategories } from './rubyFixtureExporter';
 import { generateInitializerClass } from './initializerGenerator';
 import { snakeCase } from './utils';
+import { addViewTemplatesToZip } from './views/viewTemplateExporter';
 
 /**
  * Generate and download a zip file containing multiple exported files
@@ -88,8 +89,14 @@ export const exportZipArchive = async (workflowData, collegeData, options = {}) 
       });
     }
     
+    // Include view templates if requested
+    if (options.includeViewTemplates !== false) {
+      const viewCount = addViewTemplatesToZip(zip, workflowData, collegeVarName);
+      console.log(`Added ${viewCount} view templates to the ZIP archive`);
+    }
+    
     // Generate a README with instructions
-    const readmeContent = generateReadme(collegeData, workflowCategories);
+    const readmeContent = generateReadme(collegeData, workflowCategories, options);
     zip.file('README.md', readmeContent);
     
     // Generate and download the zip file
@@ -107,12 +114,28 @@ export const exportZipArchive = async (workflowData, collegeData, options = {}) 
  * Generate a README file with instructions
  * @param {Object} collegeData - College information
  * @param {Array} workflowCategories - List of workflow categories
+ * @param {Object} options - Export options
  * @returns {string} - README content
  */
-const generateReadme = (collegeData, workflowCategories) => {
+const generateReadme = (collegeData, workflowCategories, options = {}) => {
   const collegeName = collegeData.name;
   const collegeVarName = collegeData.name.toLowerCase().replace(/[^a-z0-9]/g, '');
   const collegeCapitalized = collegeVarName.charAt(0).toUpperCase() + collegeVarName.slice(1);
+  
+  // Generate content about view templates if included
+  const viewTemplatesSection = options.includeViewTemplates !== false ? `
+### View Templates
+This export includes view templates for each non-system step in the workflow. These templates:
+- Follow the structure used in the DualEnroll application
+- Incorporate step-specific configuration details (labels, options, etc.)
+- Are pre-configured to use the proper completion state values 
+- Need to be placed in the appropriate theme directory for your college
+
+To install the view templates:
+1. Copy the template files from the \`views\` directory to the corresponding paths in your DualEnroll instance
+2. The templates are organized by role and step type
+3. Customize the templates as needed to match your college's specific styling and functionality
+` : '';
   
   return `# ${collegeName} Workflow Export
 
@@ -142,6 +165,7 @@ ${workflowCategories.map(category => {
   const fileName = `initialize_${collegeVarName}_${snakeClassNameSuffix}_step.rb`;
   return `- \`initializers/${fileName}\` - Initializer for ${category.displayName} workflow`;
 }).join('\n')}
+${viewTemplatesSection}
 
 ## Installation Instructions
 
@@ -151,7 +175,10 @@ ${workflowCategories.map(category => {
    - The file naming follows the standard Rails convention (e.g., initialize_college_course_registration_step.rb)
    - Each file defines a class that matches the camelized file path (e.g., InitializeCollegeCourseRegistrationStep)
    - This ensures compatibility with Rails' autoloading system (Zeitwerk)
-3. Run the seed data import:
+3. Copy the view templates to \`app/views/themes/${collegeVarName}/\` directory
+   - Make sure to preserve the directory structure
+   - Customize the templates as needed for your college's specific requirements
+4. Run the seed data import:
    \`\`\`
    rails db:seed_fu
    \`\`\`
@@ -161,6 +188,7 @@ ${workflowCategories.map(category => {
 - The initializer classes handle conditional logic to set appropriate fields in the workflow
 - Each workflow branch sets completion states for steps that would be skipped in other scenarios
 - Scenario conditions from the workflow builder have been translated to Ruby code in the initializers
+- View templates are pre-configured to work with the completion states defined in the workflow steps
 
 ## Workflow Overview
 

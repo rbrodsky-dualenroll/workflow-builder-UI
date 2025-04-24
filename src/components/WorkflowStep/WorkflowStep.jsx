@@ -23,7 +23,7 @@ const getStepTypeColor = (stepType) => {
 /**
  * Main workflow step component that handles drag & drop functionality
  */
-const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
+const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep, onGenerateView }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Check if this step is part of a scenario other than main
@@ -154,6 +154,7 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep }) => {
         isFeedbackStep={isFeedbackStep}
         scenarioName={isScenarioSpecificOverride ? `${scenarioName} (Override)` : scenarioName}
         isScenarioSpecificOverride={isScenarioSpecificOverride}
+        onGenerateView={onGenerateView}
       />
       
       {isExpanded && <StepPreview step={step} />}

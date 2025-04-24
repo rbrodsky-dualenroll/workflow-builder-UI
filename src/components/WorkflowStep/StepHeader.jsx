@@ -17,12 +17,21 @@ const StepHeader = ({
   hasWorkflowConditions,
   isFeedbackStep,
   scenarioName,
-  isScenarioSpecificOverride = false
+  isScenarioSpecificOverride = false,
+  onGenerateView
 }) => {
   // Check if this step can terminate the workflow
   const canTerminate = canStepTerminateWorkflow(step);
   // Get the number of terminating options if this is an approval step
   const terminatingOptions = step.stepType === 'Approval' ? getTerminationOptions(step) : [];
+  
+  // System steps don't need view templates
+  const isSystemStep = step.role === 'System' || 
+                       step.participant_role === 'system' || 
+                       step.stepType === 'RegisterViaApi' || 
+                       step.stepType === 'PendingCompletionOfOneTimeSteps' || 
+                       step.stepType === 'PendingCompletionOfPerTermSteps' || 
+                       step.stepType === 'PendingCompletionOfPerYearSteps';
   
   const getWorkflowCategoryBadge = () => {
     if (!step.workflow_category) return null;
@@ -151,6 +160,21 @@ const StepHeader = ({
             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
           </svg>
         </button>
+        {/* Generate View Button - only show for non-system steps */}
+        {!isSystemStep && onGenerateView && (
+          <button 
+            onClick={() => onGenerateView(step)} 
+            className="text-green-500 hover:bg-green-50 p-1.5 rounded" 
+            title="Generate View Template"
+            data-testid={`generate-view-${step.id}`}
+            data-action="generate-view"
+            data-for-step={step.id}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+            </svg>
+          </button>
+        )}
         <button 
           onClick={onDelete} 
           className="text-red-500 hover:bg-red-50 p-1.5 rounded" 
