@@ -384,10 +384,9 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
   const allConditionalSteps = getAllConditionalSteps(mergedWorkflow);
   console.log('All conditional steps regardless of category:', allConditionalSteps.length);
   
-  // Use whichever method found conditional steps
-  const relevantSteps = allConditionalSteps.length > 0 ? 
-    allConditionalSteps : relevantStepsByCategory;
-  console.log('Using steps for branch identification:', relevantSteps.length);
+  // Only use steps from the relevant category
+  const relevantSteps = relevantStepsByCategory;
+  console.log('Using steps from relevant category for branch identification:', relevantSteps.length);
   
   // Identify conditional branches and completion states
   const conditionalBranches = identifyConditionalBranches(relevantSteps);
@@ -396,9 +395,9 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
   const conditionToRubyMap = new Map();
   const conditionalCompletionStates = new Map();
   
-  // Extract conditions from workflowCondition references in steps
+  // Extract conditions from workflowCondition references in RELEVANT steps only
   const conditionsFromSteps = new Map();
-  mergedWorkflow.filter(step => step.conditional).forEach(step => {
+  relevantSteps.filter(step => step.conditional).forEach(step => {
     if (step.workflowCondition && step.workflowCondition.length > 0) {
       step.workflowCondition.forEach(conditionName => {
         // If we haven't seen this condition before, create a placeholder
@@ -478,10 +477,50 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
   }
   
   if (workflowData.conditions) {
+    // Get all condition names used by relevant steps to filter out irrelevant conditions
+    const relevantConditionNames = new Set();
+    relevantSteps.forEach(step => {
+      if (step.conditional && step.workflowCondition) {
+        if (Array.isArray(step.workflowCondition)) {
+          step.workflowCondition.forEach(condName => relevantConditionNames.add(condName));
+        } else {
+          relevantConditionNames.add(step.workflowCondition);
+        }
+      }
+    });
+    console.log(`Relevant condition names for ${targetObjectType}:`, Array.from(relevantConditionNames));
+    
+    // Only process conditions that are used by relevant steps
     Object.entries(workflowData.conditions).forEach(([conditionName, condition]) => {
+      // Skip conditions not used by this initializer's target object type
+      if (!relevantConditionNames.has(conditionName)) {
+        console.log(`Skipping condition ${conditionName} - not relevant for ${targetObjectType}`);
+        return;
+      }
+      
       console.log(`Processing condition ${conditionName}:`, condition);
       
-      const rubyCondition = transformConditionToRuby(condition);
+      // Check if condition refers to entities not available in this initializer
+      let rubyCondition = transformConditionToRuby(condition);
+      
+      // Skip if the condition refers to course/courses in a non-course initializer
+      if (targetObjectType !== 'StudentDeCourse' && 
+          (rubyCondition?.includes('course.') || 
+           rubyCondition?.includes('course_section.') || 
+           conditionName.toLowerCase().includes('course') || 
+           conditionName.toLowerCase().includes('prereq'))) {
+        console.log(`Skipping condition ${conditionName} - refers to course entities not available in ${targetObjectType}`);
+        return;
+      }
+      
+      // Skip if the condition refers to term in a non-term initializer
+      if (targetObjectType !== 'StudentTerm' && 
+          (rubyCondition?.includes('term.') || 
+           conditionName.toLowerCase().includes('term'))) {
+        console.log(`Skipping condition ${conditionName} - refers to term entities not available in ${targetObjectType}`);
+        return;
+      }
+      
       console.log(`Transformed condition ${conditionName} to Ruby code:`, rubyCondition);
       
       if (rubyCondition) {
@@ -522,16 +561,16 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
   let rubyCode = `class ${className} < Step
 
   def self.required_fields
-    return ['active_flow_step_id']
+    return ["active_flow_step_id"]
   end
 
   def self.provided_fields(*args)
-    return ['initialization_complete']
+    return ["initialization_complete"]
   end
 
   def self.on_activate(*args)
     fields = args[0]
-    active_flow_step = ActiveFlowStep.find(fields['active_flow_step_id'])
+    active_flow_step = ActiveFlowStep.find(fields["active_flow_step_id"])
     target_object = active_flow_step.get_target_object
 `;
 
@@ -558,7 +597,7 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
 
   // Common initialization
   rubyCode += `    # Common initialization
-    fields['parent_consent_email'] = true
+    fields["parent_consent_email"] = true
 
 `;
 
@@ -567,11 +606,11 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
     rubyCode += `    # One-time workflow initialization
     # Parent consent is handled in the one-time workflow
     if student.high_school.is_home_school?
-      fields['parent_consent_provided'] = true
-      fields['home_school'] = true
+      fields["parent_consent_provided"] = true
+      fields["home_school"] = true
     else
-      fields['parent_consent_required'] = true
-      fields['partner_high_school'] = true
+      fields["parent_consent_required"] = true
+      fields["partner_high_school"] = true
     end
 
 `;
@@ -584,11 +623,11 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
     rubyCode += `    # Per-course workflow initialization
     # Set high school type
     if student.high_school.is_home_school?
-      fields['home_school'] = true
+      fields["home_school"] = true
     elsif student.high_school.is_non_partner?(college)
-      fields['non_partner'] = true
+      fields["non_partner"] = true
     else
-      fields['hs_student'] = true
+      fields["hs_student"] = true
     end
 
 `;
@@ -619,7 +658,7 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
       
       // Set fields for this condition
       fields.forEach(field => {
-        rubyCode += `      fields['${field}'] = true\n`;
+        rubyCode += `      fields["${field}"] = true\n`;
       });
       
       rubyCode += `    end\n\n`;
@@ -641,7 +680,7 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
         
         // Set all completion states
         completionStates.forEach(state => {
-          rubyCode += `      fields['${state}'] = true\n`;
+          rubyCode += `      fields["${state}"] = true\n`;
         });
         
         rubyCode += `    end\n\n`;
@@ -651,13 +690,13 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
 
   // Set up student signature for enrollment form (common across all)
   rubyCode += `    # Set up student signature for enrollment form
-    fields['esign_enrollment_form_sign'] = target_object.student.display_name
-    fields['esign_enrollment_form_date'] = Time.now.strftime('%-d %b %Y')
+    fields["esign_enrollment_form_sign"] = target_object.student.display_name
+    fields["esign_enrollment_form_date"] = Time.now.strftime('%-d %b %Y')
 
 `;
 
   // Complete the step
-  rubyCode += `    fields['initialization_complete'] = true
+  rubyCode += `    fields["initialization_complete"] = true
     fields = active_flow_step.complete_step(fields)
     return fields
   end

@@ -41,14 +41,13 @@ const getParameters = (step, completionState, allSteps) => {
     // Add state clearing parameters for the resubmit action
     params['clear_states_by_completion'] = {
       'yes': [
-        // Clear failure tracking fields
-        'failure_active_flow_step',
-        'failure_active_flow_step_id',
-        'failure_reason',
         'college_declined_registration_comments',
         'college_declined',
+        'college_resubmit_registration',
+        'college_resubmit_registration_yes',
         // Clear registration response fields
         'registration_response_no',
+        'registration_response',
         'registration_xml_workflow_file_id',
         'registration_via_ethos_api_processed',
         'registration_via_colleague_api_processed',

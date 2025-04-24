@@ -17,7 +17,7 @@ const serializeToRubyHash = (obj) => {
       return `[${value.map(v => serializeValue(v)).join(', ')}]`;
     } else if (typeof value === 'object') {
       const entries = Object.entries(value).map(([k, v]) => {
-        return `'${k}' => ${serializeValue(v)}`;
+        return `"${k}" => ${serializeValue(v)}`;
       }).join(', ');
       return `{${entries}}`;
     } else {
@@ -26,7 +26,7 @@ const serializeToRubyHash = (obj) => {
   };
   
   const entries = Object.entries(obj).map(([key, value]) => {
-    return `'${key}' => ${serializeValue(value)}`;
+    return `"${key}" => ${serializeValue(value)}`;
   }).join(', ');
   
   return `{ ${entries} }`;
