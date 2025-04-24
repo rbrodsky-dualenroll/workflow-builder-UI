@@ -391,22 +391,8 @@ const generateStepsForCategory = (collegeVarName, category, versionNumber, scena
       participant_role: 'system',
       soft_required_fields: []
     }
-    const completeRegistrationWorkflowStep = {
-      id: 'step_7',
-      stepType: 'CompleteRegistrationWorkflow',
-      title: 'Successful Registration',
-      version: `${collegeVarName}_registration_active_flow_definition_version_number`,
-      participant: 'Processing',
-      step_class: 'SuccessfulRegistrationActiveFlowStep',
-      view_name_override: '',
-      parameters: {
-        'subordinate_registration_active_flow_target_object_type': 'Registration',
-        'subordinate_registration_active_flow_category': 'registration',
-      },
-      participant_role: 'system',
-      soft_required_fields: ['registration_response_yes']
-    }
-    // Add category-specific completion step
+    
+    // Add category-specific completion step (but not for Registration category anymore)
     switch (category.name) {
       case 'college_student_application':
         categorySteps.push(completeOneTimeWorkflowStep);
@@ -417,7 +403,7 @@ const generateStepsForCategory = (collegeVarName, category, versionNumber, scena
       case 'student_term':
         break;
       case 'registration':
-        categorySteps.push(completeRegistrationWorkflowStep);
+        // Removed the hardcoded SuccessfulRegistrationActiveFlowStep
         break;
     }
     // Now add the custom steps for this category
