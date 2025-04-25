@@ -84,8 +84,45 @@ const generateApprovalTable = (step, completionState) => {
 
     // For object format columns, use the value directly
     if (typeof col === 'object' && col.value) {
+      // Handle input type columns
+      if (col.type === 'input') {
+        const fieldName = col.value.replace('fields.', '');
+        
+        // Generate the appropriate input field based on the input type
+        switch (col.inputType) {
+          case 'number':
+            cellContent = `<td id="${fieldName}-<%=active_flow_step_id%>">
+              <%= number_field_tag "fields[#{active_flow_step_id}][${fieldName}]", @fields['${fieldName}'], { min: ${col.min || 0}, max: ${col.max || 9999}, size: 8, step: ${col.step || 0.1} } %>
+            </td>`;
+            break;
+          case 'radio':
+            cellContent = `<td style="white-space:nowrap" id="${fieldName}-<%=active_flow_step_id%>">
+              ${(col.options || []).map(opt => 
+                `<label><%= radio_button_tag "fields[#{active_flow_step_id}][${fieldName}]", '${opt}', @fields['${fieldName}'] == '${opt}' %>&nbsp;<b>${opt}</b></label><br />`
+              ).join('')}
+            </td>`;
+            break;
+          case 'select':
+            cellContent = `<td id="${fieldName}-<%=active_flow_step_id%>">
+              <%= select_tag "fields[#{active_flow_step_id}][${fieldName}]", 
+                options_for_select([${(col.options || []).map(opt => `["${opt}", "${opt}"]`).join(', ')}], @fields['${fieldName}']), 
+                { include_blank: true } %>
+            </td>`;
+            break;
+          case 'checkbox':
+            cellContent = `<td id="${fieldName}-<%=active_flow_step_id%>">
+              <%= check_box_tag "fields[#{active_flow_step_id}][${fieldName}]", "yes", @fields['${fieldName}'] == "yes" %>
+            </td>`;
+            break;
+          case 'text':
+          default:
+            cellContent = `<td id="${fieldName}-<%=active_flow_step_id%>">
+              <%= text_field_tag "fields[#{active_flow_step_id}][${fieldName}]", @fields['${fieldName}'] %>
+            </td>`;
+        }
+      }
       // Handle custom fields
-      if (col.customField) {
+      else if (col.customField) {
         if (col.value === 'custom') {
           cellContent = `<td><!-- ${colLabel} data goes here --></td>`;
         } else {

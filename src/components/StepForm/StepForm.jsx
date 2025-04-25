@@ -125,11 +125,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
     
     return initialFormData;
   });
-  
-  // Log form state on render - useful for debugging
-  useEffect(() => {
-    console.log('Form data updated:', formData);
-  }, [formData]);
 
   // Effect for conditional scenarios
   useEffect(() => {
@@ -171,7 +166,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
   // Handle changes to form fields
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log(`Field change: ${name} = ${type === 'checkbox' ? checked : value}`);
     
     // For step type changes, handle special cases
     if (name === 'stepType') {

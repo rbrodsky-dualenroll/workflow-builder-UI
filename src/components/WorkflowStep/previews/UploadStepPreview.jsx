@@ -31,7 +31,9 @@ const UploadStepPreview = ({ step }) => {
                   </button>
                   <span className="text-gray-500 text-sm">No file chosen</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">Accepted formats: {file.fileType}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Document Type: {typeof file.fileType === 'object' ? file.fileType.label || file.fileType.value : file.fileType}
+                </p>
               </div>
             ))}
           </div>

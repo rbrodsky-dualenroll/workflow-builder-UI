@@ -8,7 +8,16 @@ import { placeholderData } from '../stepUtils';
  */
 const ApprovalStepPreview = ({ step }) => {
   // Get column names from the step or use defaults
-  const columnNames = step.tableColumns || ['Student Name', 'Course Number', 'CRN', 'Instructor'];
+  // Convert object columns to display names
+  const columnNames = (step.tableColumns || ['Student Name', 'Course Number', 'CRN', 'Instructor'])
+    .map(column => {
+      if (typeof column === 'string') {
+        return column;
+      } else if (typeof column === 'object') {
+        return column.displayValue || column.label || 'Column';
+      }
+      return 'Column';
+    });
   
   // State to track the selected action option
   const [selectedOption, setSelectedOption] = useState(null);

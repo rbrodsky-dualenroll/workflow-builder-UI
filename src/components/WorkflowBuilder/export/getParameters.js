@@ -179,6 +179,60 @@ const getParameters = (step, completionState, allSteps) => {
     params['completion_state'] = 'student_term_complete';
   }
   
+  // Add update_attributes from form data if present
+  if (step.updateAttributes && Object.keys(step.updateAttributes).length > 0) {
+    params['update_attributes'] = step.updateAttributes;
+  }
+  
+  // Also collect update_attributes from action options with additional info fields
+  if (step.actionOptions && step.actionOptions.some(opt => opt.requiresAdditionalInfo)) {
+    // Initialize update_attributes if not already present
+    if (!params['update_attributes']) {
+      params['update_attributes'] = {};
+    }
+    
+    // Add fields from action options
+    step.actionOptions.forEach(option => {
+      if (option.requiresAdditionalInfo && option.additionalInfoField && option.additionalInfoModel) {
+        // Ensure the model path exists in update_attributes
+        if (!params['update_attributes'][option.additionalInfoModel]) {
+          params['update_attributes'][option.additionalInfoModel] = [];
+        }
+        
+        // Add the field if not already present
+        if (!params['update_attributes'][option.additionalInfoModel].includes(option.additionalInfoField)) {
+          params['update_attributes'][option.additionalInfoModel].push(option.additionalInfoField);
+        }
+      }
+    });
+  }
+  
+  // Also collect update_attributes from input fields in tableColumns
+  if (step.tableColumns && step.tableColumns.some(col => col.type === 'input')) {
+    // Initialize update_attributes if not already present
+    if (!params['update_attributes']) {
+      params['update_attributes'] = {};
+    }
+    
+    // Add fields from table columns
+    step.tableColumns.forEach(column => {
+      if (column.type === 'input' && column.modelPath && column.value && column.value.startsWith('fields.')) {
+        // Extract field name (remove 'fields.' prefix)
+        const fieldName = column.value.replace('fields.', '');
+        
+        // Ensure the model path exists in update_attributes
+        if (!params['update_attributes'][column.modelPath]) {
+          params['update_attributes'][column.modelPath] = [];
+        }
+        
+        // Add the field if not already present
+        if (!params['update_attributes'][column.modelPath].includes(fieldName)) {
+          params['update_attributes'][column.modelPath].push(fieldName);
+        }
+      }
+    });
+  }
+  
   return serializeToRubyHash(params);
 };
 

@@ -4,6 +4,40 @@ import CollapsibleCard from '../../common/CollapsibleCard';
 import { getTerminationOptions } from '../../../utils/workflowUtils';
 
 /**
+ * Input field types for form fields
+ */
+const INPUT_FIELD_TYPES = [
+  { value: 'text', label: 'Text Field' },
+  { value: 'number', label: 'Number Field' },
+  { value: 'select', label: 'Dropdown Select' },
+  { value: 'radio', label: 'Radio Buttons' },
+  { value: 'checkbox', label: 'Checkbox' }
+];
+
+/**
+ * Common field properties for DualEnroll application
+ */
+const COMMON_FIELD_PROPERTIES = [
+  { value: 'student_number', label: 'Student ID', inputType: 'text', modelPath: 'college_student_application' },
+  { value: 'hs_gpa', label: 'High School GPA', inputType: 'number', modelPath: 'college_student_application' },
+  { value: 'hs_current_grade', label: 'High School Grade Level', inputType: 'radio', modelPath: 'college_student_application', 
+    options: ['Freshman', 'Sophomore', 'Junior', 'Senior'] },
+  { value: 'counselor_provided_graduation_year', label: 'Graduation Year', inputType: 'number', modelPath: 'college_student_application' },
+  { value: 'registration_notes', label: 'Registration Notes', inputType: 'text', modelPath: 'student_de_course' },
+  { value: 'approval_reason', label: 'Reason for Approval', inputType: 'text', modelPath: 'college_student_application' },
+  { value: 'decline_reason', label: 'Reason for Decline', inputType: 'text', modelPath: 'college_student_application' }
+];
+
+/**
+ * Common model paths for update_attributes parameter
+ */
+const MODEL_PATHS = [
+  { value: 'college_student_application', label: 'College Student Application' },
+  { value: 'student_de_course', label: 'Student Course' },
+  { value: 'student_term', label: 'Student Term' }
+];
+
+/**
  * Approval step section for step forms
  */
 const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {

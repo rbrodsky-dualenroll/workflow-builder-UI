@@ -2,29 +2,58 @@ import React, { useState } from 'react';
 import CollapsibleCard from '../../common/CollapsibleCard';
 
 /**
+ * Input field types for form fields
+ */
+const INPUT_FIELD_TYPES = [
+  { value: 'text', label: 'Text Field' },
+  { value: 'number', label: 'Number Field' },
+  { value: 'select', label: 'Dropdown Select' },
+  { value: 'radio', label: 'Radio Buttons' },
+  { value: 'checkbox', label: 'Checkbox' }
+];
+
+/**
  * Standard table columns in DualEnroll with their display labels and field values
  * Ensure all field values map to valid Ruby model paths in the view templates
  */
 const STANDARD_TABLE_COLUMNS = [
-  { value: 'target.student.display_name', label: 'Student Name' },
-  { value: 'course.number', label: 'Course Number' },
-  { value: 'course.title', label: 'Course Title' },
-  { value: 'course_section.number', label: 'CRN' },
-  { value: 'course_section.section_number', label: 'Section' },
-  { value: 'course_section.instructor.name', label: 'Instructor' },
-  { value: 'term.name', label: 'Term' },
-  { value: 'course.credits', label: 'Credits' },
-  { value: 'registration_status', label: 'Status' },
-  { value: 'target.high_school.name', label: 'High School' },
-  { value: 'fields.hold_names', label: 'Hold Names' },
-  { value: 'fields.messages', label: 'Messages' },
-  { value: 'fee.pretty_fee_amount', label: 'Fee Amount' },
-  { value: 'fields.payment_status', label: 'Payment Status' },
-  { value: 'fields.grade', label: 'Grade' },
-  { value: 'target.student.email', label: 'Student Email' },
-  { value: 'target.student.phone', label: 'Student Phone' },
+  { value: 'target.student.display_name', label: 'Student Name', type: 'display' },
+  { value: 'course.number', label: 'Course Number', type: 'display' },
+  { value: 'course.title', label: 'Course Title', type: 'display' },
+  { value: 'course_section.number', label: 'CRN', type: 'display' },
+  { value: 'course_section.section_number', label: 'Section', type: 'display' },
+  { value: 'course_section.instructor.name', label: 'Instructor', type: 'display' },
+  { value: 'term.name', label: 'Term', type: 'display' },
+  { value: 'course.credits', label: 'Credits', type: 'display' },
+  { value: 'registration_status', label: 'Status', type: 'display' },
+  { value: 'target.high_school.name', label: 'High School', type: 'display' },
+  { value: 'fields.hold_names', label: 'Hold Names', type: 'display' },
+  { value: 'fields.messages', label: 'Messages', type: 'display' },
+  { value: 'fee.pretty_fee_amount', label: 'Fee Amount', type: 'display' },
+  { value: 'fields.payment_status', label: 'Payment Status', type: 'display' },
+  { value: 'fields.grade', label: 'Grade', type: 'display' },
+  { value: 'target.student.email', label: 'Student Email', type: 'display' },
+  { value: 'target.student.phone', label: 'Student Phone', type: 'display' },
+  // Input field columns
+  { value: 'fields.student_number', label: 'Student ID Input', type: 'input', inputType: 'text', modelPath: 'college_student_application' },
+  { value: 'fields.hs_gpa', label: 'GPA Input', type: 'input', inputType: 'number', modelPath: 'college_student_application',
+    min: 0, max: 4, step: 0.1 },
+  { value: 'fields.hs_current_grade', label: 'Grade Level Input', type: 'input', inputType: 'radio', modelPath: 'college_student_application',
+    options: ['Freshman', 'Sophomore', 'Junior', 'Senior'] },
+  { value: 'fields.counselor_provided_graduation_year', label: 'Graduation Year Input', type: 'input', inputType: 'number', modelPath: 'college_student_application',
+    min: 2025, max: 2035, step: 1 },
   { value: 'custom', label: 'Custom Field' }
 ];
+
+/**
+ * Common model paths for update_attributes parameter
+ */
+const MODEL_PATHS = [
+  { value: 'college_student_application', label: 'College Student Application' },
+  { value: 'student_de_course', label: 'Student Course' },
+  { value: 'student_term', label: 'Student Term' }
+];
+
 
 /**
  * Table columns section for step forms
@@ -34,6 +63,13 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
   const [customColumnName, setCustomColumnName] = useState('');
   const [customColumnCode, setCustomColumnCode] = useState('');
   const [showCustomField, setShowCustomField] = useState(false);
+  const [showInputOptions, setShowInputOptions] = useState(false);
+  const [inputType, setInputType] = useState('text');
+  const [modelPath, setModelPath] = useState('');
+  const [fieldOptions, setFieldOptions] = useState('');
+  const [fieldMin, setFieldMin] = useState('');
+  const [fieldMax, setFieldMax] = useState('');
+  const [fieldStep, setFieldStep] = useState('');
 
   // Handle adding a standard table column
   const addTableColumn = () => {
@@ -44,16 +80,50 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
     
     if (!selectedColumnObj) return;
     
+    let newColumn = { ...selectedColumnObj };
+    
     // For custom field, use the custom name and code
-    let newColumn = selectedColumnObj;
     if (selectedColumnObj.value === 'custom') {
       if (!customColumnName.trim()) return;
-      newColumn = { 
-        value: customColumnCode.trim() ? customColumnCode : 'custom',
-        label: 'Custom Field',
-        displayValue: customColumnName,
-        customField: true
-      };
+      
+      // Determine if this is an input field
+      if (showInputOptions && modelPath) {
+        newColumn = {
+          value: customColumnCode.trim() ? `fields.${customColumnCode}` : 'fields.custom_field',
+          label: 'Custom Field',
+          displayValue: customColumnName,
+          customField: true,
+          type: 'input',
+          inputType: inputType,
+          modelPath: modelPath
+        };
+        
+        // Add additional properties based on input type
+        if (inputType === 'number') {
+          if (fieldMin) newColumn.min = parseFloat(fieldMin);
+          if (fieldMax) newColumn.max = parseFloat(fieldMax);
+          if (fieldStep) newColumn.step = parseFloat(fieldStep);
+        }
+        
+        if (inputType === 'radio' || inputType === 'select') {
+          newColumn.options = fieldOptions.split(',').map(opt => opt.trim()).filter(opt => opt);
+        }
+      } else {
+        newColumn = { 
+          value: customColumnCode.trim() ? customColumnCode : 'custom',
+          label: 'Custom Field',
+          displayValue: customColumnName,
+          customField: true,
+          type: 'display'
+        };
+      }
+    }
+    
+    // For standard input fields, ensure all necessary properties are included
+    if (newColumn.type === 'input' && !newColumn.customField) {
+      // Make sure we're using the original properties
+      const originalCol = STANDARD_TABLE_COLUMNS.find(col => col.value === selectedColumn);
+      newColumn = { ...originalCol };
     }
     
     // Check if this column is already in the table
@@ -63,18 +133,35 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
     
     if (!hasColumn) {
       // Add the new column
-      setFormData({
-        ...formData,
-        tableColumns: [
-          ...(formData.tableColumns || []), 
-          { 
-            value: newColumn.value, 
-            label: newColumn.label,
-            displayValue: newColumn.displayValue || newColumn.label,
-            customField: newColumn.customField || false
-          }
-        ]
-      });
+      const updatedColumns = [...(formData.tableColumns || []), newColumn];
+      
+      // If we added an input field, also update the update_attributes in formData
+      if (newColumn.type === 'input' && newColumn.modelPath && newColumn.value.startsWith('fields.')) {
+        // Extract the field name without the fields. prefix
+        const fieldName = newColumn.value.replace('fields.', '');
+        
+        // Get existing update_attributes or initialize if not present
+        const updateAttributes = formData.updateAttributes || {};
+        
+        // Add this field to the appropriate model path
+        updateAttributes[newColumn.modelPath] = [
+          ...((updateAttributes[newColumn.modelPath] || []).filter(field => field !== fieldName)),
+          fieldName
+        ];
+        
+        // Update the form data with both new column and update_attributes
+        setFormData({
+          ...formData,
+          tableColumns: updatedColumns,
+          updateAttributes: updateAttributes
+        });
+      } else {
+        // Just update the columns
+        setFormData({
+          ...formData,
+          tableColumns: updatedColumns
+        });
+      }
     }
     
     // Reset the form
@@ -82,6 +169,13 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
     setCustomColumnName('');
     setCustomColumnCode('');
     setShowCustomField(false);
+    setShowInputOptions(false);
+    setInputType('text');
+    setModelPath('');
+    setFieldOptions('');
+    setFieldMin('');
+    setFieldMax('');
+    setFieldStep('');
   };
 
   // Remove a table column
@@ -98,7 +192,30 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
   const handleColumnSelectChange = (e) => {
     const value = e.target.value;
     setSelectedColumn(value);
+    
+    // Reset other fields when selection changes
     setShowCustomField(value === 'custom');
+    
+    // Check if the selected column is an input type
+    const selectedColumnObj = STANDARD_TABLE_COLUMNS.find(col => col.value === value);
+    if (selectedColumnObj && selectedColumnObj.type === 'input') {
+      // Pre-populate input properties from the standard column
+      setInputType(selectedColumnObj.inputType || 'text');
+      setModelPath(selectedColumnObj.modelPath || '');
+      setFieldMin(selectedColumnObj.min || '');
+      setFieldMax(selectedColumnObj.max || '');
+      setFieldStep(selectedColumnObj.step || '');
+      setFieldOptions(selectedColumnObj.options ? selectedColumnObj.options.join(', ') : '');
+    } else {
+      // Reset input properties for non-input columns
+      setShowInputOptions(false);
+      setInputType('text');
+      setModelPath('');
+      setFieldOptions('');
+      setFieldMin('');
+      setFieldMax('');
+      setFieldStep('');
+    }
   };
 
   // Convert legacy format to new format if needed
@@ -149,19 +266,48 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
       <div className="space-y-2 mb-4" data-testid="existing-table-columns">
         {(formData.tableColumns || []).map((column, index) => (
           <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md border border-gray-200" data-testid={`table-column-${index}`} data-column-index={index}>
-            <span className="text-sm">
-              {typeof column === 'string' ? column : column.displayValue || column.label}
-              {typeof column === 'object' && !column.customField && (
-                <span className="text-xs text-gray-500 ml-2">({column.value})</span>
+            <div className="flex-1">
+              <div className="flex items-center">
+                <span className="text-sm font-medium">
+                  {typeof column === 'string' ? column : column.displayValue || column.label}
+                </span>
+                {typeof column === 'object' && column.type === 'input' && (
+                  <span className="ml-2 text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
+                    Input Field
+                  </span>
+                )}
+              </div>
+              
+              {typeof column === 'object' && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {column.type === 'display' && !column.customField && (
+                    <>Ruby: {column.value}</>
+                  )}
+                  
+                  {column.type === 'input' && (
+                    <>
+                      Field: {column.value.replace('fields.', '')}, 
+                      Type: {column.inputType || 'text'}, 
+                      Model: {column.modelPath || 'none'}
+                      {column.inputType === 'number' && (
+                        <>, Range: {column.min || '0'} to {column.max || '∞'}, Step: {column.step || '1'}</>
+                      )}
+                      {(column.inputType === 'radio' || column.inputType === 'select') && column.options && column.options.length > 0 && (
+                        <>, Options: {column.options.join(', ')}</>
+                      )}
+                    </>
+                  )}
+                  
+                  {column.customField && column.type === 'display' && column.value !== 'custom' && (
+                    <>Ruby: {column.value}</>
+                  )}
+                </div>
               )}
-              {typeof column === 'object' && column.customField && column.value !== 'custom' && (
-                <span className="text-xs text-gray-500 ml-2">(Ruby: {column.value})</span>
-              )}
-            </span>
+            </div>
             <button 
               type="button" 
               onClick={() => removeTableColumn(index)}
-              className="text-red-500 hover:bg-red-50 p-1 rounded"
+              className="text-red-500 hover:bg-red-50 p-1 rounded flex-shrink-0"
               data-testid={`remove-column-${index}`}
               data-action="remove-column"
               data-column-index={index}
@@ -214,6 +360,131 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
               data-testid="custom-column-code-input"
             />
+          </div>
+        )}
+        
+        {showCustomField && (
+          <div className="col-span-1 md:col-span-2 mt-2">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="is-input-field"
+                checked={showInputOptions}
+                onChange={(e) => setShowInputOptions(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                data-testid="is-input-field-checkbox"
+              />
+              <label htmlFor="is-input-field" className="ml-2 text-sm text-gray-700">
+                This is an input field (for user data entry)
+              </label>
+            </div>
+          </div>
+        )}
+        
+        {showCustomField && showInputOptions && (
+          <div className="col-span-1 md:col-span-2 mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="input-field-type" className="block text-sm text-gray-700 mb-1">
+                  Input Field Type
+                </label>
+                <select
+                  id="input-field-type"
+                  value={inputType}
+                  onChange={(e) => setInputType(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-1 text-sm"
+                  data-testid="input-field-type-select"
+                >
+                  {INPUT_FIELD_TYPES.map(type => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor="model-path" className="block text-sm text-gray-700 mb-1">
+                  Model Path (for update_attributes)
+                </label>
+                <select
+                  id="model-path"
+                  value={modelPath}
+                  onChange={(e) => setModelPath(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-1 text-sm"
+                  data-testid="model-path-select"
+                >
+                  <option value="">Select Model</option>
+                  {MODEL_PATHS.map(path => (
+                    <option key={path.value} value={path.value}>{path.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            {(inputType === 'radio' || inputType === 'select') && (
+              <div>
+                <label htmlFor="field-options" className="block text-sm text-gray-700 mb-1">
+                  Options (comma separated)
+                </label>
+                <input
+                  type="text"
+                  id="field-options"
+                  value={fieldOptions}
+                  onChange={(e) => setFieldOptions(e.target.value)}
+                  placeholder="e.g., Freshman, Sophomore, Junior, Senior"
+                  className="w-full rounded-md border border-gray-300 px-3 py-1 text-sm"
+                  data-testid="field-options-input"
+                />
+              </div>
+            )}
+            
+            {inputType === 'number' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label htmlFor="field-min" className="block text-sm text-gray-700 mb-1">
+                    Min Value
+                  </label>
+                  <input
+                    type="number"
+                    id="field-min"
+                    value={fieldMin}
+                    onChange={(e) => setFieldMin(e.target.value)}
+                    placeholder="e.g., 0"
+                    className="w-full rounded-md border border-gray-300 px-3 py-1 text-sm"
+                    data-testid="field-min-input"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="field-max" className="block text-sm text-gray-700 mb-1">
+                    Max Value
+                  </label>
+                  <input
+                    type="number"
+                    id="field-max"
+                    value={fieldMax}
+                    onChange={(e) => setFieldMax(e.target.value)}
+                    placeholder="e.g., 100"
+                    className="w-full rounded-md border border-gray-300 px-3 py-1 text-sm"
+                    data-testid="field-max-input"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="field-step" className="block text-sm text-gray-700 mb-1">
+                    Step Value
+                  </label>
+                  <input
+                    type="number"
+                    id="field-step"
+                    value={fieldStep}
+                    onChange={(e) => setFieldStep(e.target.value)}
+                    placeholder="e.g., 0.1"
+                    className="w-full rounded-md border border-gray-300 px-3 py-1 text-sm"
+                    data-testid="field-step-input"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
         
