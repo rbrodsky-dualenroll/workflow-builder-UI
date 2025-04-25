@@ -54,8 +54,8 @@ const generateApprovalTable = (step, completionState) => {
     <tr>
       <th>Action Options</th>
       ${step.tableColumns.map(col => {
-        // Generate proper column headings
-        const colLabel = typeof col === 'string' ? col : (col.label || col.field || '');
+        // Get proper display label for the column
+        const colLabel = typeof col === 'object' ? (col.displayValue || col.label) : col;
         return `<th>${colLabel}</th>`;
       }).join('\n      ')}
     </tr>
@@ -77,31 +77,64 @@ const generateApprovalTable = (step, completionState) => {
   tableHtml += `<td>${generateActionOptionsList(step, completionState)}</td>`;
   // Generate table cells based on column definitions
   step.tableColumns.forEach((col, index) => {
-    const colKey = typeof col === 'string' ? col.toLowerCase() : (col.field || '').toLowerCase();
+    // Get the column's value and label
+    const colValue = typeof col === 'object' ? col.value : '';
+    const colLabel = typeof col === 'object' ? (col.displayValue || col.label) : (typeof col === 'string' ? col : '');
     let cellContent = '';
 
-    if (colKey === 'student name') {
-      cellContent = `<td><%= @target.student.display_name %></td>`;
+    // For object format columns, use the value directly
+    if (typeof col === 'object' && col.value) {
+      // Handle custom fields
+      if (col.customField) {
+        if (col.value === 'custom') {
+          cellContent = `<td><!-- ${colLabel} data goes here --></td>`;
+        } else {
+          // Use the specified Ruby code accessor for custom fields
+          cellContent = `<td><%= @${col.value} %></td>`;
+        }
+      } 
+      // Use the exact field path for standard fields
+      else {
+        // Split the path by dots to handle nested objects
+        const fieldPath = col.value.split('.');
+        
+        // Build the ERB expression with proper nil checking
+        if (fieldPath.length === 1) {
+          cellContent = `<td><%= @${col.value} %></td>`;
+        } else {
+          // For nested paths, include safe navigation operators
+          const safeNavPath = fieldPath.join('&.');
+          cellContent = `<td><%= @${safeNavPath} %></td>`;
+        }
+      }
     }
-    // Handle course number column
-    else if (colKey.includes('course') && colKey.includes('number')) {
-      cellContent = `<td><%= @course&.number %></td>`;
-    }
-    // Handle CRN column
-    else if (colKey === 'crn') {
-      cellContent = `<td><%= @course_section&.number %></td>`;
-    }
-    // Handle instructor column
-    else if (colKey.includes('instructor')) {
-      cellContent = `<td><%= @course_section&.instructor&.name %></td>`;
-    }
-    // Handle custom form field columns
-    else if (step.formFields && step.formFields[index]) {
-      cellContent = generateFormFieldCell(step.formFields[index]);
-    }
-    // Default cell content
+    // Legacy string format handling
     else {
-      cellContent = `<td><!-- ${col} data goes here --></td>`;
+      const colKey = typeof col === 'string' ? col.toLowerCase() : '';
+      
+      if (colKey === 'student name') {
+        cellContent = `<td><%= @target.student&.display_name %></td>`;
+      }
+      // Handle course number column
+      else if (colKey.includes('course') && colKey.includes('number')) {
+        cellContent = `<td><%= @course&.number %></td>`;
+      }
+      // Handle CRN column
+      else if (colKey === 'crn') {
+        cellContent = `<td><%= @course_section&.number %></td>`;
+      }
+      // Handle instructor column
+      else if (colKey.includes('instructor')) {
+        cellContent = `<td><%= @course_section&.instructor&.name %></td>`;
+      }
+      // Handle custom form field columns
+      else if (step.formFields && step.formFields[index]) {
+        cellContent = generateFormFieldCell(step.formFields[index]);
+      }
+      // Default cell content
+      else {
+        cellContent = `<td><!-- ${col} data goes here --></td>`;
+      }
     }
 
     tableHtml += `      ${cellContent}\n`;
