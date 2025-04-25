@@ -35,8 +35,10 @@ ${targetSetup}
   <p>${step.description || step.title || 'Please complete this step.'}</p>
 <% end %>
 
-<%= render_step_information_block %>
-
+<% @student_documents = @target.student.student_documents %>
+<% if @student_documents.present? %>
+<%= render partial: 'shared/student_documents_list', locals: {hide_term: true} %>
+<% end %>
 `;
 };
 

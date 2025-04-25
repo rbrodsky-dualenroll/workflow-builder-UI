@@ -14,16 +14,10 @@ import { generateCommentsSection } from './baseTemplateGenerator';
  */
 export const generateApprovalTemplate = (step, completionState) => {
   let template = '';
-  console.log(`generating approval template for step: ${step}`)
-  console.log(step)
+
   // If we have table columns defined and form fields, display them in a data table
   if (step.tableColumns && step.tableColumns.length > 0) {
     template += generateApprovalTable(step, completionState);
-  }
-  
-  // If there are update_attributes, add form fields for them outside of tables
-  if (step.parameters && step.parameters.update_attributes) {
-    template += generateAttributesForm(step);
   }
   
   // For simple approval steps, show options as a list
@@ -84,7 +78,6 @@ const generateApprovalTable = (step, completionState) => {
   // Generate table cells based on column definitions
   step.tableColumns.forEach((col, index) => {
     const colKey = typeof col === 'string' ? col.toLowerCase() : (col.field || '').toLowerCase();
-    console.log(`generating cell for column: ${colKey}`)
     let cellContent = '';
 
     if (colKey === 'student name') {
@@ -207,9 +200,6 @@ const generateActionOptionsList = (step, completionState) => {
     
   // Map action options directly from the step configuration
   if (step.actionOptions && step.actionOptions.length > 0) {
-    // Add separator before decline/defer options if there are more than 2 options
-    let addedSeparator = false;
-    console.log("getting step action options")
     step.actionOptions.forEach((option, index) => {
       console.log(option)
       // Use the exact value from the configuration

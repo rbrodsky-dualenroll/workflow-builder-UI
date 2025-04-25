@@ -209,6 +209,25 @@ automatically set fields for students based on conditions like:
 
 This approach allows all students to eventually reach common endpoint steps in the workflow, regardless
 of which conditional branches they follow.
+
+## Document Types
+
+Upload steps in this workflow use standard DualEnroll document types. The following document types are available:
+
+- `transcript` - Student transcripts
+- `test_scores` - Standardized test scores
+- `additional_documentation` - Additional supporting documents
+- `other` - Miscellaneous documents
+- `consolidated_pdf` - Combined PDF documents
+- `proof_of_identity` - Identity verification documents
+- `orientation_certificate` - Orientation completion certificates
+- `regional_center_form` - Regional center forms
+- `immunization_form` - Immunization records
+- `home_school_affidavit` - Home school affidavits
+- `immigration_document` - Immigration documentation
+- `green_card` - Green card documentation
+
+These document types match the core DualEnroll system. When implementing custom upload steps, ensure that the document types match the expected values in the system.
 `;
 };
 

@@ -13,17 +13,13 @@ import { generateCommentsSection } from './baseTemplateGenerator';
  * @returns {string} - The template content
  */
 export const generateUploadTemplate = (step, completionState) => {
+  console.log(`generating upload template for step: ${step}`)
   let template = '';
-  
-  // Set up target based on role
-  if (step.role && step.role.toLowerCase() === 'student') {
-    template += `<% @target = @student%>\n`;
-  }
   
   // Set up document class and content
   const documentClass = step.documentClass || 'StudentDocument';
-  template += `<% @${documentClass.toLowerCase().replace(/document$/, '_documents')} = @${step.role === 'Student' ? 'student' : 'target'}.${documentClass.toLowerCase().replace(/document$/, '_documents')} %>\n\n`;
-  
+  template += `<% @${documentClass.toLowerCase().replace(/document$/, '_documents')} = @student.${documentClass.toLowerCase().replace(/document$/, '_documents')} %>\n\n`;
+  template += `<% @target = @student %>\n\n`;
   // Add table for collecting additional attributes if needed (e.g., GPA, grade level)
   if (step.parameters && (step.parameters.update_attributes || step.parameters.update_application_field_values)) {
     template += generateAttributeUpdateTable(step);

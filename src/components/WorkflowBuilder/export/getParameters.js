@@ -58,8 +58,14 @@ const getParameters = (step, completionState, allSteps) => {
   
   // For upload steps, add document class and types
   if (step.stepType === 'Upload') {
-    params['document_class'] = 'StudentDocument';
-    params['kinds'] = step.documentTypes || ['other'];
+    params['document_class'] = step.documentClass || 'StudentDocument';
+    
+    // Extract document types from fileUploads array
+    if (step.fileUploads && step.fileUploads.length > 0) {
+      params['kinds'] = step.fileUploads.map(file => file.fileType);
+    } else {
+      params['kinds'] = ['other']; // Default to 'other' if no file uploads defined
+    }
     
     // Add clear_states_by_completion parameters for upload steps
     if (completionState) {

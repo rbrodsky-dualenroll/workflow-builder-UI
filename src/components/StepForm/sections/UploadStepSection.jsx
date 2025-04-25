@@ -15,6 +15,24 @@ const DOCUMENT_CLASSES = [
 ];
 
 /**
+ * Standard document types in DualEnroll (from StudentDocument.Kinds)
+ */
+const DOCUMENT_TYPES = [
+  { value: 'transcript', label: 'Transcript' },
+  { value: 'test_scores', label: 'Test Scores' },
+  { value: 'additional_documentation', label: 'Additional Documentation' },
+  { value: 'other', label: 'Other' },
+  { value: 'consolidated_pdf', label: 'Consolidated PDF' },
+  { value: 'proof_of_identity', label: 'Proof of Identity' },
+  { value: 'orientation_certificate', label: 'Orientation Certificate' },
+  { value: 'regional_center_form', label: 'Regional Center Form' },
+  { value: 'immunization_form', label: 'Immunization Form' },
+  { value: 'home_school_affidavit', label: 'Home School Affidavit' },
+  { value: 'immigration_document', label: 'Immigration Document' },
+  { value: 'green_card', label: 'Green Card' },
+];
+
+/**
  * Upload step section for step forms
  */
 const UploadStepSection = ({ formData, setFormData, errors = {} }) => {
@@ -87,7 +105,7 @@ const UploadStepSection = ({ formData, setFormData, errors = {} }) => {
       
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Accepted File Types
+          Accepted Document Types
         </label>
         <div className="space-y-2 mb-4">
           {formData.fileUploads?.map((file, index) => (
@@ -116,23 +134,32 @@ const UploadStepSection = ({ formData, setFormData, errors = {} }) => {
             className="col-span-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
             data-testid="file-label-input"
           />
-          <input
-            type="text"
+          <select
             value={tempFileUpload.fileType}
             onChange={(e) => setTempFileUpload({ ...tempFileUpload, fileType: e.target.value })}
-            placeholder="File Type (e.g., pdf)"
             className="col-span-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
-            data-testid="file-type-input"
-          />
+            data-testid="file-type-select"
+          >
+            <option value="">Select Document Type</option>
+            {DOCUMENT_TYPES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           <button 
             type="button" 
             onClick={addFileUpload}
             className="bg-secondary hover:bg-secondary-600 text-white rounded-md px-3 py-2 text-sm"
             data-testid="add-file-button"
+            disabled={!tempFileUpload.label || !tempFileUpload.fileType}
           >
-            Add File
+            Add Document Type
           </button>
         </div>
+        <p className="mt-1 text-xs text-gray-500">
+          Select document types to be collected in this upload step. Document types are standardized to match the core DualEnroll application.
+        </p>
       </div>
     </Card>
   );
