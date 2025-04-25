@@ -1,3 +1,16 @@
+/**
+ * Generates Ruby template code for a section selection column.
+ * @param {string} activeFlowStepId - The ID of the active flow step.
+ * @returns {string} - The Ruby template code.
+ */
+export const generateSectionSelectionTemplate = (activeFlowStepId) => {
+  return `<% @target.other_course_sections(@target.student, true).each do |course_section| %>
+  <% unless course_section.is_wish_list? %>
+    <%= radio_button_tag "fields[#{${activeFlowStepId}}][course_section_id]", course_section.id, course_section.id == @target.course_section.id %>&nbsp;<%= course_section.number %><br/>
+  <% end %>
+<% end %>`;
+};
+
 // Utility functions for the workflow builder
 
 

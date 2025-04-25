@@ -88,8 +88,28 @@ const generateApprovalTable = (step, completionState) => {
       if (col.type === 'input') {
         const fieldName = col.value.replace('fields.', '');
         
-        // Generate the appropriate input field based on the input type
-        switch (col.inputType) {
+        // Special case for section_select input types
+        if (col.inputType === 'section_select') {
+          // All Sections Selection - shows all sections including current one
+          cellContent = `<td id="${fieldName}-<%=active_flow_step_id%>">
+            <% @target.other_course_sections(@target.student, true).each do |course_section| %>
+              <% unless course_section.is_wish_list? %>
+                <%= radio_button_tag "fields[#{active_flow_step_id}][${fieldName}]", course_section.id, course_section.id == @target.course_section.id %>&nbsp;<%= course_section.number %><br/>
+              <% end %>
+            <% end %>
+          </td>`;
+        } else if (col.inputType === 'other_section_select') {
+          // Other Sections Selection - shows alternatives only (excludes current selection)
+          cellContent = `<td id="${fieldName}-<%=active_flow_step_id%>">
+            <% @target.other_course_sections(@target.student, true).each do |course_section| %>
+              <% unless course_section.is_wish_list? || course_section.id == @target.course_section.id %>
+                <%= radio_button_tag "fields[#{active_flow_step_id}][${fieldName}]", course_section.id, false %>&nbsp;<%= course_section.number %><br/>
+              <% end %>
+            <% end %>
+          </td>`;
+        } else {
+          // Generate the appropriate input field based on the input type
+          switch (col.inputType) {
           case 'number':
             cellContent = `<td id="${fieldName}-<%=active_flow_step_id%>">
               <%= number_field_tag "fields[#{active_flow_step_id}][${fieldName}]", @fields['${fieldName}'], { min: ${col.min || 0}, max: ${col.max || 9999}, size: 8, step: ${col.step || 0.1} } %>
@@ -119,6 +139,7 @@ const generateApprovalTable = (step, completionState) => {
             cellContent = `<td id="${fieldName}-<%=active_flow_step_id%>">
               <%= text_field_tag "fields[#{active_flow_step_id}][${fieldName}]", @fields['${fieldName}'] %>
             </td>`;
+          }
         }
       }
       // Handle custom fields

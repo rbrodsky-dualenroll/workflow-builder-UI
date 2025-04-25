@@ -9,7 +9,9 @@ const INPUT_FIELD_TYPES = [
   { value: 'number', label: 'Number Field' },
   { value: 'select', label: 'Dropdown Select' },
   { value: 'radio', label: 'Radio Buttons' },
-  { value: 'checkbox', label: 'Checkbox' }
+  { value: 'checkbox', label: 'Checkbox' },
+  { value: 'section_select', label: 'All Sections Selection' },
+  { value: 'other_section_select', label: 'Other Sections Selection' }
 ];
 
 /**
@@ -42,6 +44,14 @@ const STANDARD_TABLE_COLUMNS = [
     options: ['Freshman', 'Sophomore', 'Junior', 'Senior'] },
   { value: 'fields.counselor_provided_graduation_year', label: 'Graduation Year Input', type: 'input', inputType: 'number', modelPath: 'college_student_application',
     min: 2025, max: 2035, step: 1 },
+  { value: 'fields.course_section_id', label: 'All Sections Selection', type: 'input', inputType: 'section_select', modelPath: 'student_de_course',
+    description: 'Selectable radio buttons for all available course sections (including current selection)',
+    isSpecialRender: true, // Flag to indicate special rendering in the view template
+    sampleOptions: ['4857', '4858', '4859'] }, // Sample CRN options for preview
+  { value: 'fields.course_section_id', label: 'Other Sections Selection', type: 'input', inputType: 'other_section_select', modelPath: 'student_de_course',
+    description: 'Selectable radio buttons for alternative course sections (excluding current selection)',
+    isSpecialRender: true, // Flag to indicate special rendering in the view template
+    sampleOptions: ['4857', '4858', '4859'] }, // Sample CRN options for preview
   { value: 'custom', label: 'Custom Field' }
 ];
 
@@ -284,7 +294,29 @@ const TableColumnsSection = ({ formData, setFormData, errors = {} }) => {
                     <>Ruby: {column.value}</>
                   )}
                   
-                  {column.type === 'input' && (
+                  {column.type === 'input' && column.inputType === 'section_select' && (
+                    <>
+                      Field: {column.value.replace('fields.', '')}, 
+                      Type: All Sections Selection, 
+                      Model: {column.modelPath || 'none'}
+                      <span className="ml-2 text-xs px-1 py-0.5 bg-blue-100 text-blue-700 rounded">
+                        Shows all sections, including current
+                      </span>
+                    </>
+                  )}
+
+                  {column.type === 'input' && column.inputType === 'other_section_select' && (
+                    <>
+                      Field: {column.value.replace('fields.', '')}, 
+                      Type: Other Sections Selection, 
+                      Model: {column.modelPath || 'none'}
+                      <span className="ml-2 text-xs px-1 py-0.5 bg-blue-100 text-blue-700 rounded">
+                        Shows only alternative sections
+                      </span>
+                    </>
+                  )}
+                  
+                  {column.type === 'input' && column.inputType !== 'section_select' && column.inputType !== 'other_section_select' && (
                     <>
                       Field: {column.value.replace('fields.', '')}, 
                       Type: {column.inputType || 'text'}, 

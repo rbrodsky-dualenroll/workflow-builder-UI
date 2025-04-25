@@ -13,10 +13,11 @@ const CrnCell = ({ columnName, step, value }) => {
   let min = null;
   let max = null;
   let stepVal = null;
+  let columnObj = null;
 
   // Find the column definition in tableColumns (if it exists)
   if (step.tableColumns) {
-    const columnObj = step.tableColumns.find(col => {
+    columnObj = step.tableColumns.find(col => {
       if (typeof col === 'string') {
         return col === columnName;
       } else if (typeof col === 'object') {
@@ -40,6 +41,36 @@ const CrnCell = ({ columnName, step, value }) => {
   // Render input field if this is an input column
   if (isInputColumn) {
     switch (inputType) {
+      case 'section_select':
+      case 'other_section_select':
+        // Display sample section options as radio buttons
+        const sampleSections = columnObj.sampleOptions || ['4857', '4858', '4859'];
+        const excludeCurrentSection = inputType === 'other_section_select';
+        return (
+          <div className="text-left">
+            {sampleSections.map((section, idx) => {
+              // For other_section_select, skip the first section to simulate current selection
+              if (excludeCurrentSection && idx === 0) return null;
+              return (
+                <div key={idx} className="mb-1">
+                  <label className="flex items-center">
+                    <input 
+                      type="radio" 
+                      name="course_section_id" 
+                      value={section} 
+                      className="mr-1" 
+                      defaultChecked={!excludeCurrentSection && idx === 0}
+                    />
+                    <span>{section}</span>
+                    {excludeCurrentSection && idx === 1 && (
+                      <span className="ml-2 text-xs text-gray-500">(alternative section)</span>
+                    )}
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+        );
       case 'number':
         return (
           <input

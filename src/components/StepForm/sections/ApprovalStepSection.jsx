@@ -41,6 +41,37 @@ const MODEL_PATHS = [
  * Approval step section for step forms
  */
 const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
+  // Check if this approval step has a Section Selection column (course_section_id)
+  const hasSectionSelection = React.useMemo(() => {
+    return formData.tableColumns?.some(col => 
+      typeof col === 'object' && 
+      col.value === 'fields.course_section_id' && 
+      col.inputType === 'section_select'
+    );
+  }, [formData.tableColumns]);
+  
+  // If we have a section selection, ensure update_attributes has course_section_id for student_de_course
+  React.useEffect(() => {
+    if (hasSectionSelection) {
+      // Make sure update_attributes has student_de_course.course_section_id
+      const updateAttributes = formData.updateAttributes || {};
+      const hasField = updateAttributes['student_de_course']?.includes('course_section_id');
+      
+      if (!hasField) {
+        updateAttributes['student_de_course'] = [
+          ...(updateAttributes['student_de_course'] || []),
+          'course_section_id'
+        ];
+        
+        // Update the form data
+        setFormData({
+          ...formData,
+          updateAttributes: updateAttributes
+        });
+      }
+    }
+  }, [hasSectionSelection, formData.tableColumns]);
+  
   const [tempActionOption, setTempActionOption] = useState({ 
     label: '', 
     value: '',
@@ -116,12 +147,13 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
   };
 
   return (
-    <CollapsibleCard 
-      title="Action Options" 
-      className="bg-white mb-6"
-      defaultCollapsed={true} 
-      id="action-options-section"
-    >
+    <>
+      <CollapsibleCard 
+        title="Action Options" 
+        className="bg-white mb-6"
+        defaultCollapsed={true} 
+        id="action-options-section"
+      >
       <p className="text-sm text-gray-600 mb-3">These will appear as radio button choices in the step:</p>
       
       <div className="space-y-2 mb-4">
@@ -409,7 +441,17 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
           </div>
         )}
       </div>
+      
+      {hasSectionSelection && (
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <p className="text-xs text-blue-800">
+            <strong>Note:</strong> When using Section Selection, the "Approve" action option will proceed with the selected section.
+            The section selection radio buttons will update the <code className="bg-blue-100 px-1 py-0.5 rounded">course_section_id</code> field.
+          </p>
+        </div>
+      )}
     </CollapsibleCard>
+    </>
   );
 };
 
