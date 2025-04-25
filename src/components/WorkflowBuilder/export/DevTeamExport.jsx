@@ -7,7 +7,6 @@ import { exportZipArchive } from './multiFileExporter';
  * in a format compatible with DualEnroll Ruby fixtures
  */
 const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, onClose, workflowConditions }) => {
-  console.log('Workflow conditions in DevTeamExport:', workflowConditions);
   const [localCollegeName, setLocalCollegeName] = useState(collegeInfo.name || '');
   const [localCollegeId, setLocalCollegeId] = useState(collegeInfo.id || '');
   const [localCollegeCity, setLocalCollegeCity] = useState(collegeInfo.city || '');

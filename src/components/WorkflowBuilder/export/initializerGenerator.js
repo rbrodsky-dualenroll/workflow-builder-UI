@@ -633,13 +633,6 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
 `;
   }
   
-  // Process conditional logic and field settings
-  console.log('Conditional Map Size:', conditionToRubyMap.size);
-  console.log('Conditions:', Array.from(conditionToRubyMap.keys()));
-  console.log('Conditional Completion States:', Array.from(conditionalCompletionStates.keys()));
-  console.log('Relevant Steps Count:', relevantSteps.length);
-  console.log('Workflow Category:', relevantWorkflowCategory);
-  
   if (conditionToRubyMap.size > 0) {
     rubyCode += `    # Conditional fields based on workflow conditions\n`;
     console.log('Adding conditional fields section');

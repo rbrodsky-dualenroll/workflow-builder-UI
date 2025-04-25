@@ -5,8 +5,8 @@
  * in a workflow and include them in the export zip file.
  */
 
-import getViewOverride from '../getViewOverride';
-import { generateSingleViewTemplate } from './singleViewGenerator';
+import { generateSingleViewTemplate} from './singleViewGenerator';
+import { generateConsentTemplate, generateParentConsentInstructionsTemplate } from './stepGenerators/consentTemplateGenerator';
 import { getMergedWorkflow } from '../../ScenarioOperations';
 
 /**
@@ -15,7 +15,7 @@ import { getMergedWorkflow } from '../../ScenarioOperations';
  * @returns {boolean} - Whether the step should have a view template
  */
 const shouldGenerateViewForStep = (step) => {
-  // Skip system steps
+  // Skip system and backend-only steps 
   if (step.role === 'System' || 
       step.participant_role === 'system' || 
       step.role === 'Processing' ||
@@ -23,17 +23,19 @@ const shouldGenerateViewForStep = (step) => {
     return false;
   }
   
-  // Skip RegisterViaApi and Pending steps
-  if (step.stepType === 'RegisterViaApi' || 
-      step.stepType === 'PendingCompletionOfOneTimeSteps' || 
-      step.stepType === 'PendingCompletionOfPerTermSteps' || 
-      step.stepType === 'PendingCompletionOfPerYearSteps') {
-    return false;
-  }
+  // Skip steps that shouldn't have user interfaces
+  const noUIStepTypes = [
+    'RegisterViaApi', 
+    'PendingCompletionOfOneTimeSteps',
+    'PendingCompletionOfPerTermSteps',
+    'PendingCompletionOfPerYearSteps',
+    'InitializeStudentTerm',
+    'InitializeRegistration',
+    'CompleteRegistration',
+    'DeclineRegistration'
+  ];
   
-  // Skip parent consent steps
-  if (step.stepType === 'ProvideConsent' && 
-      (step.role === 'Parent' || step.participant_role === 'parent')) {
+  if (noUIStepTypes.includes(step.stepType)) {
     return false;
   }
   
@@ -46,32 +48,30 @@ const shouldGenerateViewForStep = (step) => {
  * @returns {string} - The view path
  */
 const generateViewPath = (step) => {
-  // Parent consent steps should never have a view path
-  if (step.stepType === 'ProvideConsent' && 
-      (step.role === 'Parent' || step.participant_role === 'parent')) {
-    return '';
-  }
+  // Get role part of the path
+  const role = (step.role || step.participant_role || 'student').toLowerCase().replace(/\s+/g, '_');
   
-  // If no view override, generate a path based on role and step type
-  const role = (step.role || 'student').toLowerCase().replace(/\s+/g, '_');
+  // Simple snake case of title for the action
   let action = '';
-  
-  switch (step.stepType.toLowerCase()) {
-    case 'approval':
-      // Generate a slug based on the step title
-      const slug = step.title ? 
-        step.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_+|_+$)/g, '') : 
-        'approve';
-      action = slug;
-      break;
-    case 'upload':
-      action = 'provide_additional_info';
-      break;
-    case 'information':
-      action = 'information';
-      break;
-    default:
-      action = step.stepType.toLowerCase().replace(/\s+/g, '_');
+  if (step.title) {
+    action = step.title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/(^_+|_+$)/g, '');
+  } else {
+    // Fallback based on step type
+    switch (step.stepType.toLowerCase()) {
+      case 'approval':
+        action = 'approve';
+        break;
+      case 'upload':
+        action = 'provide_additional_info';
+        break;
+      case 'information':
+        action = 'information';
+        break;
+      default:
+        action = step.stepType.toLowerCase().replace(/\s+/g, '_');
+    }
   }
   
   return `active_flow_steps/course_registration/${role}/${action}`;
@@ -96,8 +96,36 @@ export const generateViewTemplates = (workflowData, collegeVarName) => {
   // Track already generated views to avoid duplicates
   const generatedViews = new Set();
   
+  // Generate main consent template
+  const consentPath = `active_flow_steps/course_registration/parent/_provide_consent`;
+  const consentContent = generateConsentTemplate();
+  const consentFilePath = `app/views/themes/${collegeVarName}/${consentPath}.html.erb`;
+  
+  templateFiles.push({
+    path: consentFilePath,
+    content: consentContent,
+    viewPath: consentPath
+  });
+  
+  // Generate consent instructions template - using the parent directory
+  const instructionsDir = `active_flow_steps/course_registration/parent`;
+  const instructionsFile = '_parent_provide_consent_instructions.html.erb';
+  const instructionsFilePath = `app/views/themes/${collegeVarName}/${instructionsDir}/${instructionsFile}`;
+  const instructionsContent = generateParentConsentInstructionsTemplate();
+  // Explicitly log to see what's being added
+  console.log('Adding consent instructions template:', instructionsFilePath);
+  
+  templateFiles.push({
+    path: instructionsFilePath,
+    content: instructionsContent,
+    viewPath: `${instructionsDir}/_parent_provide_consent_instructions`
+  });
+  
   // Generate template for each step
   for (const step of stepsNeedingViews) {
+    // Skip consent steps (already handled)
+    if (step.stepType === 'ProvideConsent') continue;
+    
     // Get or generate view path
     const viewPath = generateViewPath(step);
     
@@ -128,13 +156,11 @@ export const generateViewTemplates = (workflowData, collegeVarName) => {
       viewPath: viewPath // Store original view path for updating step references
     });
     
-    // Update the step's viewNameOverride to match (except for parent consent)
-    if (!(step.stepType === 'ProvideConsent' && 
-         (step.role === 'Parent' || step.participant_role === 'parent'))) {
-      step.viewNameOverride = viewPath;
-    }
+    // Update the step's viewNameOverride to match
+    step.viewNameOverride = viewPath;
   }
   
+  // Ensure we return the complete list of template files
   return templateFiles;
 };
 
@@ -143,6 +169,7 @@ export const generateViewTemplates = (workflowData, collegeVarName) => {
  * @param {JSZip} zip - The JSZip object
  * @param {Object} workflowData - The workflow data from the WorkflowBuilder
  * @param {string} collegeVarName - The college variable name
+ * @returns {number} - Number of template files added
  */
 export const addViewTemplatesToZip = (zip, workflowData, collegeVarName) => {
   const viewTemplates = generateViewTemplates(workflowData, collegeVarName);
@@ -154,9 +181,14 @@ export const addViewTemplatesToZip = (zip, workflowData, collegeVarName) => {
   viewTemplates.forEach(template => {
     // Get relative path (removing app/views/ prefix)
     const relativePath = template.path.replace(/^app\/views\//, '');
+    
+    // Log what we're adding to the ZIP
+    console.log('Adding to ZIP:', relativePath);
+    
+    // Create the file in the ZIP
     viewsFolder.file(relativePath, template.content);
   });
-  
+    
   return viewTemplates.length; // Return count of templates added
 };
 

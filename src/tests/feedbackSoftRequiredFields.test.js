@@ -21,7 +21,7 @@ const createTestWorkflow = () => {
     workflow_category: "Per Course",
     actionOptions: [
       { label: "Approve", value: "approve-yes" },
-      { label: "Decline", value: "decline-no", terminates_workflow: true }
+      { label: "Decline", value: "no", terminates_workflow: true }
     ],
     feedbackLoops: {
       "feedback1": {

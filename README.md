@@ -138,7 +138,7 @@ Each step type has unique configuration options:
   // For Approval steps
   "actionOptions": [
     { "label": "Approve", "value": "approve-yes" },
-    { "label": "Decline", "value": "decline-no" }
+    { "label": "Decline", "value": "no" }
   ],
   
   // For Upload steps

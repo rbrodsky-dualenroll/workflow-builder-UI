@@ -146,7 +146,7 @@ const getParameters = (step, completionState, allSteps) => {
 
   // Handle specialized step types
   if (step.stepType === 'ProvideConsent') {
-    params['consent'] = step.consentType || 'all';
+    params['consent'] = 'all';
   }
   
   if (step.stepType === 'CheckHolds') {

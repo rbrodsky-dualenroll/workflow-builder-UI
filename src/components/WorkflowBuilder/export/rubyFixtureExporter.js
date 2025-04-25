@@ -438,7 +438,15 @@ const generateStepForCategory = (step, collegeVarName, varName, index, allSteps)
   // Set up default values
   const completionState = getCompletionState(step);
   const stepClass = getStepClass(step);
-  const viewOverride = getViewOverride(step);
+  
+  // Always blank out view_name_override for ProvideConsent steps
+  let viewOverride = '';
+  if (step.stepType === 'ProvideConsent') {
+    viewOverride = '';
+  } else {
+    viewOverride = getViewOverride(step);
+  }
+  
   const parameters = getParameters(step, completionState, allSteps);
   const participantRole = getParticipantRole(step);
   const softRequiredFields = getSoftRequiredFields(step, index, allSteps);

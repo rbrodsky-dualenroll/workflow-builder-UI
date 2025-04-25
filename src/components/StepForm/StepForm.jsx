@@ -78,6 +78,8 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
     consentType: 'all',
     // Fields for ResolveIssue step
     issueType: '',
+    // Fields for Upload step
+    documentClass: 'StudentDocument',
   };
 
   // Initialize form data with defaults and any provided initialData
@@ -93,8 +95,8 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
       (initialData.stepType === 'Approval' || !initialData.stepType)
     ) {
       initialFormData.actionOptions = [
-        { label: 'Approve', value: 'approve-yes', canTerminate: false, terminates_workflow: false },
-        { label: 'Decline', value: 'decline-no', canTerminate: true, terminates_workflow: true },
+        { label: 'Approve', value: 'yes', canTerminate: false, terminates_workflow: false },
+        { label: 'Decline', value: 'no', canTerminate: true, terminates_workflow: true },
         { label: 'Defer', value: 'defer', canTerminate: false, terminates_workflow: false }
       ];
       
@@ -186,7 +188,7 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
         // Default Approve and Defer options don't terminate, but Decline always does
         updatedFormData.actionOptions = [
           { label: 'Approve', value: 'approve-yes', canTerminate: false, terminates_workflow: false },
-          { label: 'Decline', value: 'decline-no', canTerminate: true, terminates_workflow: true },
+          { label: 'Decline', value: 'no', canTerminate: true, terminates_workflow: true },
           { label: 'Defer', value: 'defer', canTerminate: false, terminates_workflow: false }
         ];
         

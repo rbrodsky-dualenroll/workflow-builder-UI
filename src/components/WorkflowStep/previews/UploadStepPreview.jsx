@@ -7,6 +7,18 @@ import PreviewContainer from './PreviewContainer';
 const UploadStepPreview = ({ step }) => {
   return (
     <PreviewContainer step={step}>
+      {/* Document Class Information */}
+      {step.documentClass && (
+        <div className="mb-3">
+          <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+            <span className="text-sm font-medium text-blue-800">
+              Document Class: {step.documentClass}
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {/* File Uploads */}
       {step.fileUploads && step.fileUploads.length > 0 && (
         <div>
           <div className="mb-4">

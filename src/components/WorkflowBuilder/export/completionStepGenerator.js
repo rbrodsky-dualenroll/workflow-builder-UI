@@ -42,7 +42,7 @@ export const generateFailureSteps = (steps, collegeVarName, category, versionNum
       // Check for terminates_workflow action options
       const terminatingOptions = step.actionOptions.filter(option => 
         (option.terminates_workflow || option.canTerminate) && 
-        (option.value === 'decline-no' || option.value?.includes('decline'))
+        (option.value === 'no' || option.value?.includes('decline'))
       );
       
       if (terminatingOptions.length > 0) {

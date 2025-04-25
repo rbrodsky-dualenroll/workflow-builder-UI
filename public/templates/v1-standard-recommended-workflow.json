@@ -23,7 +23,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -73,7 +73,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -123,7 +123,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -173,7 +173,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -229,7 +229,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -279,7 +279,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -329,7 +329,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -379,7 +379,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -431,7 +431,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -485,7 +485,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -539,7 +539,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -593,7 +593,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -652,7 +652,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -702,7 +702,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -752,7 +752,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -802,7 +802,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -854,7 +854,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },
@@ -908,7 +908,7 @@
             },
             {
               "label": "Decline",
-              "value": "decline-no",
+              "value": "no",
               "canTerminate": true,
               "terminates_workflow": true
             },

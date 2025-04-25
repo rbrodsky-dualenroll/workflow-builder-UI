@@ -9,30 +9,26 @@ const getViewOverride = (step) => {
     return step.viewNameOverride;
   }
   
-  // Return empty for system steps
+  // Return empty for system steps and steps that don't have views
   if (step.participant_role === 'system' || 
       step.role === 'System' || 
       step.role === 'Processing' || 
-      step.stepType === 'system') {
-    return '';
-  }
-  
-  // Return empty for parent consent steps - no view override
-  if (step.stepType === 'ProvideConsent' && 
-      (step.role === 'Parent' || step.participant_role === 'parent')) {
-    return '';
-  }
-  
-  // Return empty for RegisterViaApi and Pending steps
-  if (step.stepType === 'RegisterViaApi' || 
+      step.stepType === 'system' ||
+      step.stepType === 'RegisterViaApi' || 
       step.stepType === 'PendingCompletionOfOneTimeSteps' || 
       step.stepType === 'PendingCompletionOfPerTermSteps' || 
       step.stepType === 'PendingCompletionOfPerYearSteps') {
     return '';
   }
+  
+  // Special case for ProvideConsent steps - always use the standard path
+  if (step.stepType === 'ProvideConsent') {
+    const role = (step.role || step.participant_role || 'parent').toLowerCase().replace(/\s+/g, '_');
+    return `active_flow_steps/course_registration/${role}/provide_consent`;
+  }
 
   // For all other steps, generate a view path based on role and type
-  const role = (step.role || 'student').toLowerCase().replace(/\s+/g, '_');
+  const role = (step.role || step.participant_role || 'student').toLowerCase().replace(/\s+/g, '_');
   let action = '';
   
   // Determine the action based on step type

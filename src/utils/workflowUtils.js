@@ -16,7 +16,7 @@ export const canStepTerminateWorkflow = (step) => {
   // Approval steps with terminates_workflow or canTerminate options can terminate workflows
   if (step.stepType === 'Approval' && step.actionOptions?.length > 0) {
     return step.actionOptions.some(option => 
-      option.terminates_workflow || option.canTerminate || option.value === 'decline-no'
+      option.terminates_workflow || option.canTerminate || option.value === 'no'
     );
   }
   
@@ -34,7 +34,7 @@ export const getTerminationOptions = (step) => {
   }
   
   return step.actionOptions.filter(option => 
-    option.terminates_workflow || option.canTerminate || option.value === 'decline-no'
+    option.terminates_workflow || option.canTerminate || option.value === 'no'
   );
 };
 

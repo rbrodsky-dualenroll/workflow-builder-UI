@@ -18,8 +18,8 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
   
   // Template data for action options
   const commonActionOptionTemplates = [
-    { label: 'Approve', value: 'approve-yes', canTerminate: false, terminates_workflow: false },
-    { label: 'Decline', value: 'decline-no', canTerminate: true, terminates_workflow: true },
+    { label: 'Approve', value: 'yes', canTerminate: false, terminates_workflow: false },
+    { label: 'Decline', value: 'no', canTerminate: true, terminates_workflow: true },
     { label: 'Defer', value: 'defer', canTerminate: false, terminates_workflow: false }
   ];
   
@@ -111,7 +111,7 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
             <div className="mt-2 pt-2 border-t border-gray-200">
               <div className="flex flex-col space-y-2">
                 {/* Show termination indicators for all options */}
-                {formData.actionOptions[index].value === 'decline-no' ? (
+                {formData.actionOptions[index].value === 'no' ? (
                   <div className="flex items-center">
                     <div className="h-4 w-4 rounded-full bg-red-600"></div>
                     <span className="ml-2 text-sm text-gray-700">
@@ -298,7 +298,7 @@ const ApprovalStepSection = ({ formData, setFormData, errors = {} }) => {
           type="text"
           value={tempActionOption.value}
           onChange={(e) => setTempActionOption({ ...tempActionOption, value: e.target.value })}
-          placeholder="Value (e.g., approve-yes)"
+          placeholder="Value (e.g., yes)"
           className="col-span-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
           data-testid="new-action-option-value-input"
         />

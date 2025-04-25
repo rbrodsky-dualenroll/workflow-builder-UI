@@ -29,7 +29,7 @@ const ApprovalStepPreview = ({ step }) => {
     // Comments are always required for terminating actions
     if (selectedActionOption.terminates_workflow || 
         selectedActionOption.canTerminate || 
-        selectedActionOption.value === 'decline-no') {
+        selectedActionOption.value === 'no') {
       setCommentRequired(true);
       return;
     }
@@ -76,14 +76,14 @@ const ApprovalStepPreview = ({ step }) => {
                             type="radio" 
                             id={`option-${idx}`} 
                             name="actionOption" 
-                            className={`h-4 w-4 ${(option.terminates_workflow || option.canTerminate || option.value === 'decline-no') ? 'text-red-500' : ''}`}
+                            className={`h-4 w-4 ${(option.terminates_workflow || option.canTerminate || option.value === 'no') ? 'text-red-500' : ''}`}
                             checked={selectedOption === idx}
                             onChange={() => setSelectedOption(idx)}
                             data-testid={`approval-option-radio-${idx}`}
                           />
-                          <label htmlFor={`option-${idx}`} className={`ml-2 text-sm ${(option.terminates_workflow || option.canTerminate || option.value === 'decline-no') ? 'text-red-600 font-medium' : ''}`}>
+                          <label htmlFor={`option-${idx}`} className={`ml-2 text-sm ${(option.terminates_workflow || option.canTerminate || option.value === 'no') ? 'text-red-600 font-medium' : ''}`}>
                             {option.label}
-                            {(option.terminates_workflow || option.canTerminate || option.value === 'decline-no') && (
+                            {(option.terminates_workflow || option.canTerminate || option.value === 'no') && (
                               <span className="ml-1 text-xs">(Terminates workflow)</span>
                             )}
                           </label>
@@ -146,7 +146,7 @@ const ApprovalStepPreview = ({ step }) => {
                 <span className="ml-1 text-xs text-red-600 font-normal">
                   {(selectedActionOption?.terminates_workflow || 
                    selectedActionOption?.canTerminate || 
-                   selectedActionOption?.value === 'decline-no') 
+                   selectedActionOption?.value === 'no') 
                     ? "(Required for workflow termination)" 
                     : "(Required)"
                   }

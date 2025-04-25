@@ -11,6 +11,7 @@ export const ProvideConsentSection = ({ formData, handleChange, errors = {} }) =
     <Card title="Consent Step" className="bg-white mb-6">
       <div className="bg-gray-50 p-3 rounded-md border border-gray-300 mb-4">
         <p className="text-sm text-gray-700">This step will require the parent or guardian to provide consent for the student's enrollment.</p>
+        <p className="text-sm text-gray-700 mt-2">Standard consent templates will be generated that are compatible with all workflow contexts.</p>
       </div>
       
       <FormField
@@ -23,11 +24,9 @@ export const ProvideConsentSection = ({ formData, handleChange, errors = {} }) =
           { value: 'all', label: 'All (Generic Consent)' },
           { value: 'ferpa', label: 'FERPA' },
           { value: 'financial', label: 'Financial Responsibility' },
-          { value: 'custom', label: 'Custom' },
         ]}
         error={errors.consentType}
       />
-      
     </Card>
   );
 };
