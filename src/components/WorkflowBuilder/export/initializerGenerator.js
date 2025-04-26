@@ -608,7 +608,11 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
     if student.high_school.is_home_school?
       fields["parent_consent_provided"] = true
       fields["home_school"] = true
+    elsif student.high_school.is_non_partner?(college)
+      fields["non_partner"] = true
+      fields["parent_consent_required"] = true
     else
+      fields["high_school"] = true
       fields["parent_consent_required"] = true
       fields["partner_high_school"] = true
     end
