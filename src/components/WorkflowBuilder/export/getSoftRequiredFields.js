@@ -1,5 +1,6 @@
 import { snakeCase } from './utils';
 import { getCompletionState, getCompletionStateValues } from './getCompletionState';
+import { getParticipantRole } from './getParticipantInfo';
 
 /**
  * Get the soft required fields for a step
@@ -198,10 +199,17 @@ const getSoftRequiredFields = (step, index, allSteps) => {
     }
   }
   
-  
   // For steps with no dependencies, use 'initialization_complete' as a fallback
   if (fields.length === 0 && step.stepType !== 'Initialization') {
     fields.push('initialization_complete');
+  }
+  
+  // Add student type fields based on participant role
+  const participantRole = getParticipantRole(step);
+  
+  // For High School steps, add the 'high_school' condition
+  if (participantRole === 'hs') {
+    fields.push('high_school');
   }
   
   // Return formatted fields, ensuring no duplicates
