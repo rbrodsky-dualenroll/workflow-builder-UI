@@ -627,7 +627,7 @@ export const generateInitializerClass = (workflowData, collegeVarName, targetObj
     elsif student.high_school.is_non_partner?(college)
       fields["non_partner"] = true
     else
-      fields["hs_student"] = true
+      fields["high_school"] = true
     end
 
 `;
