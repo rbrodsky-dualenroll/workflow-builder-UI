@@ -25,6 +25,12 @@ jobs:
 
       - name: Build
         run: npm run build
+        
+      - name: Make sure templates directory exists in dist
+        run: mkdir -p dist/templates
+        
+      - name: Copy templates to dist
+        run: cp -r public/templates/* dist/templates/ || true
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4

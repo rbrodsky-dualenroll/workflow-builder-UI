@@ -124,12 +124,16 @@ export const loadTemplateWorkflow = async (templateName, setWorkflow, setWorkflo
   try {
     // Import the template directly instead of using fetch
     let templateData;
-    if (templateName === 'standard-recommended-workflow') {
-      // Import the template from assets
+    
+    // Use this approach to access templates directly from the assets directory
+    try {
+      // First try to directly import the template (works in development)
       templateData = await import('../../assets/templates/standard-recommended-workflow.json');
-    } else {
-      // Fallback to fetch for other templates (if we add more in the future)
-      const response = await fetch(`${import.meta.env.BASE_URL}templates/${templateName}.json`);
+    } catch (error) {
+      console.log('Direct import failed, falling back to fetch with base URL');
+      // Fallback to fetch with the correct base URL path
+      const baseUrl = import.meta.env.BASE_URL || '/workflow-builder-UI/';
+      const response = await fetch(`${baseUrl}templates/${templateName}.json`);
       if (!response.ok) {
         throw new Error(`Failed to load template: ${response.statusText}`);
       }
