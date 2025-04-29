@@ -33,6 +33,41 @@ npm install
 npm run dev
 ```
 
+### Deployment to GitHub Pages
+
+This project is configured for easy deployment to GitHub Pages:
+
+1. Install the gh-pages package if not already installed:
+```bash
+npm install --save-dev gh-pages
+```
+
+2. Make sure your repository is properly configured in vite.config.js:
+```javascript
+base: '/your-repository-name/',  // Replace with your actual repository name
+```
+
+3. Deploy using one of these methods:
+
+   **Method 1: Using npm script**
+   ```bash
+   npm run deploy
+   ```
+   
+   **Method 2: Using GitHub Actions**
+   - Push your changes to the main branch
+   - GitHub Actions will automatically build and deploy to the gh-pages branch
+   - Your site will be available at https://your-username.github.io/your-repository-name/
+
+4. Verify deployment by visiting your GitHub Pages URL (typically https://your-username.github.io/your-repository-name/)
+
+**Troubleshooting Deployment Issues:**
+
+- If assets aren't loading correctly, check paths in FileOperations.js and other components
+- For templates or JSON files, they should be imported directly rather than using fetch
+- Check GitHub Actions logs for any build errors
+- Ensure GitHub Pages is properly configured in your repository settings
+
 ## Core Features
 
 ### Step Types

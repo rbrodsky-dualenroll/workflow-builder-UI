@@ -122,12 +122,19 @@ const convertScenariosToWorkflow = (scenarios) => {
  */
 export const loadTemplateWorkflow = async (templateName, setWorkflow, setWorkflowName, setWorkflowConditions, setCollegeInfo) => {
   try {
-    const response = await fetch(`/templates/${templateName}.json`);
-    if (!response.ok) {
-      throw new Error(`Failed to load template: ${response.statusText}`);
+    // Import the template directly instead of using fetch
+    let templateData;
+    if (templateName === 'standard-recommended-workflow') {
+      // Import the template from assets
+      templateData = await import('../../assets/templates/standard-recommended-workflow.json');
+    } else {
+      // Fallback to fetch for other templates (if we add more in the future)
+      const response = await fetch(`${import.meta.env.BASE_URL}templates/${templateName}.json`);
+      if (!response.ok) {
+        throw new Error(`Failed to load template: ${response.statusText}`);
+      }
+      templateData = await response.json();
     }
-    
-    const templateData = await response.json();
     
     // Handle different template formats
     if (templateData.workflow) {
