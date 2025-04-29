@@ -4,14 +4,14 @@ import ViewTemplateModal from './modals/ViewTemplateModal';
 
 /**
  * Component to display the workflow content (steps)
+ * Simplified to remove master view references
  */
 const WorkflowContent = ({
   workflow = [],
   onEditStep,
   onDeleteStep,
   moveStep,
-  onAddStep,
-  masterView
+  onAddStep
 }) => {
   // State for view template modal
   const [viewTemplateStep, setViewTemplateStep] = useState(null);
@@ -55,21 +55,19 @@ const WorkflowContent = ({
         </div>
       )}
 
-      {!masterView && (
-        <button 
-          className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md flex items-center justify-center text-sm"
-          onClick={onAddStep}
-          data-testid="add-step-button"
-          data-action="add-step"
-          data-id="add-step-button"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Add Step
-        </button>
-      )}
+      <button 
+        className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md flex items-center justify-center text-sm"
+        onClick={onAddStep}
+        data-testid="add-step-button"
+        data-action="add-step"
+        data-id="add-step-button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add Step
+      </button>
       
       {/* View Template Modal */}
       {viewTemplateStep && (

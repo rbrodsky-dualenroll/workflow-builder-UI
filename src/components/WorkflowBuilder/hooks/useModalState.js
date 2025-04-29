@@ -8,13 +8,7 @@ const useModalState = () => {
   const [isAddingStep, setIsAddingStep] = useState(false);
   const [editingStep, setEditingStep] = useState(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showScenarioModal, setShowScenarioModal] = useState(false);
   const [showNewWorkflowModal, setShowNewWorkflowModal] = useState(false);
-  
-  // New scenario form state
-  const [newScenarioName, setNewScenarioName] = useState('');
-  const [baseScenarioId, setBaseScenarioId] = useState('main');
-  const [scenarioCondition, setScenarioCondition] = useState('');
 
   return {
     // Modal states
@@ -24,18 +18,8 @@ const useModalState = () => {
     setEditingStep,
     showSaveModal,
     setShowSaveModal,
-    showScenarioModal,
-    setShowScenarioModal,
     showNewWorkflowModal,
-    setShowNewWorkflowModal,
-    
-    // New scenario form state
-    newScenarioName,
-    setNewScenarioName,
-    baseScenarioId,
-    setBaseScenarioId,
-    scenarioCondition,
-    setScenarioCondition
+    setShowNewWorkflowModal
   };
 };
 

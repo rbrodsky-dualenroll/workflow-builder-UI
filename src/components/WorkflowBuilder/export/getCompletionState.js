@@ -19,7 +19,7 @@ const getCompletionState = (step) => {
     return snakeCase(step.title || 'upload_document');
   } else if (step.stepType === 'Initialization') {
     return "initialization_complete";
-  } else if (step.stepType === 'WaitForCompletionOfOneTimeSteps') {
+  } else if (step.stepType === 'WaitForCompletionOfOneTimeSteps' || step.stepType === 'PendingCompletionOfOneTimeSteps') {
     return "one_time_workflow_complete";
   } else if (step.stepType === 'ProvideConsent') {
     return 'parent_consent_provided';

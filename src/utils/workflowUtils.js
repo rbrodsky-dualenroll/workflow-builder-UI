@@ -13,6 +13,16 @@ export const generateSectionSelectionTemplate = (activeFlowStepId) => {
 
 // Utility functions for the workflow builder
 
+/**
+ * Get the workflow as a flat array (replacement for getMergedWorkflow)
+ * @param {Array} workflow - The workflow steps
+ * @returns {Array} - A flat array of workflow steps
+ */
+export const getWorkflow = (workflow) => {
+  // With the new single workflow approach, we simply return the workflow
+  return workflow || [];
+};
+
 
 
 /**

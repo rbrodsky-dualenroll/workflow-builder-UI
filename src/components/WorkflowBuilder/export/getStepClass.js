@@ -26,6 +26,12 @@ const getStepClass = (step) => {
     case 'Successful Registration':
       // Use CompleteRegistrationStep by default but allow override
       return step.step_class || 'CompleteRegistrationStep';
+    case 'PendingCompletionOfOneTimeSteps':
+      return 'WaitForSubordinateRegistrationActiveFlowCompletionStep';
+    case 'PendingCompletionOfPerTermSteps':
+      return 'WaitForSubordinateRegistrationActiveFlowCompletionStep';
+    case 'PendingCompletionOfPerYearSteps':
+      return 'WaitForSubordinateRegistrationActiveFlowCompletionStep';
     default:
       return step.step_class || 'ApprovalStep';
   }

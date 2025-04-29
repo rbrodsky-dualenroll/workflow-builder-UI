@@ -1,15 +1,16 @@
 /**
  * Functions for file operations (import/export workflows)
+ * Updated for the flat workflow structure
  */
 
 /**
  * Save workflow to a JSON file
  */
-export const saveWorkflow = (workflowName, scenarios, workflowConditions = {}, collegeInfo = {}) => {
-  // Save the entire scenarios object, conditions, and college info
+export const saveWorkflow = (workflowName, workflow, workflowConditions = {}, collegeInfo = {}) => {
+  // Save the workflow array, conditions, and college info
   const workflowJson = JSON.stringify({
     name: workflowName,
-    scenarios,
+    workflow,
     conditions: workflowConditions,
     collegeInfo
   }, null, 2);
@@ -30,7 +31,7 @@ export const saveWorkflow = (workflowName, scenarios, workflowConditions = {}, c
 /**
  * Import workflow from a file
  */
-export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions, setCollegeInfo) => {
+export const importWorkflow = (file, setWorkflow, setWorkflowName, setWorkflowConditions, setCollegeInfo) => {
   return new Promise((resolve, reject) => {
     if (!file) {
       reject(new Error('No file provided'));
@@ -42,40 +43,36 @@ export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveSce
       try {
         const importedData = JSON.parse(e.target.result);
         
-        // Always reset to a fresh state before importing
-        if (importedData.scenarios) {
-          // New format with scenarios
-          setScenarios(importedData.scenarios);
-          if (importedData.name) {
-            setWorkflowName(importedData.name);
-          } else {
-            setWorkflowName(file.name.replace('.json', '').replace(/-/g, ' '));
-          }
-          
-          // Import conditions if available
-          if (importedData.conditions && setWorkflowConditions) {
-            setWorkflowConditions(importedData.conditions);
-          }
-          
-          // Import college info if available
-          if (importedData.collegeInfo && setCollegeInfo) {
-            setCollegeInfo(importedData.collegeInfo);
-          }
+        // Handle different file formats
+        if (importedData.workflow) {
+          // Standard format - direct import
+          setWorkflow(importedData.workflow);
+        } else if (importedData.scenarios) {
+          // Legacy format with scenarios - convert to flat structure
+          console.warn('Importing legacy scenario-based workflow format - converting to single workflow');
+          const convertedWorkflow = convertScenariosToWorkflow(importedData.scenarios);
+          setWorkflow(convertedWorkflow);
         } else {
-          // Old format with just a workflow array
-          setScenarios({
-            main: {
-              id: 'main',
-              name: 'Main Workflow',
-              condition: null,
-              steps: importedData
-            }
-          });
+          // Assume it's a plain array of steps (legacy format)
+          setWorkflow(importedData);
+        }
+        
+        // Set the workflow name
+        if (importedData.name) {
+          setWorkflowName(importedData.name);
+        } else {
           setWorkflowName(file.name.replace('.json', '').replace(/-/g, ' '));
         }
         
-        setActiveScenarioId('main');
-        setMasterView(false);
+        // Import conditions if available
+        if (importedData.conditions && setWorkflowConditions) {
+          setWorkflowConditions(importedData.conditions);
+        }
+        
+        // Import college info if available
+        if (importedData.collegeInfo && setCollegeInfo) {
+          setCollegeInfo(importedData.collegeInfo);
+        }
         
         resolve(true);
       } catch (error) {
@@ -87,9 +84,43 @@ export const importWorkflow = (file, setScenarios, setWorkflowName, setActiveSce
 };
 
 /**
+ * Helper function to convert scenario-based workflow to flat workflow
+ * @param {Object} scenarios - The scenarios object from a legacy workflow file
+ * @returns {Array} - A flat array of workflow steps with conditional flags
+ */
+const convertScenariosToWorkflow = (scenarios) => {
+  const mergedSteps = [];
+  
+  // First add main scenario steps
+  if (scenarios.main && scenarios.main.steps) {
+    mergedSteps.push(...scenarios.main.steps);
+  }
+  
+  // Then add steps from other scenarios with conditional flags
+  Object.entries(scenarios).forEach(([scenarioId, scenario]) => {
+    if (scenarioId === 'main') return;
+    
+    // Add each step with its scenario condition
+    scenario.steps.forEach(step => {
+      // Skip duplicate steps (those that exist in main)
+      if (!step.originalStepId && !mergedSteps.some(s => s.id === step.id)) {
+        // Add the step with conditional flags
+        mergedSteps.push({
+          ...step,
+          conditional: true,
+          workflowCondition: step.workflowCondition || [scenario.condition]
+        });
+      }
+    });
+  });
+  
+  return mergedSteps;
+};
+
+/**
  * Load a template workflow
  */
-export const loadTemplateWorkflow = async (templateName, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions, setCollegeInfo) => {
+export const loadTemplateWorkflow = async (templateName, setWorkflow, setWorkflowName, setWorkflowConditions, setCollegeInfo) => {
   try {
     const response = await fetch(`/templates/${templateName}.json`);
     if (!response.ok) {
@@ -98,39 +129,36 @@ export const loadTemplateWorkflow = async (templateName, setScenarios, setWorkfl
     
     const templateData = await response.json();
     
-    // Set the workflow data from the template
-    if (templateData.scenarios) {
-      setScenarios(templateData.scenarios);
-      if (templateData.name) {
-        setWorkflowName(templateData.name);
-      } else {
-        setWorkflowName('Template Workflow');
-      }
-      
-      // Import conditions if available
-      if (templateData.conditions && setWorkflowConditions) {
-        setWorkflowConditions(templateData.conditions);
-      }
-      
-      // Import college info if available
-      if (templateData.collegeInfo && setCollegeInfo) {
-        setCollegeInfo(templateData.collegeInfo);
-      }
+    // Handle different template formats
+    if (templateData.workflow) {
+      // Standard format - direct import
+      setWorkflow(templateData.workflow);
+    } else if (templateData.scenarios) {
+      // Legacy format with scenarios - convert to flat structure
+      console.warn('Loading legacy scenario-based template format - converting to single workflow');
+      const convertedWorkflow = convertScenariosToWorkflow(templateData.scenarios);
+      setWorkflow(convertedWorkflow);
     } else {
-      // Old format with just a workflow array
-      setScenarios({
-        main: {
-          id: 'main',
-          name: 'Main Workflow',
-          condition: null,
-          steps: templateData
-        }
-      });
+      // Assume it's a plain array of steps (legacy format)
+      setWorkflow(templateData);
+    }
+    
+    // Set the workflow name
+    if (templateData.name) {
+      setWorkflowName(templateData.name);
+    } else {
       setWorkflowName('Template Workflow');
     }
     
-    setActiveScenarioId('main');
-    setMasterView(true); // Show master view initially for templates
+    // Import conditions if available
+    if (templateData.conditions && setWorkflowConditions) {
+      setWorkflowConditions(templateData.conditions);
+    }
+    
+    // Import college info if available
+    if (templateData.collegeInfo && setCollegeInfo) {
+      setCollegeInfo(templateData.collegeInfo);
+    }
     
     return true;
   } catch (error) {

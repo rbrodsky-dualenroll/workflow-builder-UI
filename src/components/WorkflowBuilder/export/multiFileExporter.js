@@ -32,7 +32,8 @@ export const exportZipArchive = async (workflowData, collegeData, options = {}) 
     zip.file(`${collegeVarName}_fixture.rb`, mainFixtureCode);
     
     // Identify workflow categories to determine which initializer files to generate
-    const workflowCategories = identifyWorkflowCategories(workflowData.scenarios);
+    // In the new single workflow approach, we only use the workflow directly
+    const workflowCategories = identifyWorkflowCategories(workflowData.workflow || []);
     
     if (options.includeInitializers !== false) {
       // Create a folder for initializer classes

@@ -7,7 +7,7 @@
 
 import { generateSingleViewTemplate} from './singleViewGenerator';
 import { generateConsentTemplate, generateParentConsentInstructionsTemplate } from './stepGenerators/consentTemplateGenerator';
-import { getMergedWorkflow } from '../../ScenarioOperations';
+import { getWorkflow } from '../../../../utils/workflowUtils';
 
 /**
  * Determines if a step should have a view template
@@ -35,6 +35,11 @@ const shouldGenerateViewForStep = (step) => {
     'DeclineRegistration'
   ];
   
+  // Ensure ReviewFailedRegistration steps always have a view
+  if (step.stepType === 'ReviewFailedRegistration') {
+    return true;
+  }
+  
   if (noUIStepTypes.includes(step.stepType)) {
     return false;
   }
@@ -53,7 +58,11 @@ const generateViewPath = (step) => {
   
   // Simple snake case of title for the action
   let action = '';
-  if (step.title) {
+  
+  // Special case for ReviewFailedRegistration to ensure consistent naming
+  if (step.stepType === 'ReviewFailedRegistration') {
+    action = 'review_declined_registration';
+  } else if (step.title) {
     action = step.title.toLowerCase()
       .replace(/[^a-z0-9]+/g, '_')
       .replace(/(^_+|_+$)/g, '');
@@ -85,10 +94,9 @@ const generateViewPath = (step) => {
  */
 export const generateViewTemplates = (workflowData, collegeVarName) => {
   const templateFiles = [];
-  const { scenarios } = workflowData;
   
-  // Get all steps from all scenarios
-  const allSteps = getMergedWorkflow(scenarios);
+  // Use getWorkflow to get all steps
+  const allSteps = getWorkflow(workflowData.workflow);
   
   // Filter steps that should have view templates
   const stepsNeedingViews = allSteps.filter(shouldGenerateViewForStep);

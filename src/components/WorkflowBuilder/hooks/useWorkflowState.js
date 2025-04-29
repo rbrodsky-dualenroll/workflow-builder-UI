@@ -1,20 +1,12 @@
 import { useState } from 'react';
-import { getMergedWorkflow } from '../ScenarioOperations';
 
 /**
  * Custom hook to manage workflow state
+ * Simplified to use a flat workflow structure instead of scenarios
  */
 const useWorkflowState = () => {
-  // Main state for scenarios and active scenario
-  const [scenarios, setScenarios] = useState({
-    main: {
-      id: 'main',
-      name: 'Main Workflow',
-      steps: []
-    }
-  });
-  const [activeScenarioId, setActiveScenarioId] = useState('main');
-  const [masterView, setMasterView] = useState(false);
+  // Main workflow state - now a simple array instead of scenarios
+  const [workflow, setWorkflow] = useState([]);
   
   // UI state
   const [workflowName, setWorkflowName] = useState('New Workflow');
@@ -31,23 +23,13 @@ const useWorkflowState = () => {
     type: 'Public: 2-year'
   });
 
-  // Helper to get current workflow based on active scenario
-  const workflow = masterView 
-    ? getMergedWorkflow(scenarios) 
-    : scenarios[activeScenarioId]?.steps || [];
-
   return {
-    scenarios,
-    setScenarios,
-    activeScenarioId,
-    setActiveScenarioId,
-    masterView,
-    setMasterView,
+    workflow,
+    setWorkflow,
     workflowName,
     setWorkflowName,
     collegeInfo,
-    setCollegeInfo,
-    workflow
+    setCollegeInfo
   };
 };
 

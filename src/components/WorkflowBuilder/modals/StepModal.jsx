@@ -4,6 +4,7 @@ import Modal from './Modal';
 
 /**
  * Modal for adding or editing a step
+ * Simplified to remove scenario-related properties
  */
 const StepModal = ({ 
   isOpen, 
@@ -11,21 +12,10 @@ const StepModal = ({
   title = 'Add New Step', 
   initialData = {}, 
   onSubmit,
-  scenarioId,
-  scenarioCondition,
   onAddFeedbackStep,
   workflowConditions = {},
   onManageWorkflowConditions
 }) => {
-  // Check if we're editing a step from main workflow in a scenario
-  const isMainStepInScenario = 
-    scenarioId && 
-    scenarioId !== 'main' && 
-    initialData && 
-    initialData.id && 
-    !initialData.scenarioSpecific && 
-    window.workflowBuilderState?.scenarios?.main?.steps?.some(step => step.id === initialData.id);
-  
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
       <div className="px-6 pb-6">
@@ -33,8 +23,6 @@ const StepModal = ({
           initialData={initialData}
           onSubmit={onSubmit}
           onCancel={onClose}
-          scenarioId={scenarioId}
-          scenarioCondition={scenarioCondition}
           onAddFeedbackStep={onAddFeedbackStep}
           workflowConditions={workflowConditions}
           onManageWorkflowConditions={onManageWorkflowConditions}

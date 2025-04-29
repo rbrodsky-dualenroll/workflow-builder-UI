@@ -5,8 +5,9 @@ import { exportZipArchive } from './multiFileExporter';
 /**
  * DevTeamExport - A component that allows exporting the current workflow 
  * in a format compatible with DualEnroll Ruby fixtures
+ * Updated to work with the flat workflow structure
  */
-const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, onClose, workflowConditions }) => {
+const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, onClose, workflowConditions }) => {
   const [localCollegeName, setLocalCollegeName] = useState(collegeInfo.name || '');
   const [localCollegeId, setLocalCollegeId] = useState(collegeInfo.id || '');
   const [localCollegeCity, setLocalCollegeCity] = useState(collegeInfo.city || '');
@@ -59,14 +60,17 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
         type: localCollegeType
       };
       
+      // Create data for the exporters with the single workflow approach
+      const compatibleData = {
+        workflow,
+        workflowName,
+        conditions: workflowConditions || {}
+      };
+      
       if (exportType === 'zip') {
         // Generate and download multiple files as a ZIP archive
         await exportZipArchive(
-          { 
-            scenarios, 
-            workflowName,
-            conditions: workflowConditions || {}
-          }, 
+          compatibleData, 
           collegeData,
           { 
             includeApplicationFields,
@@ -78,7 +82,7 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
       } else {
         // Generate the Ruby fixture code with options for preview
         const rubyCode = generateRubyFixture(
-          { scenarios, workflowName }, 
+          compatibleData, 
           collegeData,
           { includeApplicationFields }
         );
@@ -297,7 +301,7 @@ const DevTeamExport = ({ scenarios, workflowName, collegeInfo, setCollegeInfo, o
                   </div>
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  The ZIP archive includes initializer classes that handle scenario conditions
+                  The ZIP archive includes initializer classes that handle workflow conditions
                 </p>
               </div>
               

@@ -161,11 +161,11 @@ const getParameters = (step, completionState, allSteps) => {
     params['no_holds'] = 'no_holds';
   }
   
-  if (step.stepType === 'WaitForCompletionOfOneTimeSteps') {
+  if (step.stepType === 'WaitForCompletionOfOneTimeSteps' || 
+      step.stepType === 'PendingCompletionOfOneTimeSteps') {
     params['inject_subordinate_registration_active_flow_fields'] = [
       'esign_enrollment_form_parent_date',
-      'esign_enrollment_form_parent_name',
-      'failure_reason'
+      'esign_enrollment_form_parent_name'
     ];
     params['subordinate_registration_active_flow_target_object_type'] = 'CollegeStudentApplication';
     params['subordinate_registration_active_flow_category'] = 'registration_one_time';

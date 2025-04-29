@@ -18,6 +18,8 @@ import {
 import generateApprovalTemplate from './stepGenerators/approvalTemplateGenerator';
 import generateUploadTemplate from './stepGenerators/uploadTemplateGenerator';
 import generateInformationTemplate from './stepGenerators/informationTemplateGenerator';
+import { generateConsentTemplate } from './stepGenerators/consentTemplateGenerator';
+import generateReviewFailedRegistrationTemplate from './stepGenerators/reviewFailedRegistrationTemplateGenerator';
 
 /**
  * Generate view template content for a single step
@@ -45,6 +47,9 @@ export const generateSingleViewTemplate = (step) => {
       break;
     case 'ProvideConsent':
       template += generateConsentTemplate();
+      break;
+    case 'ReviewFailedRegistration':
+      template += generateReviewFailedRegistrationTemplate(step, completionState);
       break;
     default:
       // For other step types, use a generic template

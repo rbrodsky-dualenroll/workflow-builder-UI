@@ -26,17 +26,15 @@ const getStepTypeColor = (stepType) => {
 const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep, onGenerateView }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Check if this step is part of a scenario other than main
-  const isConditionalStep = step.scenarioId && step.scenarioId !== 'main';
-  
-  // Check if this is a scenario-specific override of a main step
-  const isScenarioSpecificOverride = step.scenarioSpecific && step.originalStepId;
-  
-  // Get the scenario name for display if it's a non-main scenario
-  const scenarioName = isConditionalStep ? (step.scenarioName || step.scenarioId) : null;
+  // Check if this is a conditional step
+  const isConditionalStep = step.conditional && 
+                           step.workflowCondition && 
+                           (Array.isArray(step.workflowCondition) ? 
+                             step.workflowCondition.length > 0 : 
+                             !!step.workflowCondition);
   
   // Check if this step has workflow conditions
-  const hasWorkflowConditions = step.conditional && step.workflowCondition && step.workflowCondition.length > 0;
+  const hasWorkflowConditions = isConditionalStep;
   
   // Check if this is a feedback step
   const isFeedbackStep = step.isFeedbackStep && step.feedbackRelationship;
@@ -128,18 +126,12 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep, onGenerateView 
       data-drag-handle="true"
       data-has-feedback={step.feedbackLoops && Object.keys(step.feedbackLoops).length > 0 ? 'true' : 'false'}
       data-step-role={step.role || ''}
-      data-scenario-id={step.scenarioId || ''}
-      data-in-non-main-scenario={isConditionalStep ? 'true' : 'false'}
-      data-is-scenario-specific={isScenarioSpecificOverride ? 'true' : 'false'}
-      data-original-step-id={step.originalStepId || ''}
-      data-testid-scenario-override={isScenarioSpecificOverride ? 'true' : 'false'}
+      data-is-conditional={isConditionalStep ? 'true' : 'false'}
       style={{
         // Only add extra styling for feedback steps
         borderLeft: isFeedbackStep ? `4px solid ${parentStepColor}` : '',
         // Set a CSS variable for the connector styling
-        '--parent-color': parentStepColor,
-        // Add amber left border for scenario-specific overrides
-        borderLeft: isScenarioSpecificOverride ? '4px solid #f59e0b' : (isFeedbackStep ? `4px solid ${parentStepColor}` : '')
+        '--parent-color': parentStepColor
       }}
     >
       <StepHeader 
@@ -152,8 +144,6 @@ const WorkflowStep = ({ step, index, onEdit, onDelete, moveStep, onGenerateView 
         isConditionalStep={isConditionalStep}
         hasWorkflowConditions={hasWorkflowConditions}
         isFeedbackStep={isFeedbackStep}
-        scenarioName={isScenarioSpecificOverride ? `${scenarioName} (Override)` : scenarioName}
-        isScenarioSpecificOverride={isScenarioSpecificOverride}
         onGenerateView={onGenerateView}
       />
       

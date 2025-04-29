@@ -6,7 +6,6 @@ export { default as ScenarioManager } from './ScenarioManager';
 
 // Export operations
 export { addStep, updateStep, deleteStep, deleteFeedbackStep, moveStep } from './WorkflowOperations';
-export { createScenario, deleteScenario, getMergedWorkflow } from './ScenarioOperations';
 export { saveWorkflow, importWorkflow } from './FileOperations';
 
 // Export hooks

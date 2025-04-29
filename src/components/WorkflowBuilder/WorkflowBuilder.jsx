@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
 // Import components
 import WorkflowHeader from './WorkflowHeader';
-import ScenarioManager from './ScenarioManager';
 import WorkflowContent from './WorkflowContent';
+import WorkflowConditionManager from './WorkflowConditionManager';
 
 // Import modals
 import StepModal from './modals/StepModal';
-import ScenarioModal from './modals/ScenarioModal';
 import SaveWorkflowModal from './modals/SaveWorkflowModal';
 import ConfirmationModal from './modals/ConfirmationModal';
 import ConditionManagerModal from './modals/ConditionManagerModal';
@@ -19,34 +18,20 @@ import useWorkflowState from './hooks/useWorkflowState';
 import useModalState from './hooks/useModalState';
 
 // Import operations
-import { addStep, updateStep, deleteStep, deleteFeedbackStep, moveStep } from './WorkflowOperations';
-import { createScenario, deleteScenario, updateScenario, getMergedWorkflow } from './ScenarioOperations';
+import { addStep, updateStep, deleteStep, moveStep } from './WorkflowOperations';
 import { saveWorkflow, importWorkflow, loadTemplateWorkflow } from './FileOperations';
 import DevTeamExport from './export/DevTeamExport';
 
 const WorkflowBuilder = () => {
   // Get workflow state from custom hook
   const { 
-    scenarios, 
-    setScenarios, 
-    activeScenarioId, 
-    setActiveScenarioId, 
-    masterView, 
-    setMasterView, 
+    workflow, 
+    setWorkflow, 
     workflowName, 
     setWorkflowName,
     collegeInfo,
     setCollegeInfo,
-    workflow  // This is calculated from the scenarios and active/master view
-  } = useWorkflowState(getMergedWorkflow);
-  
-  // Expose scenarios to window for StepForm to use
-  useEffect(() => {
-    window.workflowBuilderState = { scenarios, activeScenarioId };
-    return () => {
-      delete window.workflowBuilderState;
-    };
-  }, [scenarios, activeScenarioId]);
+  } = useWorkflowState();
   
   // Workflow conditions state
   const [workflowConditions, setWorkflowConditions] = useState({});
@@ -62,16 +47,8 @@ const WorkflowBuilder = () => {
     setEditingStep,
     showSaveModal,
     setShowSaveModal,
-    showScenarioModal,
-    setShowScenarioModal,
     showNewWorkflowModal,
-    setShowNewWorkflowModal,
-    newScenarioName,
-    setNewScenarioName,
-    baseScenarioId,
-    setBaseScenarioId,
-    scenarioCondition,
-    setScenarioCondition
+    setShowNewWorkflowModal
   } = useModalState();
   
   // Collect usage stats for conditions
@@ -83,16 +60,22 @@ const WorkflowBuilder = () => {
       stats[condition] = [];
     });
     
-    // Collect usage stats from all scenarios
-    Object.values(scenarios).forEach(scenario => {
-      scenario.steps.forEach(step => {
-        if (step.conditional && step.workflowCondition && workflowConditions[step.workflowCondition]) {
-          if (!stats[step.workflowCondition]) {
-            stats[step.workflowCondition] = [];
+    // Collect usage stats from all steps
+    workflow.forEach(step => {
+      if (step.conditional && step.workflowCondition) {
+        const conditions = Array.isArray(step.workflowCondition) 
+          ? step.workflowCondition 
+          : [step.workflowCondition];
+        
+        conditions.forEach(condition => {
+          if (workflowConditions[condition]) {
+            if (!stats[condition]) {
+              stats[condition] = [];
+            }
+            stats[condition].push(step.id);
           }
-          stats[step.workflowCondition].push(step.id);
-        }
-      });
+        });
+      }
     });
     
     return stats;
@@ -109,87 +92,32 @@ const WorkflowBuilder = () => {
     setShowConditionModal(true);
   };
   
-  // Handler for managing workflow conditions from the scenario modal
-  const handleManageWorkflowConditionsFromScenario = (updatedConditions) => {
-    setWorkflowConditions(updatedConditions);
-  };
-  
   // Handler for adding a new step
   const handleAddStep = (stepData) => {
-    addStep(stepData, activeScenarioId, setScenarios);
+    addStep(stepData, setWorkflow);
     setIsAddingStep(false);
   };
   
   // Handler for updating a step
   const handleUpdateStep = (stepData) => {
-    updateStep(stepData, editingStep, activeScenarioId, scenarios, setScenarios);
+    updateStep(stepData, editingStep, setWorkflow);
     setEditingStep(null);
   };
   
   // Handler for deleting a step
   const handleDeleteStep = (stepId) => {
-    // Check if this is a feedback step
-    const stepToDelete = scenarios[activeScenarioId].steps.find(step => step.id === stepId);
-    
-    if (stepToDelete && stepToDelete.isFeedbackStep) {
-      deleteFeedbackStep(stepId, activeScenarioId, setScenarios);
-    } else {
-      deleteStep(stepId, activeScenarioId, setScenarios);
-    }
+    deleteStep(stepId, setWorkflow);
   };
   
   // Handler for moving a step
   const handleMoveStep = (dragIndex, hoverIndex) => {
-    moveStep(dragIndex, hoverIndex, activeScenarioId, setScenarios);
-  };
-  
-  // Handler for creating a new scenario
-  const handleCreateScenario = () => {
-    if (!newScenarioName.trim() || !scenarioCondition) return;
-    
-    const updatedScenarios = createScenario(
-      scenarios, 
-      baseScenarioId, 
-      newScenarioName,
-      scenarioCondition // Pass the scenario condition
-    );
-    
-    setScenarios(updatedScenarios);
-    
-    // Get the new scenario ID (needed to set active scenario)
-    const newScenarioId = `scenario_${Date.now()}`;
-    
-    setNewScenarioName('');
-    setScenarioCondition(''); // Reset scenario condition
-    setShowScenarioModal(false);
-    setActiveScenarioId(newScenarioId); // Switch to the new scenario
-    setMasterView(false);
-  };
-  
-  // Handler for deleting a scenario
-  const handleDeleteScenario = (scenarioId) => {
-    if (scenarioId === 'main') return; // Cannot delete main scenario
-    
-    const updatedScenarios = deleteScenario(scenarios, scenarioId);
-    setScenarios(updatedScenarios);
-    
-    if (activeScenarioId === scenarioId) {
-      setActiveScenarioId('main');
-    }
-  };
-  
-  // Handler for updating a scenario
-  const handleUpdateScenario = (updatedScenario) => {
-    if (!updatedScenario || !updatedScenario.id) return;
-    
-    const updatedScenarios = updateScenario(scenarios, updatedScenario);
-    setScenarios(updatedScenarios);
+    moveStep(dragIndex, hoverIndex, setWorkflow);
   };
 
   // Handler for saving the workflow
   const handleSaveWorkflow = () => {
     // Save the workflow structure, conditions, and college info
-    saveWorkflow(workflowName, scenarios, workflowConditions, collegeInfo);
+    saveWorkflow(workflowName, workflow, workflowConditions, collegeInfo);
     setShowSaveModal(false);
   };
 
@@ -202,15 +130,7 @@ const WorkflowBuilder = () => {
   // Handler for confirming a new workflow
   const createNewWorkflow = () => {
     // Reset to default state
-    setScenarios({
-      main: {
-        id: 'main',
-        name: 'Main Workflow',
-        steps: []
-      }
-    });
-    setActiveScenarioId('main');
-    setMasterView(false);
+    setWorkflow([]);
     setWorkflowName('New Workflow');
     setWorkflowConditions({});
     setShowNewWorkflowModal(false);
@@ -226,7 +146,7 @@ const WorkflowBuilder = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    importWorkflow(file, setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions, setCollegeInfo)
+    importWorkflow(file, setWorkflow, setWorkflowName, setWorkflowConditions, setCollegeInfo)
       .then(() => {
         // Reset the file input to allow importing the same file again
         event.target.value = '';
@@ -239,7 +159,7 @@ const WorkflowBuilder = () => {
   // Handler for starting from a template
   const handleStartFromTemplate = () => {
     // Show confirmation modal if there are existing steps
-    if (Object.values(scenarios).some(scenario => scenario.steps.length > 0)) {
+    if (workflow.length > 0) {
       setShowNewWorkflowModal(true);
       // Store that we're trying to load a template
       window.loadingTemplate = true;
@@ -251,7 +171,7 @@ const WorkflowBuilder = () => {
   // Function to load the template
   const loadTemplate = async () => {
     try {
-      await loadTemplateWorkflow('standard-recommended-workflow', setScenarios, setWorkflowName, setActiveScenarioId, setMasterView, setWorkflowConditions, setCollegeInfo);
+      await loadTemplateWorkflow('standard-recommended-workflow', setWorkflow, setWorkflowName, setWorkflowConditions, setCollegeInfo);
       // Clear the flag
       window.loadingTemplate = false;
     } catch (error) {
@@ -272,17 +192,10 @@ const WorkflowBuilder = () => {
           onExportDevTeam={() => setShowDevTeamExportModal(true)}
         />
         
-        {/* Scenario manager */}
-        <ScenarioManager 
-          scenarios={scenarios}
-          activeScenarioId={activeScenarioId}
-          setActiveScenarioId={setActiveScenarioId}
-          masterView={masterView}
-          setMasterView={setMasterView}
-          onAddScenario={() => setShowScenarioModal(true)}
-          onDeleteScenario={handleDeleteScenario}
-          onUpdateScenario={handleUpdateScenario}
+        {/* Workflow Condition Manager */}
+        <WorkflowConditionManager 
           workflowConditions={workflowConditions}
+          onManageConditions={() => setShowConditionModal(true)}
         />
 
         {/* Workflow content (steps) */}
@@ -292,7 +205,6 @@ const WorkflowBuilder = () => {
           onDeleteStep={handleDeleteStep}
           moveStep={handleMoveStep}
           onAddStep={() => setIsAddingStep(true)}
-          masterView={masterView}
         />
 
         {/* Add Step Modal */}
@@ -301,8 +213,6 @@ const WorkflowBuilder = () => {
           onClose={() => setIsAddingStep(false)}
           title="Add New Step"
           onSubmit={handleAddStep}
-          scenarioId={activeScenarioId}
-          scenarioCondition={activeScenarioId !== 'main' ? scenarios[activeScenarioId]?.condition : ''}
           onAddFeedbackStep={handleAddStep}
           workflowConditions={workflowConditions}
           onManageWorkflowConditions={handleManageWorkflowConditions}
@@ -314,9 +224,8 @@ const WorkflowBuilder = () => {
             isOpen={editingStep !== null}
             onClose={() => setEditingStep(null)}
             title="Edit Step"
-            initialData={scenarios[activeScenarioId]?.steps.find(step => step.id === editingStep)}
+            initialData={workflow.find(step => step.id === editingStep)}
             onSubmit={handleUpdateStep}
-            scenarioId={activeScenarioId}
             onAddFeedbackStep={handleAddStep}
             workflowConditions={workflowConditions}
             onManageWorkflowConditions={handleManageWorkflowConditions}
@@ -334,23 +243,7 @@ const WorkflowBuilder = () => {
           onUpdate={handleUpdateWorkflowConditions}
           usageStats={getConditionUsageStats()}
           initialCondition={conditionToAdd}
-          title={"Add New Conditional"}
-        />
-
-        {/* Create Scenario Modal */}
-        <ScenarioModal 
-          isOpen={showScenarioModal}
-          onClose={() => setShowScenarioModal(false)}
-          scenarioName={newScenarioName}
-          setScenarioName={setNewScenarioName}
-          baseScenarioId={baseScenarioId}
-          setBaseScenarioId={setBaseScenarioId}
-          scenarios={scenarios}
-          onCreate={handleCreateScenario}
-          workflowConditions={workflowConditions}
-          onManageWorkflowConditions={handleManageWorkflowConditionsFromScenario}
-          scenarioCondition={scenarioCondition}
-          setScenarioCondition={setScenarioCondition}
+          title={"Manage Workflow Conditions"}
         />
 
         {/* Save Workflow Modal */}
@@ -376,7 +269,7 @@ const WorkflowBuilder = () => {
         {/* Dev Team Export Modal */}
         {showDevTeamExportModal && (
           <DevTeamExport
-            scenarios={scenarios}
+            workflow={workflow}
             workflowName={workflowName}
             collegeInfo={collegeInfo}
             setCollegeInfo={setCollegeInfo}

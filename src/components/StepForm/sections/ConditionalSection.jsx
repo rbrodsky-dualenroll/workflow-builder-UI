@@ -5,19 +5,14 @@ import { formatConditionForDisplay } from '../../../utils/conditionalUtils';
 
 /**
  * Conditional logic section for step forms
- * Simplified to use the modal for condition creation
  */
 const ConditionalSection = ({ 
   formData, 
   handleChange,
-  scenarioInfo = null,
   errors = {},
   workflowConditions = {},
   onManageWorkflowConditions
 }) => {
-  // Configure state for our conditionals
-  // Note: No longer need to track conditions array since we're only using workflowCondition
-  
   // Ensure formData.workflowCondition is always an array
   const workflowConditionArray = Array.isArray(formData?.workflowCondition) 
     ? formData.workflowCondition 
@@ -66,13 +61,7 @@ const ConditionalSection = ({
       id="conditionals-section"
       data-testid="conditionals-section"
     >
-      {scenarioInfo && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md" data-testid="scenario-info">
-          <h3 className="text-sm font-medium text-blue-800 mb-1">Conditional Scenario: {scenarioInfo.name || scenarioInfo.id}</h3>
-          <p className="text-xs text-blue-700">This step is part of the "{scenarioInfo.name || scenarioInfo.id}" scenario.</p>
-        </div>
-      )}
-            <div className="mb-4">
+      <div className="mb-4">
         <p className="text-sm mb-4" data-testid="conditionals-intro">Select the conditions that must be met for this step to be shown in the workflow:</p>
         
         {/* Display available conditions as checkboxes */}

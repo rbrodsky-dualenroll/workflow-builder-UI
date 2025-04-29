@@ -1,22 +1,22 @@
 import { generateUniqueId } from '../../utils/idUtils';
 
 /**
- * Functions for workflow step operations
+ * Functions for workflow step operations - simplified for flat workflow structure
  */
 
 /**
  * Add a new step to the workflow
  * If it's a feedback step, insert it immediately after the parent step
  */
-export const addStep = (stepData, activeScenarioId, setScenarios) => {
+export const addStep = (stepData, setWorkflow) => {
   // If the step doesn't have an ID yet, generate one
   const newStep = {
     id: stepData.id || generateUniqueId('step_'),
     ...stepData
   };
   
-  setScenarios(prevScenarios => {
-    const currentSteps = [...prevScenarios[activeScenarioId].steps];
+  setWorkflow(prevWorkflow => {
+    const currentSteps = [...prevWorkflow];
     
     // Check if this is a feedback step
     if (newStep.isFeedbackStep && newStep.feedbackRelationship) {
@@ -49,60 +49,12 @@ export const addStep = (stepData, activeScenarioId, setScenarios) => {
         
         // Insert the new feedback step at the calculated position
         currentSteps.splice(insertIndex, 0, newStep);
-        
-        return {
-          ...prevScenarios,
-          [activeScenarioId]: {
-            ...prevScenarios[activeScenarioId],
-            steps: currentSteps
-          }
-        };
+        return currentSteps;
       }
     }
     
-    // For scenario steps, record the preceding step for proper ordering in master view
-    if (activeScenarioId !== 'main') {
-      // Try to identify the step after which this new step is being added
-      let addedAfterStepId = null;
-      
-      if (currentSteps.length > 0) {
-        // By default, we're adding after the last step
-        addedAfterStepId = currentSteps[currentSteps.length - 1].id;
-        
-        // If we're inserting at a specific position (rather than at the end),
-        // we can optionally track which step we're inserting after
-        if (stepData.insertAfterStepId) {
-          addedAfterStepId = stepData.insertAfterStepId;
-        }
-      }
-      
-      // Store the referential information in the step
-      newStep.addedAfterStepId = addedAfterStepId;
-    }
-    
-    // If this is a scenario step, ensure it gets the scenario condition
-    if (activeScenarioId !== 'main' && !newStep.isFeedbackStep) {
-      // Get the scenario condition and name
-      const scenarioCondition = prevScenarios[activeScenarioId].condition;
-      const scenarioName = prevScenarios[activeScenarioId].name;
-      
-      // Make sure step has the right conditional settings
-      if (!newStep.workflowCondition || newStep.workflowCondition.length === 0) {
-        newStep.conditional = true;
-        newStep.workflowCondition = [scenarioCondition];
-      }
-      
-      // Always set the scenario name for display purposes
-      newStep.scenarioName = scenarioName;
-    }
-  
-    return {
-      ...prevScenarios,
-      [activeScenarioId]: {
-        ...prevScenarios[activeScenarioId],
-        steps: [...currentSteps, newStep]
-      }
-    };
+    // For regular steps, just append to the end
+    return [...currentSteps, newStep];
   });
   
   return newStep;
@@ -111,118 +63,33 @@ export const addStep = (stepData, activeScenarioId, setScenarios) => {
 /**
  * Update an existing step
  */
-export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, setScenarios) => {
-  setScenarios(prevScenarios => {
-    const updatedScenarios = { ...prevScenarios };
-    
+export const updateStep = (stepData, editingStep, setWorkflow) => {
+  setWorkflow(prevWorkflow => {
     // Find the step we're editing
-    const stepToUpdate = updatedScenarios[activeScenarioId].steps.find(s => s.id === editingStep);
+    const stepToUpdate = prevWorkflow.find(s => s.id === editingStep);
     
     if (!stepToUpdate) {
       console.error('Step not found for update');
-      return prevScenarios;
+      return prevWorkflow;
     }
     
-    // Check if we're trying to edit a step from the main scenario while in a different scenario
-    if (activeScenarioId !== 'main') {
-      const mainSteps = prevScenarios.main.steps;
-      const mainStepWithSameId = mainSteps.find(s => s.id === editingStep);
-      
-      // If this step exists in the main scenario and is not already a scenario-specific override
-      if (mainStepWithSameId && !stepToUpdate.scenarioSpecific) {
-        console.log('Creating scenario-specific version of a main step');
-        
-        // Generate a new ID for the scenario-specific version
-        const newStepId = generateUniqueId(`${editingStep}_${activeScenarioId}_`);
-        
-        // Create a new step based on the original, but with updated data
-        const scenarioSpecificStep = {
-          ...stepToUpdate,   // Start with the existing step
-          ...stepData,      // Apply the edits
-          id: newStepId,    // New ID for the scenario-specific version
-          originalStepId: editingStep,  // Track the original step ID
-          scenarioSpecific: true,       // Mark as scenario-specific
-          scenarioId: activeScenarioId, // Record which scenario it belongs to
-          scenarioName: prevScenarios[activeScenarioId].name, // Include scenario name
-          conditional: true,  // Scenario-specific steps should be conditional
-          workflowCondition: prevScenarios[activeScenarioId].condition ? 
-            [prevScenarios[activeScenarioId].condition] : [], // Use scenario condition
-        };
-        
-        // Find the step's index in the scenario
-        const stepIndex = updatedScenarios[activeScenarioId].steps.findIndex(s => s.id === editingStep);
-        
-        // Replace the original step with the scenario-specific version
-        if (stepIndex !== -1) {
-          updatedScenarios[activeScenarioId].steps[stepIndex] = scenarioSpecificStep;
-          
-          // Update any references to the original step ID within this scenario
-          updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.map(step => {
-            let updatedStep = { ...step };
-            
-            // Update parent references for feedback steps
-            if (step.isFeedbackStep && step.feedbackRelationship && step.feedbackRelationship.parentStepId === editingStep) {
-              updatedStep.feedbackRelationship = {
-                ...step.feedbackRelationship,
-                parentStepId: newStepId
-              };
-            }
-            
-            // Update any other references here
-            // For example, sequence references, dependencies, etc.
-            
-            return updatedStep;
-          });
-          
-          return updatedScenarios;
-        }
-      }
-    }
-    
-    // Regular update for main scenario steps or already-scenario-specific steps
-    // Merge new data WITHOUT changing the ID
-    const updatedStep = {
-      ...stepToUpdate,  // Preserve the original step
-      ...stepData,      // Merge in new data
-      id: stepToUpdate.id  // EXPLICITLY keep the original ID
-    };
-    
-    // When editing a step in a scenario (not main), track its relationship to main workflow
-    if (activeScenarioId !== 'main') {
-      // If we're editing a step that exists in the main workflow, record original ID
-      const mainSteps = prevScenarios.main.steps;
-      const mainStepWithSameId = mainSteps.find(s => s.id === updatedStep.id);
-      
-      if (mainStepWithSameId) {
-        // This is a modified version of a main step
-        updatedStep.originalStepId = mainStepWithSameId.id;
-      } else if (!updatedStep.originalStepId && !updatedStep.addedAfterStepId) {
-        // This is a scenario-specific step that doesn't yet have reference information
-        // Determine which step it follows in the scenario
-        const currentSteps = updatedScenarios[activeScenarioId].steps;
-        const stepIndex = currentSteps.findIndex(s => s.id === editingStep);
-        
-        if (stepIndex > 0) {
-          updatedStep.addedAfterStepId = currentSteps[stepIndex - 1].id;
-        }
-      }
-    }
-    
-    // Update the step in the scenario's steps array
-    updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.map(
-      step => step.id === editingStep ? updatedStep : step
+    // Update the step by merging step data, keeping the original ID
+    const updatedWorkflow = prevWorkflow.map(step => 
+      step.id === editingStep 
+        ? { ...stepToUpdate, ...stepData, id: step.id } 
+        : step
     );
     
     // If this is a feedback step, update the parent's feedback loops with the new role
-    if (updatedStep.isFeedbackStep && updatedStep.feedbackRelationship) {
-      const parentStepId = updatedStep.feedbackRelationship.parentStepId;
-      const feedbackId = updatedStep.feedbackRelationship.feedbackId;
+    if (stepData.isFeedbackStep && stepData.feedbackRelationship) {
+      const parentStepId = stepData.feedbackRelationship.parentStepId;
+      const feedbackId = stepData.feedbackRelationship.feedbackId;
       
       // Find the parent step
-      const parentIndex = updatedScenarios[activeScenarioId].steps.findIndex(step => step.id === parentStepId);
+      const parentIndex = updatedWorkflow.findIndex(step => step.id === parentStepId);
       
       if (parentIndex !== -1) {
-        const parentStep = updatedScenarios[activeScenarioId].steps[parentIndex];
+        const parentStep = updatedWorkflow[parentIndex];
         
         // Update the feedback loop in the parent with the new recipient role
         if (parentStep.feedbackLoops && parentStep.feedbackLoops[feedbackId]) {
@@ -231,13 +98,13 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
             ...parentStep.feedbackLoops,
             [feedbackId]: {
               ...parentStep.feedbackLoops[feedbackId],
-              recipient: updatedStep.role, // Update recipient to match the step's role
-              nextStep: updatedStep.title   // Update next step to match the step's title
+              recipient: stepData.role, // Update recipient to match the step's role
+              nextStep: stepData.title   // Update next step to match the step's title
             }
           };
           
           // Update the parent step with the new feedback loops
-          updatedScenarios[activeScenarioId].steps[parentIndex] = {
+          updatedWorkflow[parentIndex] = {
             ...parentStep,
             feedbackLoops: updatedFeedbackLoops
           };
@@ -246,9 +113,9 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
     }
     
     // Update child steps if this is a parent step with feedback children
-    if (updatedStep.feedbackLoops && Object.keys(updatedStep.feedbackLoops).length > 0) {
+    if (stepData.feedbackLoops && Object.keys(stepData.feedbackLoops).length > 0) {
       // Find any feedback steps that reference this parent step
-      updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.map(step => {
+      return updatedWorkflow.map(step => {
         if (step.isFeedbackStep && 
             step.feedbackRelationship && 
             step.feedbackRelationship.parentStepId === editingStep) {
@@ -257,8 +124,8 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
             ...step,
             feedbackRelationship: {
               ...step.feedbackRelationship,
-              parentStepTitle: updatedStep.title || step.feedbackRelationship.parentStepTitle,
-              requestingRole: updatedStep.role || step.feedbackRelationship.requestingRole
+              parentStepTitle: stepData.title || step.feedbackRelationship.parentStepTitle,
+              requestingRole: stepData.role || step.feedbackRelationship.requestingRole
             }
           };
         }
@@ -266,161 +133,118 @@ export const updateStep = (stepData, editingStep, activeScenarioId, scenarios, s
       });
     }
     
-    // If in main scenario, propagate changes to other scenarios that haven't been customized
-    if (activeScenarioId === 'main') {
-      Object.keys(updatedScenarios).forEach(scenarioId => {
-        if (scenarioId === 'main') return;
-        
-        // Only update if the step hasn't been customized in this scenario
-        updatedScenarios[scenarioId].steps = updatedScenarios[scenarioId].steps.map(
-          step => {
-            // Check if this step is the original or a direct copy of the main scenario step
-            if (step.id === editingStep || step.originalStepId === editingStep) {
-              return { 
-                ...step, 
-                ...stepData,
-                id: step.id,  // PRESERVE ORIGINAL ID
-                originalStepId: editingStep  // Make sure we track its relation to the main step
-              };
-            }
-            
-            // If this is a feedback step whose parent is being updated
-            if (step.isFeedbackStep && 
-                step.feedbackRelationship && 
-                (step.feedbackRelationship.parentStepId === editingStep ||
-                 step.feedbackRelationship.parentStepId === stepData.id)) {
-              return {
-                ...step,
-                feedbackRelationship: {
-                  ...step.feedbackRelationship,
-                  parentStepTitle: stepData.title || step.feedbackRelationship.parentStepTitle,
-                  requestingRole: stepData.role || step.feedbackRelationship.requestingRole
-                }
-              };
-            }
-            
-            return step;
-          }
-        );
-      });
-    }
-    
-    return updatedScenarios;
+    return updatedWorkflow;
   });
 };
 
 /**
  * Delete a step from the workflow
  */
-export const deleteStep = (stepId, activeScenarioId, setScenarios) => {
-  setScenarios(prevScenarios => {
-    const updatedScenarios = { ...prevScenarios };
+export const deleteStep = (stepId, setWorkflow) => {
+  setWorkflow(prevWorkflow => {
+    // Find the step to check if it's a parent step
+    const stepToDelete = prevWorkflow.find(step => step.id === stepId);
     
-    if (activeScenarioId === 'main') {
-      // Find the step to check if it's a parent step
-      const stepToDelete = updatedScenarios.main.steps.find(step => step.id === stepId);
-      
-      // If deleting from main, remove from all scenarios
-      Object.keys(updatedScenarios).forEach(scenarioId => {
-        // Remove the step itself
-        updatedScenarios[scenarioId].steps = updatedScenarios[scenarioId].steps.filter(step => step.id !== stepId);
-        
-        // If it's a parent step, also remove all its feedback child steps
-        if (stepToDelete && stepToDelete.feedbackLoops && Object.keys(stepToDelete.feedbackLoops).length > 0) {
-          // Get all feedback IDs from this parent
-          const feedbackIds = Object.keys(stepToDelete.feedbackLoops);
-          
-          // Remove any feedback steps that have a relationship with this parent
-          updatedScenarios[scenarioId].steps = updatedScenarios[scenarioId].steps.filter(step => 
-            !(step.isFeedbackStep && 
-              step.feedbackRelationship && 
-              step.feedbackRelationship.parentStepId === stepId)
-          );
-        }
-      });
+    if (stepToDelete && stepToDelete.isFeedbackStep) {
+      // For feedback steps, delete this step and update the parent's feedback loops
+      return deleteFeedbackStep(stepId, setWorkflow, prevWorkflow);
+    } else if (stepToDelete && stepToDelete.feedbackLoops && Object.keys(stepToDelete.feedbackLoops).length > 0) {
+      // For parent steps with feedback loops, delete all related feedback steps too
+      return prevWorkflow.filter(step => 
+        step.id !== stepId && 
+        !(step.isFeedbackStep && 
+          step.feedbackRelationship && 
+          step.feedbackRelationship.parentStepId === stepId)
+      );
     } else {
-      // Find the step to check if it's a parent step
-      const stepToDelete = updatedScenarios[activeScenarioId].steps.find(step => step.id === stepId);
-      
-      // If deleting from a scenario, only remove from that scenario
-      updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.filter(step => step.id !== stepId);
-      
-      // If it's a parent step, also remove all its feedback child steps
-      if (stepToDelete && stepToDelete.feedbackLoops && Object.keys(stepToDelete.feedbackLoops).length > 0) {
-        // Remove any feedback steps that have a relationship with this parent
-        updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.filter(step => 
-          !(step.isFeedbackStep && 
-            step.feedbackRelationship && 
-            step.feedbackRelationship.parentStepId === stepId)
-        );
-      }
+      // For regular steps, just remove the step
+      return prevWorkflow.filter(step => step.id !== stepId);
     }
-    
-    return updatedScenarios;
   });
 };
 
 /**
  * Delete a feedback step from the workflow and update its parent step
  */
-export const deleteFeedbackStep = (stepId, activeScenarioId, setScenarios) => {
-  setScenarios(prevScenarios => {
-    const updatedScenarios = { ...prevScenarios };
-    
+export const deleteFeedbackStep = (stepId, setWorkflow, currentWorkflow = null) => {
+  // If current workflow is provided, use it directly (for internal use)
+  if (currentWorkflow) {
     // Find the feedback step to get its relationship info
-    let feedbackStep = null;
-    let parentStepId = null;
-    let feedbackId = null;
+    const feedbackStep = currentWorkflow.find(step => step.id === stepId);
     
-    // Find the feedback step in the active scenario
-    const steps = updatedScenarios[activeScenarioId].steps;
-    feedbackStep = steps.find(step => step.id === stepId);
-    
-    // If we found the feedback step and it has relationship data
     if (feedbackStep && feedbackStep.isFeedbackStep && feedbackStep.feedbackRelationship) {
-      parentStepId = feedbackStep.feedbackRelationship.parentStepId;
-      feedbackId = feedbackStep.feedbackRelationship.feedbackId;
-    }
-    
-    // Remove the feedback step from appropriate scenarios
-    if (activeScenarioId === 'main') {
-      // Remove from all scenarios
-      Object.keys(updatedScenarios).forEach(scenarioId => {
-        updatedScenarios[scenarioId].steps = updatedScenarios[scenarioId].steps.filter(step => step.id !== stepId);
-      });
-    } else {
-      // Remove only from this scenario
-      updatedScenarios[activeScenarioId].steps = updatedScenarios[activeScenarioId].steps.filter(step => step.id !== stepId);
-    }
-    
-    // Update the parent step's feedback loops if we found both the parent ID and feedback ID
-    if (parentStepId && feedbackId) {
-      const scenarioKeys = activeScenarioId === 'main' ? Object.keys(updatedScenarios) : [activeScenarioId];
+      const parentStepId = feedbackStep.feedbackRelationship.parentStepId;
+      const feedbackId = feedbackStep.feedbackRelationship.feedbackId;
       
-      scenarioKeys.forEach(scenarioId => {
-        // Find the parent in this scenario
-        const parentIndex = updatedScenarios[scenarioId].steps.findIndex(step => step.id === parentStepId);
+      // Remove the feedback step
+      const updatedWorkflow = currentWorkflow.filter(step => step.id !== stepId);
+      
+      // Update the parent step's feedback loops
+      if (parentStepId && feedbackId) {
+        const parentIndex = updatedWorkflow.findIndex(step => step.id === parentStepId);
         
         if (parentIndex !== -1) {
-          const parentStep = updatedScenarios[scenarioId].steps[parentIndex];
+          const parentStep = updatedWorkflow[parentIndex];
           
-          // If the parent has feedbackLoops
           if (parentStep.feedbackLoops) {
             // Create a new feedbackLoops object without this feedback
             const updatedFeedbackLoops = { ...parentStep.feedbackLoops };
             delete updatedFeedbackLoops[feedbackId];
             
             // Update the parent step
-            updatedScenarios[scenarioId].steps[parentIndex] = {
+            updatedWorkflow[parentIndex] = {
               ...parentStep,
               feedbackLoops: updatedFeedbackLoops
             };
           }
         }
-      });
+      }
+      
+      return updatedWorkflow;
     }
     
-    return updatedScenarios;
+    // If not a feedback step or no relationship info, just remove the step
+    return currentWorkflow.filter(step => step.id !== stepId);
+  }
+  
+  // If no current workflow provided, use the setWorkflow function
+  setWorkflow(prevWorkflow => {
+    // Find the feedback step to get its relationship info
+    const feedbackStep = prevWorkflow.find(step => step.id === stepId);
+    
+    if (feedbackStep && feedbackStep.isFeedbackStep && feedbackStep.feedbackRelationship) {
+      const parentStepId = feedbackStep.feedbackRelationship.parentStepId;
+      const feedbackId = feedbackStep.feedbackRelationship.feedbackId;
+      
+      // Remove the feedback step
+      const updatedWorkflow = prevWorkflow.filter(step => step.id !== stepId);
+      
+      // Update the parent step's feedback loops
+      if (parentStepId && feedbackId) {
+        const parentIndex = updatedWorkflow.findIndex(step => step.id === parentStepId);
+        
+        if (parentIndex !== -1) {
+          const parentStep = updatedWorkflow[parentIndex];
+          
+          if (parentStep.feedbackLoops) {
+            // Create a new feedbackLoops object without this feedback
+            const updatedFeedbackLoops = { ...parentStep.feedbackLoops };
+            delete updatedFeedbackLoops[feedbackId];
+            
+            // Update the parent step
+            updatedWorkflow[parentIndex] = {
+              ...parentStep,
+              feedbackLoops: updatedFeedbackLoops
+            };
+          }
+        }
+      }
+      
+      return updatedWorkflow;
+    }
+    
+    // If not a feedback step or no relationship info, just remove the step
+    return prevWorkflow.filter(step => step.id !== stepId);
   });
 };
 
@@ -428,37 +252,31 @@ export const deleteFeedbackStep = (stepId, activeScenarioId, setScenarios) => {
  * Move a step from one position to another in the workflow,
  * ensuring that feedback loop children steps move with their parent
  */
-export const moveStep = (dragIndex, hoverIndex, activeScenarioId, setScenarios) => {
-  setScenarios(prevScenarios => {
-    const currentSteps = [...prevScenarios[activeScenarioId].steps];
+export const moveStep = (dragIndex, hoverIndex, setWorkflow) => {
+  setWorkflow(prevWorkflow => {
+    const newWorkflow = [...prevWorkflow];
     
     // Find the step being dragged
-    const draggedStep = currentSteps[dragIndex];
+    const draggedStep = newWorkflow[dragIndex];
     
     // Find all child steps for this parent (if any)
-    const childSteps = currentSteps.filter(
+    const childSteps = newWorkflow.filter(
       step => step.feedbackRelationship && 
               step.feedbackRelationship.parentStepId === draggedStep.id
     );
     
     // If no child steps, perform a simple move
     if (childSteps.length === 0) {
-      const updatedSteps = [...currentSteps];
-      updatedSteps.splice(dragIndex, 1);
-      updatedSteps.splice(hoverIndex, 0, draggedStep);
-      
-      return {
-        ...prevScenarios,
-        [activeScenarioId]: {
-          ...prevScenarios[activeScenarioId],
-          steps: updatedSteps
-        }
-      };
+      // Remove the dragged item
+      const [removedStep] = newWorkflow.splice(dragIndex, 1);
+      // Insert it at the new position
+      newWorkflow.splice(hoverIndex, 0, removedStep);
+      return newWorkflow;
     }
     
     // With child steps, move the entire group
     // Remove the dragged step and its children
-    const filteredSteps = currentSteps.filter(
+    const filteredSteps = newWorkflow.filter(
       step => step.id !== draggedStep.id && 
               !childSteps.some(child => child.id === step.id)
     );
@@ -477,29 +295,8 @@ export const moveStep = (dragIndex, hoverIndex, activeScenarioId, setScenarios) 
     
     // Then insert the child steps immediately after
     const childInsertIndex = insertIndex + 1;
+    filteredSteps.splice(childInsertIndex, 0, ...childSteps);
     
-    // Ensure feedback steps keep their parent reference
-    const updatedChildSteps = childSteps.map(childStep => {
-      if (childStep.isFeedbackStep && childStep.feedbackRelationship) {
-        return {
-          ...childStep,
-          feedbackRelationship: {
-            ...childStep.feedbackRelationship,
-            parentStepId: draggedStep.id // Explicitly ensure parent ID is maintained
-          }
-        };
-      }
-      return childStep;
-    });
-    
-    filteredSteps.splice(childInsertIndex, 0, ...updatedChildSteps);
-    
-    return {
-      ...prevScenarios,
-      [activeScenarioId]: {
-        ...prevScenarios[activeScenarioId],
-        steps: filteredSteps
-      }
-    };
+    return filteredSteps;
   });
 };

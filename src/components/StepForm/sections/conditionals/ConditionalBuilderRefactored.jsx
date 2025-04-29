@@ -3,7 +3,7 @@ import FormField from '../../../common/FormField';
 
 /**
  * User-friendly component for building conditional rules
- * Focuses on entity/property selection rather than method names
+ * Uses precise entity/property mappings that match actual Ruby methods
  */
 const ConditionalBuilderRefactored = ({ 
   condition = { entity: '', property: '', comparison: '', value: '', fields: [] },
@@ -14,87 +14,108 @@ const ConditionalBuilderRefactored = ({
   const [showCustomProperty, setShowCustomProperty] = useState(false);
   const [customProperty, setCustomProperty] = useState('');
   
-  // Available entities to check - updated to match documentation
+  // Available entities with names that match the Ruby variables
   const entityOptions = [
     { value: '', label: '-- Select an entity --' },
     { value: 'Course', label: 'Course' },
+    { value: 'CourseSection', label: 'Course Section' },
     { value: 'Student', label: 'Student' },
     { value: 'HighSchool', label: 'High School' },
     { value: 'Instructor', label: 'Instructor' },
-    { value: 'Step', label: 'Step' }
+    { value: 'Term', label: 'Term' },
+    { value: 'College', label: 'College' }
   ];
   
-  // Properties available for each entity type - updated to match documentation
+  // Properties mapped to their actual Ruby method names
   const propertyOptions = {
     Course: [
-      { value: 'subject', label: 'Subject' },
-      { value: 'department', label: 'Department' },
-      { value: 'courseNumber', label: 'Course Number' },
-      { value: 'title', label: 'Title' },
-      { value: 'category', label: 'Category' },
-      { value: 'hasPrerequisites', label: 'Has Prerequisites' },
-      { value: 'credits', label: 'Credits' },
-      { value: 'level', label: 'Level' },
-      { value: 'format', label: 'Format' },
-      { value: 'sectionLocation', label: 'Section Location' },
+      { value: 'has_requisites', label: 'Has Prerequisites', rubyMethod: 'has_requisites?' },
+      { value: 'has_course_category', label: 'Has Course Category', rubyMethod: 'has_course_category?' },
+      { value: 'title', label: 'Title', rubyMethod: 'title' },
+      { value: 'number', label: 'Course Number', rubyMethod: 'number' },
+      { value: 'subject', label: 'Subject', rubyMethod: 'subject' },
+      { value: 'department', label: 'Department', rubyMethod: 'department' },
+      { value: 'credits', label: 'Credits', rubyMethod: 'credits' },
+      { value: 'custom', label: 'Custom property...' }
+    ],
+    CourseSection: [
+      { value: 'is_full', label: 'Is Full', rubyMethod: 'is_full?' },
+      { value: 'is_wish_list', label: 'Is Wish List', rubyMethod: 'is_wish_list?' },
+      { value: 'location', label: 'Location', rubyMethod: 'location' },
+      { value: 'number', label: 'Section Number', rubyMethod: 'number' },
+      { value: 'capacity', label: 'Capacity', rubyMethod: 'capacity' },
+      { value: 'enrollment_count', label: 'Enrollment Count', rubyMethod: 'enrollment_count' },
       { value: 'custom', label: 'Custom property...' }
     ],
     Student: [
-      { value: 'gradeLevel', label: 'Grade Level' },
-      { value: 'age', label: 'Age' },
-      { value: 'program', label: 'Program' },
-      { value: 'highSchool', label: 'High School' },
-      { value: 'gpa', label: 'GPA' },
-      { value: 'isHomeschool', label: 'Is Homeschool' },
-      { value: 'studentNumber', label: 'Student ID/Number' },
-      { value: 'hasFinancialAid', label: 'Has Financial Aid' },
-      { value: 'isFirstTime', label: 'First-Time Student' },
-      { value: 'isMinor', label: 'Is Minor' },
+      { value: 'is_minor', label: 'Is Minor', rubyMethod: 'is_minor?' },
+      { value: 'has_parent_consent', label: 'Has Parent Consent', rubyMethod: 'has_parent_consent?' },
+      { value: 'name', label: 'Name', rubyMethod: 'name' },
+      { value: 'display_name', label: 'Display Name', rubyMethod: 'display_name' },
+      { value: 'email', label: 'Email', rubyMethod: 'email' },
+      { value: 'age', label: 'Age', rubyMethod: 'age' },
+      { value: 'grade', label: 'Grade Level', rubyMethod: 'grade' },
+      { value: 'has_student_number', label: 'Has Student Number', rubyMethod: 'has_student_number?' },
       { value: 'custom', label: 'Custom property...' }
     ],
     HighSchool: [
-      { value: 'name', label: 'Name' },
-      { value: 'type', label: 'Type' },
-      { value: 'district', label: 'District' },
-      { value: 'partnerStatus', label: 'Partner Status' },
-      { value: 'hasFeederSchools', label: 'Has Feeder Schools' },
-      { value: 'paymentPolicy', label: 'Payment Policy' },
+      { value: 'is_home_school', label: 'Is Home School', rubyMethod: 'is_home_school?' },
+      { value: 'is_non_partner', label: 'Is Non-Partner', rubyMethod: 'is_non_partner?(college)' },
+      { value: 'name', label: 'Name', rubyMethod: 'name' },
+      { value: 'type', label: 'Type', rubyMethod: 'type' },
+      { value: 'city', label: 'City', rubyMethod: 'city' },
+      { value: 'state', label: 'State', rubyMethod: 'state' },
       { value: 'custom', label: 'Custom property...' }
     ],
     Instructor: [
-      { value: 'name', label: 'Name' },
-      { value: 'department', label: 'Department' },
-      { value: 'highSchool', label: 'High School' },
-      { value: 'experience', label: 'Years of Experience' },
-      { value: 'isHighSchool', label: 'Is High School Instructor' },
-      { value: 'isCollege', label: 'Is College Instructor' },
-      { value: 'credentials', label: 'Credentials' },
+      { value: 'name', label: 'Name', rubyMethod: 'name' },
+      { value: 'email', label: 'Email', rubyMethod: 'email' },
+      { value: 'highest_degree', label: 'Highest Degree', rubyMethod: 'highest_degree' },
       { value: 'custom', label: 'Custom property...' }
     ],
-    Step: [
-      { value: 'status', label: 'Status' },
-      { value: 'action', label: 'Action' },
-      { value: 'comment', label: 'Comment' },
-      { value: 'completionState', label: 'Completion State' },
+    Term: [
+      { value: 'name', label: 'Name', rubyMethod: 'name' },
+      { value: 'start_date', label: 'Start Date', rubyMethod: 'start_date' },
+      { value: 'end_date', label: 'End Date', rubyMethod: 'end_date' },
+      { value: 'custom', label: 'Custom property...' }
+    ],
+    College: [
+      { value: 'name', label: 'Name', rubyMethod: 'name' },
+      { value: 'city', label: 'City', rubyMethod: 'city' },
+      { value: 'state', label: 'State', rubyMethod: 'state' },
       { value: 'custom', label: 'Custom property...' }
     ]
   };
   
-  // Available comparison operators - updated to match documentation
+  // Comparison operators mapped to Ruby syntax
   const comparisonOptions = [
     { value: '', label: '-- Select a comparison --' },
-    { value: 'equals', label: 'equals' },
-    { value: 'not-equals', label: 'does not equal' },
-    { value: 'contains', label: 'contains' },
-    { value: 'not-contains', label: 'does not contain' },
-    { value: 'starts-with', label: 'starts with' },
-    { value: 'ends-with', label: 'ends with' },
-    { value: 'gt', label: 'greater than' },
-    { value: 'lt', label: 'less than' },
-    { value: 'gte', label: 'greater than or equal to' },
-    { value: 'lte', label: 'less than or equal to' },
-    { value: 'is-set', label: 'is set' },
-    { value: 'is-not-set', label: 'is not set' }
+    { value: 'equals', label: 'equals', rubyOperator: '==' },
+    { value: 'not-equals', label: 'does not equal', rubyOperator: '!=' },
+    { value: 'contains', label: 'contains', rubyOperator: 'include?' },
+    { value: 'not-contains', label: 'does not contain', rubyOperator: '!include?' },
+    { value: 'greater-than', label: 'greater than', rubyOperator: '>' },
+    { value: 'less-than', label: 'less than', rubyOperator: '<' },
+    { value: 'greater-than-or-equal', label: 'greater than or equal to', rubyOperator: '>=' },
+    { value: 'less-than-or-equal', label: 'less than or equal to', rubyOperator: '<=' },
+    { value: 'present', label: 'is present', rubyOperator: 'present?' },
+    { value: 'blank', label: 'is blank', rubyOperator: 'blank?' }
+  ];
+  
+  // Common field values that map to actual DualEnroll application fields
+  const commonFieldValues = [
+    'home_school',
+    'non_partner',
+    'has_prereqs',
+    'high_school',
+    'hs_student',
+    'parent_consent_required',
+    'parent_consent_provided',
+    'wish_list',
+    'requires_transcript',
+    'no_parent_email',
+    'sections_released',
+    'sections_released_yes'
   ];
   
   // Initialize state from props and update when props change
@@ -153,9 +174,14 @@ const ConditionalBuilderRefactored = ({
     setShowCustomProperty(false);
     setCustomProperty('');
     
+    // Find the selected property option to get the Ruby method name
+    const entityProps = propertyOptions[localCondition.entity] || [];
+    const selectedProp = entityProps.find(prop => prop.value === value);
+    
     const updatedCondition = {
       ...localCondition,
-      property: value
+      property: value,
+      rubyMethod: selectedProp?.rubyMethod
     };
     
     setLocalCondition(updatedCondition);
@@ -172,7 +198,8 @@ const ConditionalBuilderRefactored = ({
     
     const updatedCondition = {
       ...localCondition,
-      property: value
+      property: value,
+      rubyMethod: value + (value.endsWith('?') ? '' : '') // Preserve method syntax
     };
     
     setLocalCondition(updatedCondition);
@@ -186,9 +213,16 @@ const ConditionalBuilderRefactored = ({
   const handleChange = (e) => {
     const { name, value } = e.target;
     
+    // If changing comparison, find the Ruby operator
+    let updatedValues = { [name]: value };
+    if (name === 'comparison') {
+      const selectedComparison = comparisonOptions.find(comp => comp.value === value);
+      updatedValues.rubyOperator = selectedComparison?.rubyOperator;
+    }
+    
     const updatedCondition = {
       ...localCondition,
-      [name]: value
+      ...updatedValues
     };
     
     setLocalCondition(updatedCondition);
@@ -218,7 +252,7 @@ const ConditionalBuilderRefactored = ({
   };
   
   // Check if value field should be disabled based on comparison type
-  const isValueDisabled = ['is-set', 'is-not-set'].includes(localCondition.comparison);
+  const isValueDisabled = ['present', 'blank'].includes(localCondition.comparison);
   
   // Get property options for current entity
   const getPropertyOptions = () => {
@@ -226,7 +260,7 @@ const ConditionalBuilderRefactored = ({
     
     const options = propertyOptions[localCondition.entity] || [];
     return [
-      { value: '', label: '-- Select entity first --' }, 
+      { value: '', label: '-- Select property --' }, 
       ...options
     ];
   };
@@ -252,7 +286,6 @@ const ConditionalBuilderRefactored = ({
     }
     
     let comparisonLabel = comparisonOptions.find(c => c.value === localCondition.comparison)?.label || localCondition.comparison;
-    comparisonLabel = comparisonLabel.replace(/\s*\([^)]*\)/g, ''); // Remove parentheses content
     
     let result = `When ${entityLabel}'s ${propertyLabel} ${comparisonLabel}`;
     
@@ -265,6 +298,146 @@ const ConditionalBuilderRefactored = ({
     }
     
     return result;
+  };
+  
+  // Get the actual Ruby code that would be generated
+  const getRubyCodePreview = () => {
+    if (!localCondition.entity || !localCondition.property) return '';
+    
+    let entityVar = '';
+    switch (localCondition.entity) {
+      case 'Student':
+        entityVar = 'student';
+        break;
+      case 'HighSchool':
+        entityVar = 'student.high_school';
+        break;
+      case 'Course':
+        entityVar = 'course';
+        break;
+      case 'CourseSection':
+        entityVar = 'course_section';
+        break;
+      case 'Instructor':
+        entityVar = 'instructor';
+        break;
+      case 'Term':
+        entityVar = 'term';
+        break;
+      case 'College':
+        entityVar = 'college';
+        break;
+      default:
+        entityVar = localCondition.entity.toLowerCase();
+    }
+    
+    // Get the Ruby method name for this property
+    let methodName = '';
+    if (showCustomProperty) {
+      methodName = customProperty;
+    } else {
+      const entityProps = propertyOptions[localCondition.entity] || [];
+      const selectedProp = entityProps.find(p => p.value === localCondition.property);
+      methodName = selectedProp?.rubyMethod || localCondition.property;
+    }
+    
+    // Build the Ruby code based on comparison type and value
+    let rubyCode = '';
+    
+    if (methodName.endsWith('?')) {
+      if (localCondition.comparison === 'not-equals' || 
+          (localCondition.value === 'false' || localCondition.value === false)) {
+        rubyCode = `!${entityVar}.${methodName}`;
+      } else {
+        rubyCode = `${entityVar}.${methodName}`;
+      }
+    } else {
+      const comparisonOp = comparisonOptions.find(c => c.value === localCondition.comparison)?.rubyOperator || '==';
+      
+      if (comparisonOp === 'present?') {
+        rubyCode = `${entityVar}.${methodName}.present?`;
+      } else if (comparisonOp === 'blank?') {
+        rubyCode = `${entityVar}.${methodName}.blank?`;
+      } else if (comparisonOp.includes('include?')) {
+        if (comparisonOp.startsWith('!')) {
+          rubyCode = `!${entityVar}.${methodName}.to_s.include?('${localCondition.value}')`;
+        } else {
+          rubyCode = `${entityVar}.${methodName}.to_s.include?('${localCondition.value}')`;
+        }
+      } else {
+        // Check if the value is numeric
+        const numValue = Number(localCondition.value);
+        if (!isNaN(numValue) && numValue.toString() === String(localCondition.value)) {
+          rubyCode = `${entityVar}.${methodName} ${comparisonOp} ${localCondition.value}`;
+        } else {
+          rubyCode = `${entityVar}.${methodName} ${comparisonOp} '${localCondition.value}'`;
+        }
+      }
+    }
+    
+    return rubyCode;
+  };
+  
+  // Suggestions for fields to set based on the condition
+  const getFieldSuggestions = () => {
+    if (!localCondition.entity || !localCondition.property) return [];
+    
+    // Return suggestions based on the condition
+    const entity = localCondition.entity.toLowerCase();
+    const property = localCondition.property.toLowerCase();
+    
+    // Return common fields plus context-specific suggestions
+    const suggestions = [...commonFieldValues];
+    
+    if (entity === 'highschool' && property.includes('home_school')) {
+      suggestions.push('home_school', 'parent_consent_provided');
+    } else if (entity === 'highschool' && property.includes('non_partner')) {
+      suggestions.push('non_partner', 'parent_consent_required');
+    } else if (entity === 'course' && property.includes('requisites')) {
+      suggestions.push('has_prereqs');
+    } else if (entity === 'coursesection' && property.includes('wish_list')) {
+      suggestions.push('wish_list');
+    }
+    
+    return suggestions;
+  };
+  
+  // Generate field suggestions tooltip content
+  const fieldSuggestionsContent = () => {
+    const suggestions = getFieldSuggestions();
+    if (suggestions.length === 0) return null;
+    
+    return (
+      <div className="p-2">
+        <p className="font-semibold mb-1">Common Field Names:</p>
+        <ul className="text-xs">
+          {suggestions.map(field => (
+            <li key={field} className="mb-1">
+              <button
+                type="button"
+                className="text-blue-600 hover:underline"
+                onClick={() => {
+                  const currentFields = localCondition.fields || [];
+                  if (!currentFields.includes(field)) {
+                    const newFields = [...currentFields, field];
+                    const updatedCondition = {
+                      ...localCondition,
+                      fields: newFields
+                    };
+                    setLocalCondition(updatedCondition);
+                    if (onUpdate) {
+                      onUpdate(updatedCondition);
+                    }
+                  }
+                }}
+              >
+                {field}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
   };
   
   return (
@@ -342,15 +515,37 @@ const ConditionalBuilderRefactored = ({
         
         {/* Fields to set */}
         <div>
-          <FormField
-            label="Fields to Set (comma-separated)"
-            name="fieldsString"
-            type="text"
-            value={localCondition.fields ? localCondition.fields.join(', ') : ''}
-            onChange={handleFieldsChange}
-            placeholder="e.g., home_school, parent_consent_required"
-            data-testid="scenario-condition-fields-input"
-          />
+          <div className="flex items-start">
+            <div className="flex-grow">
+              <FormField
+                label="Fields to Set (comma-separated)"
+                name="fieldsString"
+                type="text"
+                value={localCondition.fields ? localCondition.fields.join(', ') : ''}
+                onChange={handleFieldsChange}
+                placeholder="e.g., home_school, parent_consent_required"
+                data-testid="scenario-condition-fields-input"
+              />
+            </div>
+            <div className="ml-2 mt-6">
+              <div className="relative group">
+                <button type="button" className="bg-gray-200 p-1 rounded-full text-gray-600 hover:bg-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                <div className="absolute right-0 mt-1 w-64 bg-white shadow-lg rounded-md p-2 z-10 hidden group-hover:block">
+                  {fieldSuggestionsContent()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Ruby code preview */}
+        <div className="mt-2 p-2 bg-gray-100 rounded-md text-sm font-mono">
+          <div className="text-xs text-gray-500 mb-1">Ruby code preview:</div>
+          {getRubyCodePreview() || <span className="text-gray-400">Complete the form to see code preview</span>}
         </div>
         
         {/* Delete button */}

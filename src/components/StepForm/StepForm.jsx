@@ -22,29 +22,7 @@ import {
   PendingCompletionOfPerYearStepsSection
 } from './sections/SpecializedStepSections';
 
-const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedbackStep, workflowConditions = {}, onManageWorkflowConditions, scenarioCondition }) => {
-  // Display scenario info if in a scenario other than main
-  const isConditionalScenario = scenarioId && scenarioId !== 'main';
-  
-  // Check if this is a step from the main workflow being edited in a scenario
-  const isMainStepInScenario = isConditionalScenario && initialData && initialData.id 
-    && !initialData.scenarioSpecific && window.workflowBuilderState?.scenarios?.main?.steps
-    ?.some(step => step.id === initialData.id);
-  
-  // Find scenario name in workflowConditions
-  let scenarioName = scenarioId;
-  // If scenarioCondition is provided, use it for new steps
-  const scenarioConditionValue = scenarioCondition || '';
-  
-  // For display purposes, we want to show the human-readable scenario name
-  Object.entries(workflowConditions).forEach(([name, condition]) => {
-    if (name === scenarioConditionValue) {
-      scenarioName = `${scenarioId} (${name})`;
-    }
-  });
-  
-  const scenarioInfo = isConditionalScenario ? { id: scenarioId, name: scenarioName } : null;
-  
+const StepForm = ({ initialData = {}, onSubmit, onCancel, onAddFeedbackStep, workflowConditions = {}, onManageWorkflowConditions }) => {
   // Form errors
   const [errors, setErrors] = useState({});
   
@@ -125,23 +103,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
     
     return initialFormData;
   });
-
-  // Effect for conditional scenarios
-  useEffect(() => {
-    // If we're in a conditional scenario, set the conditional flag by default for new steps
-    // and automatically add the scenario's condition
-    if (isConditionalScenario && !initialData.id) {
-      // For new steps in a scenario, automatically set conditional and inherit the scenario condition
-      const workflowCondition = scenarioConditionValue ? [scenarioConditionValue] : [];
-      
-      // Force a re-render by creating a brand new object
-      setFormData(prev => ({
-        ...prev,
-        conditional: true,
-        workflowCondition: workflowCondition
-      }));
-    }
-  }, [isConditionalScenario, scenarioId, initialData, scenarioConditionValue]);
 
   // Effect to update form data when initialData changes
   useEffect(() => {
@@ -275,19 +236,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
       // First submit the main step
       const stepData = { ...formData };
       
-      // Explicitly track insertion context for scenarios
-      if (isConditionalScenario) {
-        // Try to get the previous step ID in the scenario
-        // This will be used for proper ordering in the master view
-        const scenarios = window.workflowBuilderState?.scenarios || {};
-        const currentScenarioSteps = scenarios[scenarioId]?.steps || [];
-        
-        if (currentScenarioSteps.length > 0) {
-          // By default, this step would be inserted after the last step
-          stepData.addedAfterStepId = currentScenarioSteps[currentScenarioSteps.length - 1].id;
-        }
-      }
-      
       // Remove the pendingFeedbackSteps array from main step data
       const pendingFeedbackSteps = [...(stepData.pendingFeedbackSteps || [])];
       delete stepData.pendingFeedbackSteps;
@@ -326,19 +274,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
         // First submit the main step
         const stepData = { ...formData };
         
-        // Explicitly track insertion context for scenarios
-        if (isConditionalScenario) {
-          // Try to get the previous step ID in the scenario
-          // This will be used for proper ordering in the master view
-          const scenarios = window.workflowBuilderState?.scenarios || {};
-          const currentScenarioSteps = scenarios[scenarioId]?.steps || [];
-          
-          if (currentScenarioSteps.length > 0) {
-            // By default, this step would be inserted after the last step
-            stepData.addedAfterStepId = currentScenarioSteps[currentScenarioSteps.length - 1].id;
-          }
-        }
-        
         // Remove the pendingFeedbackSteps array from main step data
         const pendingFeedbackSteps = [...(stepData.pendingFeedbackSteps || [])];
         delete stepData.pendingFeedbackSteps;
@@ -369,16 +304,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
 
   return (
     <form className="space-y-0" onSubmit={handleSubmit} id="stepForm">
-      {/* Warning when editing a main workflow step in a scenario */}
-      {isMainStepInScenario && (
-        <div className="bg-amber-100 border border-amber-400 text-amber-800 p-4 rounded-md mb-4" data-testid="scenario-override-warning">
-          <h4 className="font-bold text-sm mb-1">Creating Scenario-Specific Version</h4>
-          <p className="text-sm">
-            You're editing a step that comes from the Main workflow. Your changes will create 
-            a scenario-specific version of this step that only applies to the current scenario.
-          </p>
-        </div>
-      )}
       {/* Base Step Information */}
       <BaseStepSection 
         formData={formData} 
@@ -390,7 +315,6 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, scenarioId, onAddFeedb
       <ConditionalSection 
         formData={formData} 
         handleChange={handleChange} 
-        scenarioInfo={scenarioInfo}
         errors={errors} 
         workflowConditions={workflowConditions}
         onManageWorkflowConditions={onManageWorkflowConditions}
