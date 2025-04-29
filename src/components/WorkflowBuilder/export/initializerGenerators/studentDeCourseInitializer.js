@@ -42,14 +42,23 @@ export const generateStudentDeCourseInitializer = (workflowData, collegeVarName)
     fields["parent_consent_email"] = true
 
     # Per-course workflow initialization
-    # Set high school type
-    if student.high_school.is_home_school?
+    # Set high school type - important to clearly differentiate the three types
+    # These fields are mutually exclusive
+    is_home_school = student.high_school.is_home_school?
+    is_non_partner = student.high_school.is_non_partner?(college)
+    is_regular_high_school = !is_home_school && !is_non_partner
+    
+    if is_home_school
       fields["home_school"] = true
-    elsif student.high_school.is_non_partner?(college)
+      # Home School students don't get high_school or non_partner flags
+    elsif is_non_partner
       fields["non_partner"] = true
+      # Non-partner students don't get high_school or home_school flags
     else
+      # Regular high school students
       fields["high_school"] = true
       fields["hs_student"] = true
+      # Regular high school students don't get home_school or non_partner flags
     end
 
     # Set course prerequisites flag if applicable

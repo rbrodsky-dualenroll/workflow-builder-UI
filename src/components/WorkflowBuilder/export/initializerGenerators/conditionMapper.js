@@ -260,6 +260,10 @@ function buildRubyCondition(entityVar, methodName, comparison, value) {
  * Based on actual DualEnroll application code
  */
 const CONDITION_NAME_MAPPINGS = {
+  // Regular high school condition (not home school or non-partner)
+  'high_school': '!student.high_school.is_home_school? && !student.high_school.is_non_partner?(college)',
+  'regular_high_school': '!student.high_school.is_home_school? && !student.high_school.is_non_partner?(college)',
+  'hs_student': '!student.high_school.is_home_school? && !student.high_school.is_non_partner?(college)',
   // High School conditions
   'home_school': 'student.high_school.is_home_school?',
   'homeschool': 'student.high_school.is_home_school?',

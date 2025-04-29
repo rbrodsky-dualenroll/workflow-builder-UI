@@ -49,13 +49,22 @@ export const generateStudentTermInitializer = (workflowData, collegeVarName) => 
     end
     
     # Handle home school vs non-partner vs partner high school
-    if student.high_school.is_home_school?
+    # These fields are mutually exclusive for conditional path clarity
+    is_home_school = student.high_school.is_home_school?
+    is_non_partner = student.high_school.is_non_partner?(college)
+    is_regular_high_school = !is_home_school && !is_non_partner
+    
+    if is_home_school
       fields["home_school"] = true
-    elsif student.high_school.is_non_partner?(college)
+      # Home School students don't get high_school or non_partner flags
+    elsif is_non_partner
       fields["non_partner"] = true
+      # Non-partner students don't get high_school or home_school flags
     else
+      # Regular high school students
       fields["high_school"] = true
       fields["partner_high_school"] = true
+      # Regular high school students don't get home_school or non_partner flags
     end
     
 `;

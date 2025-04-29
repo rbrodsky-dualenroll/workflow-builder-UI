@@ -218,7 +218,7 @@ export const createCompleteOneTimeWorkflowStep = (collegeVarName, category) => {
       'subordinate_registration_active_flow_category': 'registration_one_time',
     },
     participant_role: 'system',
-    soft_required_fields: ['mou_review_yes']
+    soft_required_fields: []
   };
 };
 

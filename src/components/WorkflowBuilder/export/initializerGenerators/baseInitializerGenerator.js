@@ -45,8 +45,11 @@ export const generateInitializerClosing = () => {
 end`;
 };
 
+
 /**
  * Process workflow conditions and extract relevant ones
+ * with hardcoded handling for high_school condition
+ * 
  * @param {Object} workflowData - The workflow data
  * @param {Array} relevantSteps - The steps relevant to this initializer
  * @param {string} targetObjectType - The target object type
@@ -61,24 +64,22 @@ export const processWorkflowConditions = (workflowData, relevantSteps, targetObj
   console.log(`Analyzing workflow for ${targetObjectType}...`);
   console.log(`Total steps for analysis: ${relevantSteps.length}`);
   
-  // Log all steps that have conditional logic
-  const conditionalSteps = relevantSteps.filter(step => step.conditional && step.workflowCondition);
-  if (conditionalSteps.length > 0) {
-    console.log(`Found ${conditionalSteps.length} conditional steps`);
-    conditionalSteps.forEach(step => {
-      const conditions = Array.isArray(step.workflowCondition) ? 
-        step.workflowCondition : [step.workflowCondition];
-      console.log(`Conditional step: "${step.title}" with condition:`, conditions);
+  // HARDCODED EDGE CASE: Check for High School role steps
+  const highSchoolRoleSteps = relevantSteps.filter(step => 
+    step.role === 'High School' || step.role === 'Counselor');
+  
+  if (highSchoolRoleSteps.length > 0) {
+    console.log(`Found ${highSchoolRoleSteps.length} High School role steps`);
+    highSchoolRoleSteps.forEach(step => {
+      console.log(`High School role step: "${step.title}"`);
     });
-  } else {
-    console.log('No conditional steps found in the workflow');
   }
   
   // Identify conditional branches and completion states
   const conditionalBranches = identifyConditionalBranches(relevantSteps);
   console.log('Identified conditional branches:', Object.keys(conditionalBranches));
   
-  // Get all condition names used by relevant steps
+  // Get all condition names used by relevant steps (explicit conditions)
   const relevantConditionNames = new Set();
   relevantSteps.forEach(step => {
     if (step.conditional && step.workflowCondition) {
@@ -89,6 +90,12 @@ export const processWorkflowConditions = (workflowData, relevantSteps, targetObj
       }
     }
   });
+  
+  // HARDCODED EDGE CASE: Add high_school condition if there are High School role steps
+  if (highSchoolRoleSteps.length > 0) {
+    relevantConditionNames.add('high_school');
+  }
+  
   console.log(`Relevant condition names for ${targetObjectType}:`, Array.from(relevantConditionNames));
   
   // Process conditions from workflowData
@@ -149,45 +156,46 @@ export const processWorkflowConditions = (workflowData, relevantSteps, targetObj
         console.warn(`Failed to transform condition ${conditionName} to Ruby code`);
       }
     });
-  } else {
-    console.log('No conditions defined in workflowData, creating conditions from step requirements');
-    
-    // Create conditions based on step requirements
-    relevantConditionNames.forEach(conditionName => {
-      console.log(`Creating condition from step requirement: ${conditionName}`);
-      
-      // Try to determine condition type from the name
-      let rubyCondition = null;
-      let fields = [conditionName];
-      
-      // Check for common patterns in condition names
-      if (conditionName.includes('home_school') || conditionName.includes('homeschool')) {
-        rubyCondition = 'student.high_school.is_home_school?';
-      } else if (conditionName.includes('non_partner') || conditionName.includes('nonpartner')) {
-        rubyCondition = 'student.high_school.is_non_partner?(college)';
-      } else if (conditionName.includes('prereq') || conditionName.includes('requisites')) {
-        rubyCondition = 'course.has_requisites?';
-      } else if (conditionName.includes('wish_list')) {
-        rubyCondition = 'course_section.is_wish_list?';
-      } else if (conditionName.includes('section_full')) {
-        rubyCondition = 'course_section.is_full?';
-      } else if (conditionName.includes('minor')) {
-        rubyCondition = 'student.is_minor?';
-      } else {
-        // Fallback to using the condition name as a field check
-        rubyCondition = `fields['${conditionName}']`;
-      }
-      
-      if (rubyCondition) {
-        conditionToRubyMap.set(conditionName, { rubyCode: rubyCondition, fields });
-        
-        // Store completion states if available
-        if (conditionalBranches[conditionName]) {
-          conditionalCompletionStates.set(conditionName, conditionalBranches[conditionName].completionStates);
-          console.log(`Completion states for ${conditionName}:`, conditionalBranches[conditionName].completionStates);
-        }
-      }
+  }
+  
+  // HARDCODED EDGE CASE: Add standard conditions if they aren't already defined
+  // Add high_school condition for regular high school students
+  if (relevantConditionNames.has('high_school') && !conditionToRubyMap.has('high_school')) {
+    console.log('Adding hardcoded high_school condition');
+    conditionToRubyMap.set('high_school', {
+      rubyCode: '!student.high_school.is_home_school? && !student.high_school.is_non_partner?(college)',
+      fields: ['high_school']
     });
+    
+    if (conditionalBranches['high_school']) {
+      conditionalCompletionStates.set('high_school', conditionalBranches['high_school'].completionStates);
+    }
+  }
+  
+  // Add home_school condition if needed
+  if (relevantConditionNames.has('home_school') && !conditionToRubyMap.has('home_school')) {
+    console.log('Adding hardcoded home_school condition');
+    conditionToRubyMap.set('home_school', {
+      rubyCode: 'student.high_school.is_home_school?',
+      fields: ['home_school']
+    });
+    
+    if (conditionalBranches['home_school']) {
+      conditionalCompletionStates.set('home_school', conditionalBranches['home_school'].completionStates);
+    }
+  }
+  
+  // Add non_partner condition if needed
+  if (relevantConditionNames.has('non_partner') && !conditionToRubyMap.has('non_partner')) {
+    console.log('Adding hardcoded non_partner condition');
+    conditionToRubyMap.set('non_partner', {
+      rubyCode: 'student.high_school.is_non_partner?(college)',
+      fields: ['non_partner']
+    });
+    
+    if (conditionalBranches['non_partner']) {
+      conditionalCompletionStates.set('non_partner', conditionalBranches['non_partner'].completionStates);
+    }
   }
   
   return { conditionToRubyMap, conditionalCompletionStates };

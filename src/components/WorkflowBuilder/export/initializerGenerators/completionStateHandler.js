@@ -48,42 +48,111 @@ export const getStepCompletionState = (step) => {
 
 /**
  * Identify conditional branches and their completion states in a workflow
+ * with hardcoded handling for High School role steps
+ * 
  * @param {Array} steps - Workflow steps
  * @returns {Object} - Map of condition names to completion states they lead to
  */
 export const identifyConditionalBranches = (steps) => {
   const conditionalBranches = {};
   
-  // First, identify steps that are conditional
-  const conditionalSteps = steps.filter(step => step.conditional && step.workflowCondition);
-  console.log('Conditional steps found:', conditionalSteps.length);
+  // First, identify all explicit conditions used in the workflow
+  const allConditions = new Set();
+  steps.forEach(step => {
+    if (step.conditional && step.workflowCondition) {
+      const conditions = Array.isArray(step.workflowCondition) 
+        ? step.workflowCondition 
+        : [step.workflowCondition];
+      
+      conditions.forEach(condition => allConditions.add(condition));
+    }
+  });
   
-  if (conditionalSteps.length > 0) {
-    conditionalSteps.forEach(step => {
-      const conditions = Array.isArray(step.workflowCondition) ? 
-        step.workflowCondition : [step.workflowCondition];
-      console.log(`Found conditional step "${step.title}" with conditions:`, conditions);
-    });
+  // HARDCODED EDGE CASE: Check for conditions based on role
+  // High School role steps implicitly mean high_school condition
+  // Approver role steps for home school students imply home_school condition
+  const hasHighSchoolRoleSteps = steps.some(step => 
+    step.role === 'High School' || step.role === 'Counselor');
+  
+  if (hasHighSchoolRoleSteps) {
+    allConditions.add('high_school');
+    console.log('Added implicit high_school condition based on High School role steps');
   }
   
-  // For each conditional step, find the completion states that would be reached
-  conditionalSteps.forEach(conditionalStep => {
-    // Handle both array and string condition formats
-    const conditions = Array.isArray(conditionalStep.workflowCondition) ? 
-      conditionalStep.workflowCondition : [conditionalStep.workflowCondition];
+  // Check for home_school related steps
+  const hasHomeSchoolSteps = steps.some(step => 
+    (step.title && step.title.toLowerCase().includes('home school')) ||
+    (step.description && step.description.toLowerCase().includes('home school')));
+  
+  if (hasHomeSchoolSteps) {
+    allConditions.add('home_school');
+    console.log('Added implicit home_school condition based on steps with Home School in title/description');
+  }
+  
+  // Check for non_partner related steps
+  const hasNonPartnerSteps = steps.some(step => 
+    (step.title && step.title.toLowerCase().includes('non partner')) ||
+    (step.description && step.description.toLowerCase().includes('non partner')));
+  
+  if (hasNonPartnerSteps) {
+    allConditions.add('non_partner');
+    console.log('Added implicit non_partner condition based on steps with Non Partner in title/description');
+  }
+  
+  console.log('All conditions found in workflow:', Array.from(allConditions));
+  
+  // For each condition, identify all steps that depend on it and their completion states
+  allConditions.forEach(conditionName => {
+    // Create the branch entry if it doesn't exist
+    if (!conditionalBranches[conditionName]) {
+      conditionalBranches[conditionName] = {
+        steps: [],
+        completionStates: []
+      };
+    }
     
-    conditions.forEach(conditionName => {
-      if (!conditionalBranches[conditionName]) {
-        conditionalBranches[conditionName] = {
-          steps: [],
-          completionStates: []
-        };
+    // Find all steps directly conditional on this condition
+    // HARDCODED EDGE CASE: Also include role-specific steps for their respective conditions
+    const directConditionalSteps = steps.filter(step => {
+      // Check for explicit conditional attribute with matching condition
+      if (step.conditional && step.workflowCondition) {
+        const conditions = Array.isArray(step.workflowCondition) 
+          ? step.workflowCondition 
+          : [step.workflowCondition];
+        
+        if (conditions.includes(conditionName)) {
+          return true;
+        }
       }
       
-      conditionalBranches[conditionName].steps.push(conditionalStep);
+      // HARDCODED EDGE CASE: Check for conditions based on role/title/description
+      if (conditionName === 'high_school' && (step.role === 'High School' || step.role === 'Counselor')) {
+        console.log(`Treating step "${step.title}" as conditional on high_school due to High School role`);
+        return true;
+      } else if (conditionName === 'home_school' && 
+                ((step.title && step.title.toLowerCase().includes('home school')) || 
+                 (step.description && step.description.toLowerCase().includes('home school')))) {
+        console.log(`Treating step "${step.title}" as conditional on home_school due to content`);
+        return true;
+      } else if (conditionName === 'non_partner' && 
+                ((step.title && step.title.toLowerCase().includes('non partner')) || 
+                 (step.description && step.description.toLowerCase().includes('non partner')))) {
+        console.log(`Treating step "${step.title}" as conditional on non_partner due to content`);
+        return true;
+      }
       
-      // Get completion state for this step
-      const completionState = getStepCompletionState(conditionalStep);
+      return false;
+    });
+    
+    // Add these steps to the branch
+    directConditionalSteps.forEach(step => {
+      // Add the step if not already in the branch
+      if (!conditionalBranches[conditionName].steps.some(s => s.id === step.id)) {
+        conditionalBranches[conditionName].steps.push(step);
+      }
+      
+      // Add the step's completion state if it has one
+      const completionState = getStepCompletionState(step);
       if (completionState && !conditionalBranches[conditionName].completionStates.includes(completionState)) {
         conditionalBranches[conditionName].completionStates.push(completionState);
         console.log(`Added completion state "${completionState}" for condition "${conditionName}"`);
@@ -91,154 +160,16 @@ export const identifyConditionalBranches = (steps) => {
     });
   });
   
-  // Find direct downstream steps that would be part of this conditional chain
+  // Log the results
   Object.keys(conditionalBranches).forEach(conditionName => {
-    const branch = conditionalBranches[conditionName];
-    
-    // For each step in this branch, look for direct downstream steps only
-    branch.steps.forEach(step => {
-      findDirectDownstreamSteps(steps, step, branch, conditionName);
-    });
-  });
-  
-  // Handle paired Upload/Approval steps, but only if they have a direct relationship
-  Object.keys(conditionalBranches).forEach(conditionName => {
-    const branch = conditionalBranches[conditionName];
-    
-    // Look for upload steps in this branch
-    const uploadSteps = branch.steps.filter(step => step.stepType === 'Upload');
-    
-    // For each upload step, find approval steps that directly depend on it
-    uploadSteps.forEach(uploadStep => {
-      const uploadCompletionState = getStepCompletionState(uploadStep);
-      if (!uploadCompletionState) return;
-      
-      // Find approval steps that have this upload's completion state in their dependencies
-      steps.forEach(potentialApprovalStep => {
-        if (potentialApprovalStep.stepType !== 'Approval' || 
-            branch.steps.some(s => s.id === potentialApprovalStep.id)) {
-          return; // Skip non-approval steps or steps already in branch
-        }
-        
-        if (potentialApprovalStep.softRequiredFields) {
-          const dependencies = Array.isArray(potentialApprovalStep.softRequiredFields) ? 
-            potentialApprovalStep.softRequiredFields : [potentialApprovalStep.softRequiredFields];
-          
-          // Check for direct dependency on this upload step
-          const isDependentOnUpload = dependencies.some(dep => 
-            dep === uploadCompletionState || dep.includes(uploadCompletionState));
-          
-          if (isDependentOnUpload) {
-            branch.steps.push(potentialApprovalStep);
-            
-            // Add the completion state
-            const approvalCompletionState = getStepCompletionState(potentialApprovalStep);
-            if (approvalCompletionState && !branch.completionStates.includes(approvalCompletionState)) {
-              branch.completionStates.push(approvalCompletionState);
-              console.log(`Added dependent approval completion state "${approvalCompletionState}" for condition "${conditionName}"`);
-            }
-          }
-        }
-      });
-    });
-  });
-  
-  // Special case for homeschool conditions - only add associated steps that have a clear relationship
-  Object.keys(conditionalBranches).forEach(conditionName => {
-    if (conditionName === 'homeschool' || conditionName.includes('home_school')) {
-      const branch = conditionalBranches[conditionName];
-      
-      // Check if we have an upload step with "affidavit" in the title
-      const affidavitUploadStep = branch.steps.find(step => 
-        step.stepType === 'Upload' && 
-        step.title.toLowerCase().includes('affidavit'));
-      
-      if (affidavitUploadStep) {
-        // Look for a corresponding approval step with "review" and "affidavit" in title
-        const affidavitReviewSteps = steps.filter(step => 
-          step.stepType === 'Approval' && 
-          step.title.toLowerCase().includes('review') && 
-          step.title.toLowerCase().includes('affidavit'));
-        
-        // Only add if there are clear naming evidence they're related
-        if (affidavitReviewSteps.length > 0) {
-          affidavitReviewSteps.forEach(affidavitReviewStep => {
-            if (!branch.steps.some(s => s.id === affidavitReviewStep.id)) {
-              branch.steps.push(affidavitReviewStep);
-              
-              const approvalCompletionState = getStepCompletionState(affidavitReviewStep);
-              if (approvalCompletionState && !branch.completionStates.includes(approvalCompletionState)) {
-                branch.completionStates.push(approvalCompletionState);
-                console.log(`Added related affidavit review state "${approvalCompletionState}" for homeschool condition`);
-              }
-            }
-          });
-        } else {
-          console.log(`No related affidavit review steps found for homeschool condition`);
-        }
-      }
-    }
-  });
-  
-  // Log all identified branches
-  Object.keys(conditionalBranches).forEach(conditionName => {
-    console.log(`Condition ${conditionName} leads to terminal steps:`, 
+    console.log(`Condition "${conditionName}" leads to steps:`, 
       conditionalBranches[conditionName].steps.map(s => s.title));
-    console.log(`Completion states for ${conditionName}:`, 
+    console.log(`Completion states for "${conditionName}":`, 
       conditionalBranches[conditionName].completionStates);
   });
   
   return conditionalBranches;
 };
-
-/**
- * Find only direct downstream steps that explicitly mention this step or condition
- * @param {Array} allSteps - All workflow steps
- * @param {Object} step - The current step to find downstream steps for
- * @param {Object} branch - The branch info to update
- * @param {string} conditionName - The name of the condition this branch is for
- */
-function findDirectDownstreamSteps(allSteps, step, branch, conditionName) {
-  const stepId = step.id;
-  const stepCompletionState = getStepCompletionState(step);
-  
-  // Look through all steps to find ones that directly depend on this step
-  allSteps.forEach(potentialDownstreamStep => {
-    // Skip if this is the same step or already in our branch
-    if (potentialDownstreamStep.id === stepId || 
-        branch.steps.some(s => s.id === potentialDownstreamStep.id)) {
-      return;
-    }
-    
-    // Check if this step depends on our current step via softRequiredFields
-    if (potentialDownstreamStep.softRequiredFields) {
-      const dependencies = Array.isArray(potentialDownstreamStep.softRequiredFields) ? 
-        potentialDownstreamStep.softRequiredFields : [potentialDownstreamStep.softRequiredFields];
-      
-      // Check for direct dependency on this condition or step's completion state
-      const isDependentOnCondition = dependencies.some(dep => 
-        dep === conditionName || dep.includes(conditionName));
-      
-      const isDependentOnStep = stepCompletionState && dependencies.some(dep => 
-        dep === stepCompletionState || dep.includes(stepCompletionState));
-      
-      if (isDependentOnCondition || isDependentOnStep) {
-        // This is a direct downstream step in the same branch
-        branch.steps.push(potentialDownstreamStep);
-        
-        // Add its completion state
-        const downstreamCompletionState = getStepCompletionState(potentialDownstreamStep);
-        if (downstreamCompletionState && !branch.completionStates.includes(downstreamCompletionState)) {
-          branch.completionStates.push(downstreamCompletionState);
-          console.log(`Added direct downstream completion state "${downstreamCompletionState}" for condition "${conditionName}"`);
-        }
-        
-        // Do NOT recursively find more downstream steps - this is the key change
-        // to prevent completion states from unrelated steps being included
-      }
-    }
-  });
-}
 
 /**
  * Generate code to handle conditional completion states
@@ -268,6 +199,91 @@ export const generateCompletionStatesCode = (conditionToRubyMap, conditionalComp
         rubyCode += `    end\n\n`;
       }
     });
+    
+    // Special handling for high_school vs home_school vs non_partner paths
+    // This ensures each conditional path properly gets the other paths' completion states
+    const hasHighSchool = conditionToRubyMap.has('high_school');
+    const hasHomeSchool = conditionToRubyMap.has('home_school');
+    const hasNonPartner = conditionToRubyMap.has('non_partner');
+    
+    if ((hasHighSchool && hasHomeSchool) || (hasHighSchool && hasNonPartner) || (hasHomeSchool && hasNonPartner)) {
+      rubyCode += `    # Ensure merge of conditional paths for high school types\n`;
+      
+      // High School students need home_school and non_partner completion states
+      if (hasHighSchool) {
+        const highSchoolCondition = conditionToRubyMap.get('high_school').rubyCode;
+        rubyCode += `    # High School students get completion states from other paths\n`;
+        rubyCode += `    if ${highSchoolCondition}\n`;
+        
+        // Set home_school completion states
+        if (hasHomeSchool && conditionalCompletionStates.has('home_school')) {
+          rubyCode += `      # Set home_school completion states for high_school students\n`;
+          conditionalCompletionStates.get('home_school').forEach(state => {
+            rubyCode += `      fields["${state}"] = true\n`;
+          });
+        }
+        
+        // Set non_partner completion states
+        if (hasNonPartner && conditionalCompletionStates.has('non_partner')) {
+          rubyCode += `      # Set non_partner completion states for high_school students\n`;
+          conditionalCompletionStates.get('non_partner').forEach(state => {
+            rubyCode += `      fields["${state}"] = true\n`;
+          });
+        }
+        
+        rubyCode += `    end\n\n`;
+      }
+      
+      // Home School students need high_school and non_partner completion states
+      if (hasHomeSchool) {
+        const homeSchoolCondition = conditionToRubyMap.get('home_school').rubyCode;
+        rubyCode += `    # Home School students get completion states from other paths\n`;
+        rubyCode += `    if ${homeSchoolCondition}\n`;
+        
+        // Set high_school completion states
+        if (hasHighSchool && conditionalCompletionStates.has('high_school')) {
+          rubyCode += `      # Set high_school completion states for home_school students\n`;
+          conditionalCompletionStates.get('high_school').forEach(state => {
+            rubyCode += `      fields["${state}"] = true\n`;
+          });
+        }
+        
+        // Set non_partner completion states
+        if (hasNonPartner && conditionalCompletionStates.has('non_partner')) {
+          rubyCode += `      # Set non_partner completion states for home_school students\n`;
+          conditionalCompletionStates.get('non_partner').forEach(state => {
+            rubyCode += `      fields["${state}"] = true\n`;
+          });
+        }
+        
+        rubyCode += `    end\n\n`;
+      }
+      
+      // Non-Partner students need high_school and home_school completion states
+      if (hasNonPartner) {
+        const nonPartnerCondition = conditionToRubyMap.get('non_partner').rubyCode;
+        rubyCode += `    # Non-Partner students get completion states from other paths\n`;
+        rubyCode += `    if ${nonPartnerCondition}\n`;
+        
+        // Set high_school completion states
+        if (hasHighSchool && conditionalCompletionStates.has('high_school')) {
+          rubyCode += `      # Set high_school completion states for non_partner students\n`;
+          conditionalCompletionStates.get('high_school').forEach(state => {
+            rubyCode += `      fields["${state}"] = true\n`;
+          });
+        }
+        
+        // Set home_school completion states
+        if (hasHomeSchool && conditionalCompletionStates.has('home_school')) {
+          rubyCode += `      # Set home_school completion states for non_partner students\n`;
+          conditionalCompletionStates.get('home_school').forEach(state => {
+            rubyCode += `      fields["${state}"] = true\n`;
+          });
+        }
+        
+        rubyCode += `    end\n\n`;
+      }
+    }
   }
   
   return rubyCode;

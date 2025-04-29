@@ -43,17 +43,28 @@ export const generateCollegeStudentApplicationInitializer = (workflowData, colle
 
     # One-time workflow initialization
     # Parent consent is handled in the one-time workflow
-    if student.high_school.is_home_school?
-      fields["parent_consent_provided"] = true
+    # These fields are mutually exclusive for conditional path clarity
+    is_home_school = student.high_school.is_home_school?
+    is_non_partner = student.high_school.is_non_partner?(college)
+    is_regular_high_school = !is_home_school && !is_non_partner
+    
+    if is_home_school
+      # Home School students get special handling
+      fields["parent_consent_provided"] = true  # Auto-set for home school
       fields["home_school"] = true
-      fields["mou_required"] = true
-    elsif student.high_school.is_non_partner?(college)
+      fields["mou_required"] = true            # Home School Affidavit required
+      # Home School students don't get high_school or non_partner flags
+    elsif is_non_partner
+      # Non-partner high school students
       fields["non_partner"] = true
       fields["parent_consent_required"] = true
+      # Non-partner students don't get high_school or home_school flags
     else
+      # Regular high school students
       fields["high_school"] = true
       fields["parent_consent_required"] = true
       fields["partner_high_school"] = true
+      # Regular high school students don't get home_school or non_partner flags
     end
 
 `;
