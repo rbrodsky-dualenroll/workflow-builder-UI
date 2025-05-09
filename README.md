@@ -1,18 +1,18 @@
 # DualEnroll Workflow Builder
 
-A sophisticated workflow builder application for creating, prototyping, and demonstrating DualEnroll workflow processes.
+A sophisticated workflow builder application for creating, prototyping, and demonstrating DualEnroll workflow processes. This tool allows you to rapidly design complex enrollment workflows and export them directly to Ruby fixtures and templates for implementation.
 
 ## Overview
 
 The DualEnroll Workflow Builder enables you to:
 
-1. Create complex workflow visualizations with various step types
-2. Configure conditional logic and workflow scenarios
-3. Define reusable conditions across workflow steps
-4. Customize steps with role-based permissions and actions
-5. Implement specialized step types such as API integrations and consent forms
-6. Save, export, and import workflows as JSON for easy sharing
-7. Preview how workflows will appear from different user perspectives
+1. **Create complex workflow visualizations** with various step types
+2. **Configure conditional logic** to create different user paths based on specific criteria
+3. **Define reusable conditions** that can be applied across workflow steps
+4. **Customize steps** with role-based permissions and actions
+5. **Implement specialized step types** such as API integrations and consent forms
+6. **Save, export, and import workflows** as JSON for easy sharing
+7. **Export to development-ready fixtures** that generate Ruby code, initializer classes, and view templates
 
 ## Getting Started
 
@@ -57,16 +57,8 @@ base: '/your-repository-name/',  // Replace with your actual repository name
    **Method 2: Using GitHub Actions**
    - Push your changes to the main branch
    - GitHub Actions will automatically build and deploy to the gh-pages branch
-   - Your site will be available at https://your-username.github.io/your-repository-name/
 
 4. Verify deployment by visiting your GitHub Pages URL (typically https://your-username.github.io/your-repository-name/)
-
-**Troubleshooting Deployment Issues:**
-
-- If assets aren't loading correctly, check paths in FileOperations.js and other components
-- For templates or JSON files, they should be imported directly rather than using fetch
-- Check GitHub Actions logs for any build errors
-- Ensure GitHub Pages is properly configured in your repository settings
 
 ## Core Features
 
@@ -75,29 +67,30 @@ base: '/your-repository-name/',  // Replace with your actual repository name
 The workflow builder supports multiple specialized step types:
 
 - **Approval**: Configuration for review/approval processes with customizable actions
-- **Document Upload**: For collecting documents with file type specifications
+- **Upload**: For collecting documents with file type specifications
 - **Information**: For displaying information to users
 - **Provide Consent**: Specialized step for parent/guardian consent collection
 - **Check Holds**: Automated step to verify if students have holds on their accounts
 - **Register Via API**: System integration step to register students via SIS APIs
 - **Resolve Issue**: Step for handling exceptions and issues in the workflow
 
-### Scenarios
-
-Scenarios allow for creating variant workflows based on conditions:
-
-- **Main Workflow**: Default path for most users
-- **Conditional Scenarios**: Alternative paths based on specific conditions
-- **Master View**: Consolidated view of all scenarios for administration
-
 ### Workflow Conditions
 
-The new condition builder allows for creating and reusing complex conditions:
+The condition builder allows for creating and reusing complex conditions:
 
-- Define conditions based on entity/property combinations
+- Define conditions based on entity/property combinations (e.g., `student.home_school == true`)
 - Create custom properties for specialized needs
 - Apply conditions to determine when steps should be shown
 - Manage conditions at the workflow level for reuse across steps
+
+### Feedback Loops
+
+Create parent-child relationships between steps to handle feedback processes:
+
+- Set up approval steps that can request additional information
+- Create proper feedback steps that are linked to their parent steps
+- Maintain consistent relationships when steps are moved or edited
+- Follow DualEnroll's standard naming patterns for feedback loops
 
 ### Role-Based Configuration
 
@@ -111,7 +104,7 @@ Steps can be assigned to specific roles:
 - Dean
 - System (for automated steps)
 
-### Sub-Workflows
+### Workflow Categories
 
 Steps can be categorized into different execution patterns:
 
@@ -119,6 +112,17 @@ Steps can be categorized into different execution patterns:
 - **Per Year**: Executed once per academic year
 - **Per Term**: Executed once per term
 - **Per Course**: Executed for each course registration
+
+## Developer Export Features
+
+The Workflow Builder includes powerful export capabilities for development teams:
+
+1. **Ruby Fixture Generation**: Export workflow configuration as a complete Ruby fixture file
+2. **Initializer Classes**: Generate Ruby classes that handle workflow conditions and initialization
+3. **View Templates**: Create ERB template files for each UI step in the workflow
+4. **Multi-file ZIP Export**: Package all generated files into a convenient ZIP archive
+5. **Table Column Generation**: Convert table configurations into proper Ruby accessor code
+6. **Action Option Mapping**: Map UI action options to proper DualEnroll workflows
 
 ## Usage Guide
 
@@ -128,14 +132,8 @@ Steps can be categorized into different execution patterns:
 2. Add steps by clicking the "Add Step" button
 3. Configure each step with appropriate settings
 4. Organize steps in the desired sequence
-5. Save your workflow for future use
-
-### Managing Scenarios
-
-1. Create scenarios for different condition-based paths
-2. Configure the condition that triggers each scenario
-3. Add scenario-specific steps
-4. Use Master View to see all scenarios at once
+5. Apply conditions to control when steps appear
+6. Save your workflow for future use
 
 ### Working with Conditions
 
@@ -143,15 +141,20 @@ Steps can be categorized into different execution patterns:
 2. Apply conditions to steps to control when they appear
 3. Use conditions to create branching logic in your workflow
 
-### Specialized Step Configuration
+### Creating Feedback Loops
 
-Each step type has unique configuration options:
+1. Edit a step and select "Add Feedback Step"
+2. Configure the feedback recipient (Student, High School, Parent, Approver)
+3. Set up the feedback step's properties (title, role, etc.)
+4. Save the workflow to maintain the parent-child relationship
 
-- **Approval Steps**: Configure action buttons, feedback loops
-- **Upload Steps**: Specify required documents and file types
-- **Information Steps**: Define what information to display
-- **Register Via API**: Automated SIS integration (System role only)
-- **Provide Consent**: Configure consent type for parents/guardians
+### Exporting for Development
+
+1. Click "Export for Dev Team"
+2. Enter college details (name, ID, etc.)
+3. Select export options (ZIP or single file)
+4. Choose which components to include (application fields, initializers, view templates)
+5. Generate and download the export
 
 ## Data Model
 
@@ -167,6 +170,7 @@ Each step type has unique configuration options:
   "description": "Description of this step",
   "conditional": true | false,
   "workflowCondition": ["condition-name-1", "condition-name-2"],
+  "parentId": "parent-step-id",  // For feedback steps
   
   // Type-specific properties
   
@@ -178,7 +182,7 @@ Each step type has unique configuration options:
   
   // For Upload steps
   "fileUploads": [
-    { "fileType": "pdf", "label": "Transcript", "required": true }
+    { "fileType": "transcript", "label": "Transcript", "required": true }
   ],
   
   // For Information steps
@@ -187,14 +191,13 @@ Each step type has unique configuration options:
   ],
   
   // Common optional properties
-  "tableColumns": ["Student Name", "Course Number", "CRN"],
+  "tableColumns": [
+    { "label": "Student Name", "value": "target.student.display_name" },
+    { "label": "Course Number", "value": "course.number" }
+  ],
   "comments": {
     "required": true | false,
     "public": true | false
-  },
-  "feedbackLoops": {
-    "recipient": "College | High School | Student | Parent",
-    "nextStep": "step-id-reference"
   }
 }
 ```
@@ -207,8 +210,7 @@ Each step type has unique configuration options:
     "entity": "student | course | section | instructor | high_school | term | registration",
     "property": "property_name",
     "comparison": "== | != | > | < | >= | <= | includes | present | blank | true | false",
-    "value": "comparison_value",
-    "fields": ["condition_name"]
+    "value": "comparison_value"
   }
 }
 ```
@@ -222,57 +224,74 @@ react-workflow-app/
 │   ├── components/        # React components
 │   │   ├── StepForm/      # Step configuration forms
 │   │   │   ├── sections/  # Specialized form sections
-│   │   │   │   ├── conditionals/  # Condition building components
-│   │   │   │   └── ...
 │   │   │   └── StepForm.jsx       # Main step form component
 │   │   ├── WorkflowBuilder/       # Workflow builder components
+│   │   │   ├── export/            # Export functionality
+│   │   │   │   ├── rubyFixtureExporter.js  # Ruby fixture generation
+│   │   │   │   ├── multiFileExporter.js    # ZIP archive generation
+│   │   │   │   ├── initializerGenerator.js # Ruby class generation
+│   │   │   │   └── views/                  # View template generation
 │   │   │   ├── hooks/             # Custom hooks
 │   │   │   ├── modals/            # Modal components
 │   │   │   ├── WorkflowBuilder.jsx # Main builder component
 │   │   │   ├── WorkflowContent.jsx # Workflow step container
 │   │   │   ├── WorkflowHeader.jsx  # Header component
 │   │   │   ├── WorkflowConditionManager.jsx # Condition management
-│   │   │   ├── ScenarioManager.jsx # Scenario management
 │   │   │   └── ...
 │   │   ├── WorkflowStep/          # Step visualization components
 │   │   └── common/                # Shared UI components
-│   │       ├── Card.jsx
-│   │       ├── CollapsibleCard.jsx
-│   │       ├── FormField.jsx
-│   │       └── ...
 │   ├── utils/              # Utility functions
-│   │   ├── conditionalUtils.js    # Condition parsing/formatting
-│   │   ├── workflowUtils.js       # Workflow helpers
-│   │   └── ...
 │   ├── App.jsx            # Main application component
 │   ├── App.css            # Main application styles
 │   ├── index.css          # Global styles
 │   └── main.jsx           # Application entry point
-└── package.json           # Dependencies and scripts
+├── docs/                  # Documentation
+│   ├── field_hash_documentation.md    # ActiveFlow fields documentation
+│   ├── input_fields_documentation.md  # Input field documentation
+│   └── table_columns_documentation.md # Table column documentation
+└── puppeteer_testing_documentation/   # Testing documentation
 ```
 
 ## Feature Highlights
 
-### Conditional Logic Builder
-- Visual interface for building complex conditions
-- Entity and property-based condition creation
-- Custom property support for specialized needs
-- Reusable conditions across workflow steps
+### Developer-Friendly Exports
 
-### Step Templates
-- Pre-configured step templates for common processes
-- Specialized templates like RegisterViaAPI with enforced settings
-- Role-appropriate configurations
+- Export workflows as complete Ruby fixtures ready for implementation
+- Generate view templates with proper structure and naming
+- Include initializer classes that handle conditional logic
+- Package everything into a single ZIP archive
 
-### Workflow Organization
-- Drag and reorder steps
-- Move steps between scenarios
-- Master view for comprehensive workflow management
+### Table Column Configuration
 
-### Import/Export
-- Save workflows as JSON
-- Import existing workflows
-- Share workflows between team members
+- Define columns with proper Ruby accessor paths
+- Include input columns for data collection
+- Configure column properties like required fields and validation
+
+### Action Option Form Fields
+
+- Associate form fields with specific action options
+- Configure field validation and properties
+- Map action options to DualEnroll workflows
+
+### Feedback Step Management
+
+- Create and maintain parent-child relationships
+- Follow DualEnroll's standard naming patterns for feedback loops
+- Properly clear form states when feedback is completed
+
+## Best Practices
+
+- Use standard document types from the dropdown for consistency
+- Create reusable conditions for common logic patterns
+- Follow DualEnroll's naming conventions for steps
+- Test your workflow export to ensure generated code matches your expectations
+- Document your workflow design decisions
+
+## Known Issues/Next Steps in Development
+
+- Initializer writer needs to filter by workflow category
+- Feedback steps need to be more robust and allow for multiple feedback steps to the same role with different details
+- View template generation could be improved to handle more specialized cases
 
 ## Future Enhancements
 
@@ -282,12 +301,3 @@ react-workflow-app/
 - Integration with live DualEnroll systems
 - Workflow statistics and metrics
 - Collaborative editing features
-
-## Best Practices
-
-- Start with the Main workflow for standard processes
-- Use scenarios sparingly for truly different paths
-- Create reusable conditions for consistent logic
-- Test workflows from different role perspectives
-- Use appropriate step types for each process
-- Document your workflow design decisions
