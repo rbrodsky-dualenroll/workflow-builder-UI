@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start dev server in background
-npm run dev
+npm run dev &
 
 # Save PID so we can clean it up
 DEV_PID=$!
