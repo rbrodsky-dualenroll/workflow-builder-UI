@@ -39,6 +39,14 @@ Both forms share similar structures but have distinct selectors and usage patter
 | Save Condition Button | `[data-testid="step-condition-save-button"]` | Button to save the condition |
 | Cancel Condition Button | `[data-testid="step-condition-cancel-button"]` | Button to cancel condition creation |
 
+## Workflow Condition Form Elements
+
+| Element | Selector | Description |
+|---------|----------|-------------|
+| Condition Name Input | `[data-testid="condition-name-input"]` | Input field for the workflow condition name |
+| Save Condition Button | `[data-testid="save-condition-button"]` | Button to save the workflow condition |
+| Cancel Condition Button | `[data-testid="cancel-condition-button"]` | Button to cancel workflow condition creation |
+
 ## Scenario Condition Form Elements
 
 | Element | Selector | Description |

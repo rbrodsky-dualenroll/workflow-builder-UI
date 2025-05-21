@@ -195,55 +195,6 @@ const stepIds = await createTestWorkflow(page);
 console.log('Created workflow with steps:', stepIds);
 ```
 
-## Creating a Scenario with Conditions
-
-```javascript
-// Helper function to create a scenario with a condition
-const createTestScenario = async (page, name, conditionName, conditionValue) => {
-  // Click the New Scenario button
-  await page.click('[data-testid="new-scenario-button"]');
-  await page.waitForSelector('[data-testid="scenario-name-input"]');
-  
-  // Fill in the scenario name
-  await page.type('[data-testid="scenario-name-input"]', name);
-  
-  // Expand the scenario conditions section
-  await page.click('[data-testid="scenario-conditions-section-expander"]');
-  await page.waitForTimeout(500);
-  
-  // Add a new condition
-  await page.click('[data-testid="add-scenario-condition-button"]');
-  await page.waitForSelector('[data-testid="scenario-condition-name-input"]');
-  
-  // Fill in the condition
-  await page.type('[data-testid="scenario-condition-name-input"]', conditionName);
-  
-  // For simple conditions, we can just save without setting up complex logic
-  await page.click('[data-testid="scenario-condition-save-button"]');
-  
-  // Select the condition
-  await page.waitForSelector(`[data-testid="scenario-condition-radio-${conditionName}"]`);
-  await page.click(`[data-testid="scenario-condition-radio-${conditionName}"]`);
-  
-  // Create the scenario
-  await page.click('[data-testid="scenario-modal-create-button"]');
-  
-  // Wait for the scenario tab to appear and return its ID
-  await page.waitForSelector('[data-testid^="scenario-tab-"]:not([data-testid="scenario-tab-main"])');
-  
-  // Get the scenario ID
-  const scenarioId = await page.evaluate(() => {
-    const scenarioTab = document.querySelector('[data-testid^="scenario-tab-"]:not([data-testid="scenario-tab-main"])');
-    return scenarioTab ? scenarioTab.getAttribute('data-testid').replace('scenario-tab-', '') : null;
-  });
-  
-  return scenarioId;
-};
-
-// Example usage
-const scenarioId = await createTestScenario(page, 'Homeschool Students', 'homeschool_student');
-console.log('Created scenario with ID:', scenarioId);
-```
 
 ## Verifying Workflow Structure
 
@@ -317,80 +268,6 @@ if (!success) {
   console.log('Taking a screenshot to debug the issue');
   await page.screenshot({ path: 'error-state.png' });
 }
-```
-
-## Full Test Example
-
-```javascript
-const puppeteer = require('puppeteer');
-
-// Full example of a test that creates a workflow and scenario
-const runWorkflowBuilderTest = async () => {
-  const browser = await puppeteer.launch({
-    headless: false,
-    defaultViewport: { width: 1280, height: 800 }
-  });
-  
-  const page = await browser.newPage();
-  
-  try {
-    // Navigate to the application
-    await page.goto('http://localhost:5173');
-    await page.waitForSelector('[data-testid="add-step-button"]');
-    
-    // Create a basic workflow
-    console.log('Creating main workflow...');
-    await createTestWorkflow(page);
-    
-    // Create a scenario
-    console.log('Creating scenario...');
-    const scenarioId = await createTestScenario(page, 'Homeschool Students', 'homeschool_student');
-    
-    // Switch to the scenario
-    console.log('Switching to scenario...');
-    await page.click(`[data-testid^="scenario-tab-${scenarioId}"]`);
-    
-    // Add a scenario-specific step
-    console.log('Adding scenario-specific step...');
-    await page.click('[data-testid="add-step-button"]');
-    await page.waitForSelector('[data-testid="modal-content"]');
-    await page.select('[data-testid="step-form-type"]', 'Document Upload');
-    await page.type('[data-testid="step-form-title"]', 'Parent Upload MOU');
-    await page.select('[data-testid="field-role"]', 'Parent');
-    await page.select('[data-testid="field-workflow-category"]', 'Once Ever');
-    
-    // Add file upload option
-    await page.evaluate(() => {
-      document.querySelector('[data-testid="modal-content"]').scrollTop = 1000;
-    });
-    await page.type('[data-testid="file-label-input"]', 'MOU Document');
-    await page.type('[data-testid="file-type-input"]', 'pdf');
-    await page.click('[data-testid="add-file-button"]');
-    await page.click('[data-testid="modal-save-button"]');
-    
-    // Toggle Master View
-    console.log('Toggling Master View...');
-    await page.click('[data-testid="master-view-button"]');
-    
-    // Verify the workflow structure
-    console.log('Verifying workflow structure...');
-    const structure = await verifyWorkflowStructure(page);
-    console.log('Verified structure:', structure.stepsInOrder && structure.feedbackStepsAfterParents);
-    
-    // Save the workflow
-    console.log('Saving workflow...');
-    await page.click('[data-testid="save-workflow-button"]');
-    
-    console.log('Test completed successfully!');
-  } catch (error) {
-    console.error('Test failed:', error);
-    await page.screenshot({ path: 'test-failure.png' });
-  } finally {
-    await browser.close();
-  }
-};
-
-runWorkflowBuilderTest();
 ```
 
 ## Tips for Robust Testing
