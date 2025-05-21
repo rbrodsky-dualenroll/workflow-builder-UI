@@ -1,1 +1,0 @@
-This file has been superceded by the puppeteer_testing_documentation directory. Please reference that directory and read the start_here.md inside of it to get started.
