@@ -22,7 +22,11 @@ const setup = async () => {
   // Navigate to the application
   await page.goto('http://localhost:5173');
   
-  // Wait for the page to load completely
+  // Wait for the app container
+  await page.waitForSelector('[data-testid="app-container"]', { timeout: 5000 })
+    .catch(() => console.warn('App container not found, proceeding anyway'));
+  
+  // Wait for UI elements to be interactive
   await page.waitForSelector('[data-testid="add-step-button"]');
   
   return { browser, page };
@@ -47,6 +51,43 @@ const testWorkflowBuilder = async () => {
 };
 
 testWorkflowBuilder();
+```
+
+## Wait for Application Container
+
+```javascript
+// Wait for the application container to be fully loaded before proceeding
+const waitForAppContainer = async (page, timeout = 5000) => {
+  try {
+    await page.waitForSelector('[data-testid="app-container"]', { 
+      visible: true, 
+      timeout 
+    });
+    console.log('App container loaded successfully');
+    return true;
+  } catch (error) {
+    console.warn('Warning: App container not found within timeout');
+    // Take a screenshot to help debug the issue
+    await page.screenshot({ path: 'app-container-not-found.png' });
+    return false;
+  }
+};
+
+// Example usage in setup
+const setup = async () => {
+  // Launch browser and navigate to app
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto('http://localhost:5173');
+  
+  // Wait for app container and handle failure
+  const appLoaded = await waitForAppContainer(page);
+  if (!appLoaded) {
+    console.warn('Proceeding without app container - some tests may fail');
+  }
+  
+  return { browser, page };
+};
 ```
 
 ## Screenshot Utility

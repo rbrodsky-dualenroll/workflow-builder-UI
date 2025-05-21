@@ -24,7 +24,7 @@ export const initializeWorkflowBuilder = async (page, customSteps = null) => {
   await page.goto('http://localhost:5173');
   
   // Wait for the main container to be visible
-  await page.waitForSelector('[data-testid="app-container"]', { visible: true })
+  await page.waitForSelector('[data-testid="app-container"]', { visible: true, timeout: 5000 })
     .catch(() => {
       console.warn('Warning: App container not found, continuing anyway');
     });

@@ -6,6 +6,7 @@ This document details the main UI elements of the Workflow Builder application a
 
 | Element | Selector | Description |
 |---------|----------|-------------|
+| Application Container | `[data-testid="app-container"]` | Root container for the entire application |
 | Add Step Button | `[data-testid="add-step-button"]` | Button to add a new step |
 | Import Workflow Button | `[data-testid="import-workflow-button"]` | Button to import a workflow |
 | Save Workflow Button | `[data-testid="save-workflow-button"]` | Button to save the workflow |
