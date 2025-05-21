@@ -126,9 +126,10 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
       <div className="relative p-5 bg-white w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 mx-auto rounded-md shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-800">Export for Dev Team</h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
+            data-testid="dev-export-close-button"
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -156,6 +157,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="Example University"
                   required
+                  data-testid="college-name-input"
                 />
               </div>
               
@@ -171,6 +173,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="12345"
                   required
+                  data-testid="college-id-input"
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   This is the college's ID in the database
@@ -188,6 +191,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                   onChange={(e) => setLocalCollegeCity(e.target.value)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="Anytown"
+                  data-testid="college-city-input"
                 />
               </div>
               
@@ -203,6 +207,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="CA"
                   maxLength={2}
+                  data-testid="college-state-input"
                 />
               </div>
               
@@ -218,6 +223,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="12345"
                   maxLength={10}
+                  data-testid="college-zip-input"
                 />
               </div>
               
@@ -232,6 +238,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                   onChange={(e) => setLocalCollegePhone(e.target.value)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="555-123-4567"
+                  data-testid="college-phone-input"
                 />
               </div>
               
@@ -246,6 +253,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                   onChange={(e) => setLocalCollegeUrl(e.target.value)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   placeholder="www.example.edu"
+                  data-testid="college-url-input"
                 />
               </div>
               
@@ -258,6 +266,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                   value={localCollegeType}
                   onChange={(e) => setLocalCollegeType(e.target.value)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  data-testid="college-type-select"
                 >
                   <option value="Public: 2-year">Public: 2-year</option>
                   <option value="Public: 4-year or above">Public: 4-year or above</option>
@@ -280,6 +289,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                       checked={exportType === 'zip'}
                       onChange={() => setExportType('zip')}
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                      data-testid="export-type-zip"
                     />
                     <label htmlFor="exportTypeZip" className="ml-2 block text-sm text-gray-700">
                       ZIP Archive (Multiple Files)
@@ -294,6 +304,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                       checked={exportType === 'single'}
                       onChange={() => setExportType('single')}
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                      data-testid="export-type-single"
                     />
                     <label htmlFor="exportTypeSingle" className="ml-2 block text-sm text-gray-700">
                       Single Fixture File
@@ -313,6 +324,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                   checked={includeApplicationFields}
                   onChange={(e) => setIncludeApplicationFields(e.target.checked)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  data-testid="include-app-fields-checkbox"
                 />
                 <label htmlFor="includeApplicationFields" className="ml-2 block text-sm text-gray-700">
                   Include standard application fields and pages
@@ -332,6 +344,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                       checked={includeInitializers}
                       onChange={(e) => setIncludeInitializers(e.target.checked)}
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      data-testid="include-initializers-checkbox"
                     />
                     <label htmlFor="includeInitializers" className="ml-2 block text-sm text-gray-700">
                       Include initializer classes
@@ -362,6 +375,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
               <button
                 onClick={onClose}
                 className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                data-testid="dev-export-cancel-button"
               >
                 Cancel
               </button>
@@ -373,6 +387,7 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
                     ? 'bg-indigo-300'
                     : 'bg-indigo-600 hover:bg-indigo-700'
                 }`}
+                data-testid="dev-export-generate-button"
               >
                 {isExporting ? 'Generating...' : exportType === 'zip' ? 'Generate ZIP Archive' : 'Generate Fixture'}
               </button>
@@ -393,12 +408,14 @@ const DevTeamExport = ({ workflow, workflowName, collegeInfo, setCollegeInfo, on
               <button
                 onClick={() => setShowPreview(false)}
                 className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                data-testid="dev-export-back-button"
               >
                 Back
               </button>
               <button
                 onClick={downloadFixture}
                 className="bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                data-testid="dev-export-download-button"
               >
                 Download File
               </button>
