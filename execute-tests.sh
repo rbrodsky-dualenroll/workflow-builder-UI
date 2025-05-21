@@ -14,7 +14,6 @@ until curl --output /dev/null --silent --head --fail http://localhost:5173; do
 done
 
 # Run tests
-cd workflow-builder-UI
 npm run test:ci
 
 # Clean up
