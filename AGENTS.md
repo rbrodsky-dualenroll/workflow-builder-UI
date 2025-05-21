@@ -21,3 +21,4 @@
 - When leveraging automated testing, ensure that you are never ever hardcoding the test case results into the functions or components themselves. Tests must be passed because of the underlying logic, not because the function has been hacked to pass the test.
 - When altering the codebase, run the test suite to ensure you have not broken any existing functionality. If the refactoring of other components was intentional, you may update the tests accordingly. Do not consider a task complete unless 100% of the tests are passing.
 - When adding new functionality, add new test cases to the existing testing framework that confirm its functionality.
+- To execute tests in the contianer environment, use the execute-tests.sh command script to enable the running of a background server before test execution, and the closing of the test server to allow clean exits
