@@ -101,8 +101,8 @@ try {
   console.log('\n🧪 Running test: Basic page test');
   
   // Navigate to the app
-  console.log('Navigating to http://localhost:5173...');
-  await page.goto('http://localhost:5173');
+  console.log('Navigating to http://localhost:5173/workflow-builder-UI/?test=true...');
+  await page.goto('http://localhost:5173/workflow-builder-UI/?test=true');
   
   // Test 1: Page has a title
   console.log('\n📋 Test: Page has a title');

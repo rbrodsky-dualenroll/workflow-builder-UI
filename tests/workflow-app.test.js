@@ -15,7 +15,7 @@ import {
 describe('Workflow Builder App', () => {
   beforeAll(async () => {
     // Navigate to the app URL
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:5173/workflow-builder-UI/?test=true');
     
     // Wait for the app to fully load
     await page.waitForSelector('body', { 

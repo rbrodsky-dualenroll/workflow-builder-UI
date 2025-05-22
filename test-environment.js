@@ -18,6 +18,6 @@ export default class CustomEnvironment extends TestEnvironment {
     }
     
     // Add helpers to global scope
-    this.global.BASE_URL = 'http://localhost:5173';
+    this.global.BASE_URL = 'http://localhost:5173/workflow-builder-UI/?test=true';
   }
 }

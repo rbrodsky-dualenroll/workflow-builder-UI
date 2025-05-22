@@ -55,7 +55,7 @@ async function runTests() {
     
     // Navigate to the app
     console.log('Navigating to app...');
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:5173/workflow-builder-UI/?test=true');
     
     // Wait for app to load
     console.log('Waiting for app to load...');

@@ -8,7 +8,7 @@ import { createTestSuite } from './test-runner.js';
 
 // Create a test suite
 const runner = createTestSuite({
-  appUrl: 'http://localhost:5173',
+  appUrl: 'http://localhost:5173/workflow-builder-UI/?test=true',
   verbose: true
 });
 

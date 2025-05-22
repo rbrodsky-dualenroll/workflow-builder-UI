@@ -21,13 +21,17 @@ import {
  */
 export const initializeWorkflowBuilder = async (page, customSteps = null) => {
   // Navigate to the app
-  await page.goto('http://localhost:5173');
+  await page.goto('http://localhost:5173/workflow-builder-UI/?test=true');
   
-  // Wait for the main container to be visible
-  await page.waitForSelector('[data-testid="app-container"]', { visible: true, timeout: 5000 })
+
+  // Wait for the root element to be visible
+  await page.waitForSelector('#root', { visible: true })
     .catch(() => {
-      console.warn('Warning: App container not found, continuing anyway');
+      console.warn('Warning: Root element not found, continuing anyway');
     });
+
+  // Wait until the global test workflow state is available
+  await page.waitForFunction(() => window.testWorkflowState && window.testWorkflowState.updateUI);
   
   // Set up the test workflow
   await setupTestWorkflow(page, customSteps || createTestWorkflow());

@@ -56,7 +56,7 @@ import { describe, test, expect, beforeAll } from '@jest/globals';
 
 describe('Basic Browser Test', () => {
   beforeAll(async () => {
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:5173/workflow-builder-UI/');
   });
 
   test('page loads correctly', async () => {

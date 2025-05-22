@@ -20,7 +20,7 @@ const setup = async () => {
   const page = await browser.newPage();
   
   // Navigate to the application
-  await page.goto('http://localhost:5173');
+  await page.goto('http://localhost:5173/workflow-builder-UI/');
   
   // Wait for the app container
   await page.waitForSelector('[data-testid="app-container"]', { timeout: 5000 })

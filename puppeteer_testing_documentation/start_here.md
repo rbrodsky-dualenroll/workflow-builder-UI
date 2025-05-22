@@ -59,6 +59,6 @@ When adding new components to the application:
 
 ## Getting Started
 
-The application is available locally at [localhost:5173](http://localhost:5173). Navigate to this URL to begin testing.
+The application is available locally at [localhost:5173/workflow-builder-UI/](http://localhost:5173/workflow-builder-UI/). Navigate to this URL to begin testing.
 
 For a quick start, see [common_patterns.md](./common_patterns.md) for basic examples of common testing tasks.

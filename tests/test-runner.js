@@ -17,7 +17,7 @@ export class TestRunner {
   constructor(options = {}) {
     this.options = {
       headless: 'new',
-      appUrl: 'http://localhost:5173',
+      appUrl: 'http://localhost:5173/workflow-builder-UI/?test=true',
       verbose: true,
       ...options
     };

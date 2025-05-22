@@ -2,7 +2,7 @@
 
 describe('Basic Test Environment', () => {
   beforeAll(async () => {
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:5173/workflow-builder-UI/?test=true');
   });
 
   test('Puppeteer environment is working', async () => {
