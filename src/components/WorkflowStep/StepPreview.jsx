@@ -30,6 +30,9 @@ const StepPreview = ({ step }) => {
         return <RegisterViaApiStepPreview step={step} />;
       case 'ResolveIssue':
         return <ResolveIssueStepPreview step={step} />;
+      case 'ReviewFailedRegistration':
+        // Treat ReviewFailedRegistration as a specialized approval step
+        return <ApprovalStepPreview step={step} />;
       case 'PendingCompletionOfOneTimeSteps':
         return <PendingCompletionOfOneTimeStepsPreview step={step} />;
       case 'PendingCompletionOfPerTermSteps':
