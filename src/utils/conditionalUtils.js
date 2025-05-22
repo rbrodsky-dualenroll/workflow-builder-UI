@@ -177,7 +177,8 @@ const formatLegacyCondition = (condition) => {
     high_school: {
       has_feeder_schools: 'Has Feeder Schools',
       payment_policy: 'Payment Policy',
-      is_home_school: 'Is Home School'
+      is_home_school: 'Is Home School',
+      is_partner: 'Is Partner School'
     },
     term: {
       past_withdraw_deadline: 'Past Withdraw Deadline',
@@ -264,8 +265,13 @@ const formatLegacyCondition = (condition) => {
 export const generateRubyCode = (condition) => {
   if (!condition) return null;
   
+  // Handle custom conditions
+  if (condition.comparison === 'custom' && condition.value) {
+    return condition.value;
+  }
+  
   // If the condition has a predefined Ruby method, use it
-  if (condition.rubyMethod) {
+  if (condition.rubyMethod && condition.rubyMethod !== 'custom') {
     // For boolean methods ending with ?
     if (condition.rubyMethod.endsWith('?')) {
       if ((condition.comparison === 'not-equals' || condition.comparison === '!=') ||

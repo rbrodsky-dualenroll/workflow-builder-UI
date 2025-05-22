@@ -458,14 +458,14 @@
     },
     "high_school": {
       "entity": "HighSchool",
-      "property": "is_home_school",
-      "comparison": "equals",
-      "value": "false",
+      "property": "is_partner",
+      "comparison": "custom",
+      "value": "!student.high_school.is_home_school? && !student.high_school.is_non_partner?(college)",
       "fields": [
         "high_school"
       ],
-      "rubyMethod": "is_home_school?",
-      "rubyOperator": "!="
+      "rubyMethod": "custom",
+      "rubyOperator": "custom"
     },
     "non_partner": {
       "entity": "HighSchool",
