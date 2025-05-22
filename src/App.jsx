@@ -4,7 +4,7 @@ import WorkflowBuilder from './components/WorkflowBuilder/WorkflowBuilder'
 
 function App() {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen" data-testid="app-container">
       <header className="bg-primary text-white p-6 shadow-md flex-shrink-0">
         <div className="container mx-auto">
           <h1 className="text-2xl font-bold">DualEnroll Workflow Builder</h1>

@@ -24,6 +24,7 @@ This document details the workflow steps elements and how to interact with them 
 |---------|----------|-------------|
 | Toggle Preview Button | `[data-action="toggle-preview"][data-for-step="stepId"]` | Button to expand/collapse a step |
 | Edit Step Button | `[data-action="edit-step"][data-for-step="stepId"]` | Button to edit a step |
+| Generate View Button | `[data-action="generate-view"][data-for-step="stepId"]` | Button to generate a view template |
 | Delete Step Button | `[data-action="delete-step"][data-for-step="stepId"]` | Button to delete a step |
 
 ## Working with Steps

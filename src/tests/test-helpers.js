@@ -23,6 +23,7 @@ export const initializeWorkflowBuilder = async (page, customSteps = null) => {
   // Navigate to the app
   await page.goto('http://localhost:5173/workflow-builder-UI/?test=true');
   
+
   // Wait for the root element to be visible
   await page.waitForSelector('#root', { visible: true })
     .catch(() => {

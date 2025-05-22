@@ -69,5 +69,10 @@ beforeAll(async () => {
   
   // Wait for app to be fully loaded
   await page.waitForSelector('[data-testid="app-container"]', { timeout: 10000 })
-    .catch(() => console.warn('Warning: App container selector not found'));
+    .catch(() => {
+      console.warn('Warning: App container selector not found. Checking alternative selectors...');
+      // Try to find the root element as a fallback
+      return page.waitForSelector('#root', { timeout: 5000 })
+        .catch(() => console.warn('Warning: Root element not found either. Tests may fail.'));
+    });
 });
