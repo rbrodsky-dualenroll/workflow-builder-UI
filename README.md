@@ -156,6 +156,14 @@ The Workflow Builder includes powerful export capabilities for development teams
 4. Choose which components to include (application fields, initializers, view templates)
 5. Generate and download the export
 
+### Display Mode
+
+Display Mode provides a simplified, read-only presentation of your workflow.
+
+1. Toggle Display Mode using the **Display Mode** button in the header.
+2. Choose a workflow category filter and toggle conditions to preview how steps appear for different paths.
+3. Exit Display Mode using the same button to return to the builder.
+
 ## Data Model
 
 ### Step Structure
