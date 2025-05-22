@@ -83,6 +83,9 @@ The condition builder allows for creating and reusing complex conditions:
 - Create custom properties for specialized needs
 - Apply conditions to determine when steps should be shown
 - Manage conditions at the workflow level for reuse across steps
+- The default template includes standard conditions for `high_school`,
+  `home_school`, and `non_partner` students. High School role steps are
+  automatically tied to the `high_school` condition.
 
 ### Feedback Loops
 

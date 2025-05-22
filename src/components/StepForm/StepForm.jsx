@@ -201,12 +201,39 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, onAddFeedbackStep, wor
       console.log('Updated form data:', updatedFormData);
       // Force a re-render by creating a brand new object
       setFormData({...updatedFormData});
-    } else if (name === 'role' && formData.stepType === 'RegisterViaApi') {
-      // For RegisterViaApi steps, always enforce System role regardless of selection
-      setFormData(prev => ({
-        ...prev,
-        role: 'System' // Force this to be System
-      }));
+    } else if (name === 'role') {
+      // Handle role changes
+      if (formData.stepType === 'RegisterViaApi') {
+        // For RegisterViaApi steps, always enforce System role regardless of selection
+        setFormData(prev => ({
+          ...prev,
+          role: 'System'
+        }));
+        return;
+      }
+
+      let updatedFormData = { ...formData, role: value };
+
+      // Automatically apply high_school condition for High School role steps
+      if (value === 'High School') {
+        updatedFormData.conditional = true;
+        if (!updatedFormData.workflowCondition.includes('high_school')) {
+          updatedFormData.workflowCondition = [
+            ...updatedFormData.workflowCondition,
+            'high_school'
+          ];
+        }
+      } else if (formData.role === 'High School') {
+        // Remove the auto-applied high_school condition when changing away
+        updatedFormData.workflowCondition = updatedFormData.workflowCondition.filter(
+          c => c !== 'high_school'
+        );
+        if (updatedFormData.workflowCondition.length === 0) {
+          updatedFormData.conditional = false;
+        }
+      }
+
+      setFormData(updatedFormData);
     } else if (name === 'workflowCondition' && type === 'array') {
       // Special case for array values
       setFormData(prev => ({
