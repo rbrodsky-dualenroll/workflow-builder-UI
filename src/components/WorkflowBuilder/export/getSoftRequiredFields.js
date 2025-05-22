@@ -110,6 +110,11 @@ export const identifyConditionalBranches = (steps) => {
 const findConditionalCompletionStates = (step, index, allSteps) => {
   const conditionalStates = [];
   
+  // Guard against invalid inputs
+  if (!step || !allSteps || !Array.isArray(allSteps)) {
+    return conditionalStates;
+  }
+  
   // Get all conditional branches
   const conditionalPaths = identifyConditionalBranches(allSteps);
   
@@ -119,14 +124,14 @@ const findConditionalCompletionStates = (step, index, allSteps) => {
   Object.keys(conditionalPaths).forEach(condition => {
     // Even if this is the current step's condition, we still need to check
     // other conditional paths to ensure they merge back into the main flow
-    const isStepInCurrentCondition = step.conditional && 
+    const isStepInCurrentCondition = step && step.conditional && 
         step.workflowCondition && 
         (Array.isArray(step.workflowCondition) 
           ? step.workflowCondition.includes(condition)
           : step.workflowCondition === condition);
     
     // Special handling for High School role steps
-    const isHighSchoolRoleStep = (step.role === 'High School' || step.role === 'Counselor') && condition === 'high_school';
+    const isHighSchoolRoleStep = step && (step.role === 'High School' || step.role === 'Counselor') && condition === 'high_school';
     
     // Skip only if this step is explicitly in the current condition path
     // We still want to process other paths to ensure merging
@@ -146,10 +151,12 @@ const findConditionalCompletionStates = (step, index, allSteps) => {
     
     // Find the most recent step in this condition path that comes before the current step
     stepsInCondition.forEach(conditionalStep => {
-      const conditionalStepIndex = allSteps.findIndex(s => s.id === conditionalStep.id);
+      if (!conditionalStep || !conditionalStep.id) return;
+      
+      const conditionalStepIndex = allSteps.findIndex(s => s && s.id === conditionalStep.id);
       
       // Only consider steps that come before the current step
-      if (conditionalStepIndex < index && conditionalStepIndex > latestStepIndex) {
+      if (conditionalStepIndex >= 0 && conditionalStepIndex < index && conditionalStepIndex > latestStepIndex) {
         // Only use steps with completion states
         if (conditionalStep.completion_state || getCompletionState(conditionalStep)) {
           latestStepIndex = conditionalStepIndex;
@@ -189,6 +196,11 @@ const findConditionalCompletionStates = (step, index, allSteps) => {
  * @returns {string} - Comma-separated list of soft required fields
  */
 const getSoftRequiredFields = (step, index, allSteps) => {
+  // Guard against invalid inputs
+  if (!step || !allSteps || !Array.isArray(allSteps)) {
+    return '';
+  }
+  
   // Special handling for Registration Failure and Successful Registration steps
   // These steps should use their own soft_required_fields directly
   if (step.stepType === 'Registration Failure' || step.stepType === 'Successful Registration') {
@@ -276,20 +288,40 @@ const getSoftRequiredFields = (step, index, allSteps) => {
   // ensure the previous step belongs to the same condition as the current step
   console.log('FINDING PREVIOUS STEP FOR DEPENDENCY');
   console.log(`Current step: ${step.title}`);
-  console.log(step)
-  if (previousStep && previousStep.conditional && previousStep.workflowCondition[0] !== step.workflowCondition[0]) {
+  
+  // Safely get the first workflow condition for comparison
+  const getCurrentStepCondition = (stepToCheck) => {
+    if (!stepToCheck || !stepToCheck.conditional || !stepToCheck.workflowCondition) return null;
+    return Array.isArray(stepToCheck.workflowCondition) 
+      ? stepToCheck.workflowCondition[0] 
+      : stepToCheck.workflowCondition;
+  };
+  
+  const currentStepCondition = getCurrentStepCondition(step);
+  const previousStepCondition = getCurrentStepCondition(previousStep);
+  
+  if (previousStep && previousStepCondition !== null && currentStepCondition !== null && 
+      previousStepCondition !== currentStepCondition) {
     // Find the most recent step with a matching scenario or matching lack of scenario
     // the main scenarios will just not have any scenarioId
     let matchingStepFound = false;
     let tempIndex = index - 1;
-    while(!matchingStepFound && tempIndex > 0) {
+    
+    while(!matchingStepFound && tempIndex >= 0) {
       const currentStep = allSteps[tempIndex];
-      if (currentStep.conditional && currentStep.workflowCondition[0] !== step.workflowCondition[0]) {
+      const currentStepConditionInLoop = getCurrentStepCondition(currentStep);
+      
+      if (currentStepConditionInLoop !== null && currentStepConditionInLoop !== currentStepCondition) {
         tempIndex--;
       } else {
         matchingStepFound = true;
         previousStep = currentStep;
       }
+    }
+    
+    // If we didn't find a matching step, use the original previousStep
+    if (!matchingStepFound) {
+      previousStep = allSteps[index - 1];
     }
   }
   
@@ -297,16 +329,24 @@ const getSoftRequiredFields = (step, index, allSteps) => {
   if (previousStep && previousStep.isFeedbackStep && previousStep.feedbackRelationship) {
     let matchingStepFound = false;
     let tempIndex = index - 1;
-    while(!matchingStepFound && tempIndex > 0) {
+    
+    while(!matchingStepFound && tempIndex >= 0) {
       const currentStep = allSteps[tempIndex];
+      const currentStepConditionInLoop = getCurrentStepCondition(currentStep);
+      
       if (currentStep.isFeedbackStep && currentStep.feedbackRelationship) {
         tempIndex--;
-      } else if (currentStep.condition && currentStep.workflowCondition[0] !== step.workflowCondition[0]) {
+      } else if (currentStepConditionInLoop !== null && currentStepConditionInLoop !== currentStepCondition) {
         tempIndex--;
       } else {
         matchingStepFound = true;
         previousStep = currentStep;
       }
+    }
+    
+    // If we didn't find a matching step, use the original previousStep
+    if (!matchingStepFound) {
+      previousStep = allSteps[index - 1];
     }
   }
 

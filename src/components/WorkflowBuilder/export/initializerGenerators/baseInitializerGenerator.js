@@ -121,7 +121,11 @@ export const processWorkflowConditions = (workflowData, relevantSteps, targetObj
       // Transform condition to Ruby code - first try using the rubyMethod directly if provided
       let rubyCondition = null;
       
-      if (condition.rubyMethod) {
+      // Handle custom conditions first
+      if (condition.comparison === 'custom' && condition.value) {
+        console.log(`Using custom condition value: ${condition.value}`);
+        rubyCondition = condition.value;
+      } else if (condition.rubyMethod && condition.rubyMethod !== 'custom') {
         console.log(`Condition has rubyMethod: ${condition.rubyMethod}`);
         // Use the entity variable with the method
         const entityVar = getEntityVariable(condition.entity);

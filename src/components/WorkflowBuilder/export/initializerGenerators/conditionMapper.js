@@ -17,8 +17,14 @@ export const transformConditionToRuby = (condition) => {
   
   console.log('Processing condition:', condition);
   
+  // Handle custom conditions first
+  if (condition.comparison === 'custom' && condition.value) {
+    console.log(`Using custom condition value: ${condition.value}`);
+    return condition.value;
+  }
+  
   // If the condition already has a predefined rubyMethod, use it directly
-  if (condition.rubyMethod) {
+  if (condition.rubyMethod && condition.rubyMethod !== 'custom') {
     // Special case for properties ending with ?
     if (condition.rubyMethod.endsWith('?')) {
       const entityVar = getEntityVariable(condition.entity);
