@@ -8,8 +8,10 @@
       "role": "Parent",
       "workflow_category": "One Time",
       "description": "",
-      "conditional": false,
-      "workflowCondition": [],
+      "conditional": true,
+      "workflowCondition": [
+        "high_school"
+      ],
       "actionOptions": [],
       "fileUploads": [],
       "informationDisplays": [],
@@ -186,8 +188,10 @@
       "role": "High School",
       "workflow_category": "One Time",
       "description": "",
-      "conditional": false,
-      "workflowCondition": [],
+      "conditional": true,
+      "workflowCondition": [
+        "high_school"
+      ],
       "actionOptions": [
         {
           "label": "Approve",
@@ -450,6 +454,28 @@
         "home_school"
       ],
       "rubyMethod": "is_home_school?",
+      "rubyOperator": "=="
+    },
+    "high_school": {
+      "entity": "HighSchool",
+      "property": "is_partner",
+      "comparison": "custom",
+      "value": "!student.high_school.is_home_school? && !student.high_school.is_non_partner?(college)",
+      "fields": [
+        "high_school"
+      ],
+      "rubyMethod": "custom",
+      "rubyOperator": "custom"
+    },
+    "non_partner": {
+      "entity": "HighSchool",
+      "property": "is_non_partner",
+      "comparison": "equals",
+      "value": "true",
+      "fields": [
+        "non_partner"
+      ],
+      "rubyMethod": "is_non_partner?(college)",
       "rubyOperator": "=="
     }
   },
