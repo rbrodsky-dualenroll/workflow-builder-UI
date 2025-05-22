@@ -73,6 +73,7 @@ The workflow builder supports multiple specialized step types:
 - **Check Holds**: Automated step to verify if students have holds on their accounts
 - **Register Via API**: System integration step to register students via SIS APIs
 - **Resolve Issue**: Step for handling exceptions and issues in the workflow
+- **Review Failed Registration**: Approval-style step for addressing failed registration attempts
 
 ### Workflow Conditions
 
@@ -155,6 +156,14 @@ The Workflow Builder includes powerful export capabilities for development teams
 3. Select export options (ZIP or single file)
 4. Choose which components to include (application fields, initializers, view templates)
 5. Generate and download the export
+
+### Display Mode
+
+Display Mode provides a simplified, read-only presentation of your workflow.
+
+1. Toggle Display Mode using the **Display Mode** button in the header.
+2. Choose a workflow category filter and toggle conditions to preview how steps appear for different paths.
+3. Exit Display Mode using the same button to return to the builder.
 
 ## Data Model
 

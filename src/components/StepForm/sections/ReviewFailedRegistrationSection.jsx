@@ -1,6 +1,6 @@
 import React from 'react';
 import Card from '../../common/Card';
-import CollapsibleCard from '../../common/CollapsibleCard';
+import ApprovalStepSection from './ApprovalStepSection';
 
 /**
  * Section for the Review Failed Registration step type
@@ -63,6 +63,7 @@ const ReviewFailedRegistrationSection = ({ formData, setFormData, errors = {} })
   }, [formData, setFormData]);
 
   return (
+    <>
     <Card title="Review Failed Registration Configuration" className="bg-white mb-6">
       <div className="bg-gray-50 p-3 rounded-md border border-gray-300 mb-4">
         <p className="text-sm text-gray-700">
@@ -101,6 +102,12 @@ const ReviewFailedRegistrationSection = ({ formData, setFormData, errors = {} })
         </p>
       </div>
     </Card>
+    <ApprovalStepSection
+      formData={formData}
+      setFormData={setFormData}
+      errors={errors}
+    />
+    </>
   );
 };
 

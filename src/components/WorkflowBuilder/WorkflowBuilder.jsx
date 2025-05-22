@@ -6,6 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import WorkflowHeader from './WorkflowHeader';
 import WorkflowContent from './WorkflowContent';
 import WorkflowConditionManager from './WorkflowConditionManager';
+import DisplayMode from './DisplayMode';
 
 // Import modals
 import StepModal from './modals/StepModal';
@@ -38,6 +39,7 @@ const WorkflowBuilder = () => {
   const [showConditionModal, setShowConditionModal] = useState(false);
   const [showDevTeamExportModal, setShowDevTeamExportModal] = useState(false);
   const [conditionToAdd, setConditionToAdd] = useState(null);
+  const [displayMode, setDisplayMode] = useState(false);
   
   // Get modal state from custom hook
   const {
@@ -183,44 +185,55 @@ const WorkflowBuilder = () => {
     <DndProvider backend={HTML5Backend}>
       <div className="bg-white rounded-lg shadow-md p-6 mb-8 h-auto">
         {/* Header with workflow name and import/save buttons */}
-        <WorkflowHeader 
+        <WorkflowHeader
           workflowName={workflowName}
           onSave={() => setShowSaveModal(true)}
           onImport={handleFileUpload}
           onNew={handleNewWorkflow}
           onStartFromTemplate={handleStartFromTemplate}
           onExportDevTeam={() => setShowDevTeamExportModal(true)}
+          onToggleDisplayMode={() => setDisplayMode(!displayMode)}
+          isDisplayMode={displayMode}
         />
         
         {/* Workflow Condition Manager */}
-        <WorkflowConditionManager 
-          workflowConditions={workflowConditions}
-          onManageConditions={() => setShowConditionModal(true)}
-        />
+        {displayMode ? (
+          <DisplayMode
+            workflow={workflow}
+            workflowConditions={workflowConditions}
+          />
+        ) : (
+          <>
+            <WorkflowConditionManager
+              workflowConditions={workflowConditions}
+              onManageConditions={() => setShowConditionModal(true)}
+            />
 
-        {/* Workflow content (steps) */}
-        <WorkflowContent 
-          workflow={workflow}
-          onEditStep={setEditingStep}
-          onDeleteStep={handleDeleteStep}
-          moveStep={handleMoveStep}
-          onAddStep={() => setIsAddingStep(true)}
-        />
+            <WorkflowContent
+              workflow={workflow}
+              onEditStep={setEditingStep}
+              onDeleteStep={handleDeleteStep}
+              moveStep={handleMoveStep}
+              onAddStep={() => setIsAddingStep(true)}
+            />
+          </>
+        )}
 
-        {/* Add Step Modal */}
-        <StepModal 
-          isOpen={isAddingStep}
-          onClose={() => setIsAddingStep(false)}
-          title="Add New Step"
-          onSubmit={handleAddStep}
-          onAddFeedbackStep={handleAddStep}
-          workflowConditions={workflowConditions}
-          onManageWorkflowConditions={handleManageWorkflowConditions}
-        />
+        {!displayMode && (
+          <StepModal
+            isOpen={isAddingStep}
+            onClose={() => setIsAddingStep(false)}
+            title="Add New Step"
+            onSubmit={handleAddStep}
+            onAddFeedbackStep={handleAddStep}
+            workflowConditions={workflowConditions}
+            onManageWorkflowConditions={handleManageWorkflowConditions}
+          />
+        )}
 
         {/* Edit Step Modal */}
-        {editingStep && (
-          <StepModal 
+        {!displayMode && editingStep && (
+          <StepModal
             isOpen={editingStep !== null}
             onClose={() => setEditingStep(null)}
             title="Edit Step"
@@ -233,41 +246,46 @@ const WorkflowBuilder = () => {
         )}
         
         {/* Condition Manager Modal */}
-        <ConditionManagerModal
-          isOpen={showConditionModal}
-          onClose={() => {
-            setShowConditionModal(false);
-            setConditionToAdd(null);
-          }}
-          conditions={workflowConditions}
-          onUpdate={handleUpdateWorkflowConditions}
-          usageStats={getConditionUsageStats()}
-          initialCondition={conditionToAdd}
-          title={"Manage Workflow Conditions"}
-        />
+        {!displayMode && (
+          <ConditionManagerModal
+            isOpen={showConditionModal}
+            onClose={() => {
+              setShowConditionModal(false);
+              setConditionToAdd(null);
+            }}
+            conditions={workflowConditions}
+            onUpdate={handleUpdateWorkflowConditions}
+            usageStats={getConditionUsageStats()}
+            initialCondition={conditionToAdd}
+            title={"Manage Workflow Conditions"}
+          />
+        )}
 
         {/* Save Workflow Modal */}
-        <SaveWorkflowModal 
-          isOpen={showSaveModal}
-          onClose={() => setShowSaveModal(false)}
-          workflowName={workflowName}
-          setWorkflowName={setWorkflowName}
-          onSave={handleSaveWorkflow}
-        />
+        {!displayMode && (
+          <SaveWorkflowModal
+            isOpen={showSaveModal}
+            onClose={() => setShowSaveModal(false)}
+            workflowName={workflowName}
+            setWorkflowName={setWorkflowName}
+            onSave={handleSaveWorkflow}
+          />
+        )}
 
         {/* New Workflow Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={showNewWorkflowModal}
-          onClose={() => setShowNewWorkflowModal(false)}
-          onConfirm={createNewWorkflow}
-          title="Create New Workflow"
-          message="Are you sure you want to create a new workflow? Any unsaved changes will be lost."
-          confirmButtonText="Create New"
-          confirmButtonClass="bg-blue-600 hover:bg-blue-700"
-        />
+        {!displayMode && (
+          <ConfirmationModal
+            isOpen={showNewWorkflowModal}
+            onClose={() => setShowNewWorkflowModal(false)}
+            onConfirm={createNewWorkflow}
+            title="Create New Workflow"
+            message="Are you sure you want to create a new workflow? Any unsaved changes will be lost."
+            confirmButtonText="Create New"
+            confirmButtonClass="bg-blue-600 hover:bg-blue-700"
+          />
+        )}
         
-        {/* Dev Team Export Modal */}
-        {showDevTeamExportModal && (
+        {!displayMode && showDevTeamExportModal && (
           <DevTeamExport
             workflow={workflow}
             workflowName={workflowName}

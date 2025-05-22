@@ -12,6 +12,8 @@ This document details the main UI elements of the Workflow Builder application a
 | Save Workflow Button | `[data-testid="save-workflow-button"]` | Button to save the workflow |
 | New Workflow Button | `[data-testid="new-workflow-button"]` | Button to create a new workflow |
 | Export Dev Team Button | `[data-testid="export-dev-team-button"]` | Open the Dev Team export modal |
+| Display Mode Toggle | `[data-testid="display-mode-toggle"]` | Switch between builder and display views |
+| Display Mode Container | `[data-testid="display-mode-container"]` | Wrapper for read-only display mode |
 | Workflow Steps Container | `[data-testid="workflow-steps-container"]` | Container for all workflow steps |
 | Empty Workflow Message | `[data-testid="empty-workflow"]` | Message shown when no steps exist |
 
