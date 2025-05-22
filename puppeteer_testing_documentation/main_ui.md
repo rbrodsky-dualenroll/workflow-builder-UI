@@ -88,7 +88,7 @@ Before running any tests, make sure to navigate to the application URL:
 
 ```javascript
 // Navigate to the Workflow Builder application
-await page.goto('http://localhost:5173');
+await page.goto('http://localhost:5173/workflow-builder-UI/');
 
 // Wait for the page to load completely
 await page.waitForSelector('[data-testid="add-step-button"]');

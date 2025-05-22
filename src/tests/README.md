@@ -42,7 +42,7 @@ All tests save screenshots to the `/screenshots` directory for debugging purpose
 
 If the tests fail:
 
-1. Make sure the development server is running at http://localhost:5173
+1. Make sure the development server is running at http://localhost:5173/workflow-builder-UI/
 2. Check that the app has the expected data-testid attributes
 3. Review the screenshots in the screenshots directory
 4. Look for errors in the browser console (captured in the test output)

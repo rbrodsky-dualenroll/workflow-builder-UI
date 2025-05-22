@@ -348,7 +348,7 @@ let page;
 
 beforeEach(async () => {
   page = await browser.newPage();
-  await page.goto('http://localhost:5173');
+  await page.goto('http://localhost:5173/workflow-builder-UI/');
   await page.waitForSelector('[data-testid="add-step-button"]');
 });
 

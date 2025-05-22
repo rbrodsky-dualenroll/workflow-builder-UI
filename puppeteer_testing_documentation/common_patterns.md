@@ -20,7 +20,7 @@ const setup = async () => {
   const page = await browser.newPage();
   
   // Navigate to the application
-  await page.goto('http://localhost:5173');
+  await page.goto('http://localhost:5173/workflow-builder-UI/');
   
   // Wait for the page to load completely
   await page.waitForSelector('[data-testid="add-step-button"]');
@@ -294,7 +294,7 @@ const runWorkflowBuilderTest = async () => {
   
   try {
     // Navigate to the application
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:5173/workflow-builder-UI/');
     await page.waitForSelector('[data-testid="add-step-button"]');
     
     // Create a basic workflow

@@ -14,7 +14,7 @@ describe('Basic Test', () => {
   
   test('can navigate to app', async () => {
     // Navigate to app
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:5173/workflow-builder-UI/?test=true');
     console.log('Successfully navigated to app');
     
     // Get page title

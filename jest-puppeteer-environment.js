@@ -83,8 +83,11 @@ class PuppeteerEnvironment extends TestEnvironment {
       
       // Disconnect from browser
       if (this.global.browser) {
-        await this.global.browser.disconnect()
-          .catch(err => console.warn('Error disconnecting from browser:', err.message));
+        try {
+          await this.global.browser.disconnect();
+        } catch (err) {
+          console.warn('Error disconnecting from browser:', err.message);
+        }
       }
       
       await super.teardown();

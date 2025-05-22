@@ -8,7 +8,7 @@ class CustomPuppeteerEnvironment extends PuppeteerEnvironment {
     await super.setup();
     
     // Add globals for testing
-    this.global.BASE_URL = process.env.TEST_URL || 'http://localhost:5173';
+    this.global.BASE_URL = process.env.TEST_URL || 'http://localhost:5173/workflow-builder-UI/?test=true';
     
     // Override waitForTimeout to support async/await better
     this.global.waitForTimeout = (ms) => new Promise(resolve => setTimeout(resolve, ms));
