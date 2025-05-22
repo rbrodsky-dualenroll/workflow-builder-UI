@@ -26,6 +26,7 @@ npm run test:ci
 
 - **basic.test.js** - Simple test to verify the Jest + Puppeteer setup is working
 - **workflow-app.test.js** - Tests specific to the Workflow Builder functionality
+- **single-step.test.js** - Basic tests focused on creating and editing a single workflow step
 - **puppeteer-helpers.js** - Helper functions for working with Puppeteer
 
 ## Helper Functions
