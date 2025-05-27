@@ -14,9 +14,27 @@ const getStepClass = (step) => {
     case 'ProvideConsent':
       return 'ProvideConsentStep';
     case 'CheckHolds':
-      return 'CheckHoldsViaEthosApiStep';
+      // Map to appropriate API integration based on configuration
+      const holdsIntegration = step.holdsApiIntegration || 'ethos';
+      switch (holdsIntegration) {
+        case 'ethos': return 'CheckHoldsViaEthosApiStep';
+        case 'banner': return 'CheckHoldsViaBannerApiStep';
+        case 'colleague': return 'CheckHoldsViaColleagueApiStep';
+        default: return 'CheckHoldsViaEthosApiStep';
+      }
     case 'RegisterViaApi':
-      return 'RegisterViaEthosApiStep';
+      // Map to appropriate SIS integration based on configuration
+      const sisIntegration = step.sisIntegration || 'ethos';
+      switch (sisIntegration) {
+        case 'ethos': return 'RegisterViaEthosApiStep';
+        case 'colleague': return 'RegisterViaColleagueWebApiStep';
+        case 'banner_eedm': return 'RegisterViaBannerEedmApiStep';
+        case 'banner_erp': return 'RegisterViaBannerErpApiStep';
+        case 'jenzabar': return 'RegisterViaJenzabarApiStep';
+        case 'peoplesoft': return 'RegisterViaPeopleSoftApiStep';
+        case 'xml': return 'RegisterViaXmlStep';
+        default: return 'RegisterViaEthosApiStep';
+      }
     case 'ResolveIssue':
       return 'ResolveIssueStep';
     case 'ReviewFailedRegistration':
@@ -32,6 +50,36 @@ const getStepClass = (step) => {
       return 'WaitForSubordinateRegistrationActiveFlowCompletionStep';
     case 'PendingCompletionOfPerYearSteps':
       return 'WaitForSubordinateRegistrationActiveFlowCompletionStep';
+    case 'RegistrationEligibilityCheck':
+      // Map to appropriate API integration based on configuration
+      const eligibilityIntegration = step.apiIntegration || 'ethos';
+      switch (eligibilityIntegration) {
+        case 'ethos': return 'RegistrationEligibilityViaEthosApiStep';
+        case 'banner': return 'RegistrationEligibilityViaBannerApiStep';
+        case 'colleague': return 'RegistrationEligibilityViaColleagueApiStep';
+        default: return 'RegistrationEligibilityViaEthosApiStep';
+      }
+    case 'StudentProgramsCheck':
+      const programsIntegration = step.apiIntegration || 'ethos';
+      switch (programsIntegration) {
+        case 'ethos': return 'GetStudentProgramsViaEthosApiStep';
+        case 'banner': return 'GetStudentProgramsViaBannerApiStep';
+        default: return 'GetStudentProgramsViaEthosApiStep';
+      }
+    case 'CreateHolds':
+      const createHoldsIntegration = step.apiIntegration || 'ethos';
+      switch (createHoldsIntegration) {
+        case 'ethos': return 'CreateHoldsViaEthosApiStep';
+        case 'banner': return 'CreateHoldsViaBannerApiStep';
+        default: return 'CreateHoldsViaEthosApiStep';
+      }
+    case 'DeleteHolds':
+      const deleteHoldsIntegration = step.apiIntegration || 'ethos';
+      switch (deleteHoldsIntegration) {
+        case 'ethos': return 'DeleteHoldsViaEthosApiStep';
+        case 'banner': return 'DeleteHoldsViaBannerApiStep';
+        default: return 'DeleteHoldsViaEthosApiStep';
+      }
     default:
       return step.step_class || 'ApprovalStep';
   }

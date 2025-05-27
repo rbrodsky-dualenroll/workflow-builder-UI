@@ -112,6 +112,24 @@ const getParameters = (step, completionState, allSteps) => {
     }
   }
   
+  if (step.stepType === 'RegistrationEligibilityCheck') {
+    // These steps typically don't need additional parameters
+    // The step class handles the SIS integration logic
+  }
+  
+  if (step.stepType === 'StudentProgramsCheck') {
+    // These steps typically don't need additional parameters
+    // The step class handles the SIS integration logic
+  }
+  
+  if (step.stepType === 'CreateHolds' || step.stepType === 'DeleteHolds') {
+    if (step.holdCodes) {
+      params['hold_codes'] = step.holdCodes.includes(',') ? 
+        step.holdCodes.split(',').map(code => code.trim()) : 
+        step.holdCodes;
+    }
+  }
+  
   // For approval steps, add clear_states_by_completion to handle returns and feedback loops
   if (step.stepType === 'Approval' && completionState) {
     // Handle feedback loops if present
@@ -152,13 +170,37 @@ const getParameters = (step, completionState, allSteps) => {
 
   // Handle specialized step types
   if (step.stepType === 'ProvideConsent') {
-    params['consent'] = 'all';
+    params['consent'] = step.consentType || 'all';
   }
   
   if (step.stepType === 'CheckHolds') {
     params['hold_codes'] = step.holdCodes || '*any*';
     params['holds'] = 'has_holds';
     params['no_holds'] = 'no_holds';
+  }
+  
+  if (step.stepType === 'RegisterViaApi') {
+    // Add registration action if not default 'add'
+    if (step.registrationAction && step.registrationAction !== 'add') {
+      params['action'] = step.registrationAction;
+    }
+    
+    // Add SIS-specific parameters
+    const sisIntegration = step.sisIntegration || 'ethos';
+    
+    switch (sisIntegration) {
+      case 'banner_eedm':
+        if (step.overrideCode) {
+          params['override_code'] = step.overrideCode;
+        }
+        break;
+      case 'colleague':
+        if (step.checkRoster) {
+          params['check_course_section_roster'] = true;
+        }
+        break;
+      // Add other SIS-specific parameters as needed
+    }
   }
   
   if (step.stepType === 'WaitForCompletionOfOneTimeSteps' || 

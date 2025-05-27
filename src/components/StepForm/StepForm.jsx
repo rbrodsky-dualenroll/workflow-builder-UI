@@ -50,8 +50,13 @@ const StepForm = ({ initialData = {}, onSubmit, onCancel, onAddFeedbackStep, wor
     crnDisplay: [],
     // Fields for CheckHolds step
     holdCodes: '',
+    holdsApiIntegration: 'ethos',
     // Fields for RegisterViaApi step
     apiEndpoint: '',
+    sisIntegration: 'ethos',
+    registrationAction: 'add',
+    overrideCode: '',
+    checkRoster: false,
     // Fields for ProvideConsent step
     consentType: 'all',
     // Fields for ResolveIssue step
