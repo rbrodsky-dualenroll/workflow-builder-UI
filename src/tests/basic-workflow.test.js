@@ -16,7 +16,7 @@ import {
   moveStep
 } from './test-helpers.js';
 
-describe.skip('Workflow Builder', () => {
+describe('Workflow Builder', () => {
   beforeEach(async () => {
     // Initialize the app with default test workflow for each test
     await initializeWorkflowBuilder(page);
