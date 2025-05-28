@@ -5,12 +5,13 @@
  * using Jest and Puppeteer. It builds on the existing puppeteerTestUtils.js
  */
 
-import { 
-  createTestWorkflow, 
-  getWorkflowStepOrder, 
+import {
+  createTestWorkflow,
+  getWorkflowStepOrder,
   setupTestWorkflow,
   validateFeedbackRelationships,
-  validateParentChildIDs 
+  validateParentChildIDs,
+  dragStepToPosition
 } from '../utils/puppeteerTestUtils.js';
 
 /**
@@ -35,6 +36,9 @@ export const initializeWorkflowBuilder = async (page, customSteps = null) => {
   
   // Set up the test workflow
   await setupTestWorkflow(page, customSteps || createTestWorkflow());
+
+  // Wait for the first step to appear to ensure UI has updated
+  await page.waitForSelector('[data-testid="workflow-step-step1"]');
   
   // Take a screenshot to verify initialization
   await page.screenshot({ path: 'screenshots/initialized-app.png' });
@@ -110,19 +114,19 @@ export const addStep = async (page, stepType, title, role) => {
   // Click the "Add Step" button
   await clickByTestId(page, 'add-step-button');
   
-  // Wait for the form to appear
-  await page.waitForSelector('[data-testid="step-form"]', { visible: true });
+  // Wait for the step form to appear
+  await page.waitForSelector('#stepForm', { visible: true });
   
   // Fill out the form
-  await page.select('[data-testid="step-type-select"]', stepType);
-  await page.type('[data-testid="step-title-input"]', title);
-  await page.select('[data-testid="step-role-select"]', role);
+  await page.select('[data-testid="step-form-type"]', stepType);
+  await page.type('[data-testid="step-form-title"]', title);
+  await page.select('[data-testid="field-role"]', role);
   
   // Submit the form
-  await clickByTestId(page, 'save-step-button');
+  await clickByTestId(page, 'modal-save-button');
   
   // Wait for the form to disappear
-  await page.waitForSelector('[data-testid="step-form"]', { hidden: true });
+  await page.waitForSelector('#stepForm', { hidden: true });
   
   // Get the ID of the newly created step (assuming it's the last one in the list)
   const stepOrder = await getWorkflowStepOrder(page);
@@ -141,27 +145,27 @@ export const editStep = async (page, stepId, newValues) => {
   await clickByTestId(page, `edit-step-${stepId}-button`);
   
   // Wait for the form to appear
-  await page.waitForSelector('[data-testid="step-form"]', { visible: true });
+  await page.waitForSelector('#stepForm', { visible: true });
   
   // Update the values
   if (newValues.title) {
-    await page.$eval('[data-testid="step-title-input"]', el => el.value = '');
-    await page.type('[data-testid="step-title-input"]', newValues.title);
+    await page.$eval('[data-testid="step-form-title"]', el => { el.value = ''; });
+    await page.type('[data-testid="step-form-title"]', newValues.title);
   }
   
   if (newValues.stepType) {
-    await page.select('[data-testid="step-type-select"]', newValues.stepType);
+    await page.select('[data-testid="step-form-type"]', newValues.stepType);
   }
   
   if (newValues.role) {
-    await page.select('[data-testid="step-role-select"]', newValues.role);
+    await page.select('[data-testid="field-role"]', newValues.role);
   }
   
   // Submit the form
-  await clickByTestId(page, 'save-step-button');
+  await clickByTestId(page, 'modal-save-button');
   
   // Wait for the form to disappear
-  await page.waitForSelector('[data-testid="step-form"]', { hidden: true });
+  await page.waitForSelector('#stepForm', { hidden: true });
 };
 
 /**
@@ -175,13 +179,13 @@ export const deleteStep = async (page, stepId) => {
   await clickByTestId(page, `delete-step-${stepId}-button`);
   
   // Wait for the confirmation dialog to appear
-  await page.waitForSelector('[data-testid="confirmation-dialog"]', { visible: true });
+  await page.waitForSelector('[data-testid="confirmation-confirm-button"]', { visible: true });
   
   // Confirm deletion
-  await clickByTestId(page, 'confirm-delete-button');
+  await clickByTestId(page, 'confirmation-confirm-button');
   
   // Wait for the confirmation dialog to disappear
-  await page.waitForSelector('[data-testid="confirmation-dialog"]', { hidden: true });
+  await page.waitForSelector('[data-testid="confirmation-confirm-button"]', { hidden: true });
 };
 
 /**
@@ -192,11 +196,23 @@ export const deleteStep = async (page, stepId) => {
  * @returns {Promise<void>}
  */
 export const moveStep = async (page, stepId, direction) => {
-  // Click the move button for the specified step
-  await clickByTestId(page, `move-${direction}-${stepId}-button`);
-  
-  // Wait a moment for the UI to update
-  await page.waitForTimeout(300);
+  const order = await getWorkflowStepOrder(page);
+  const index = order.indexOf(stepId);
+  if (index === -1) {
+    throw new Error(`Step ${stepId} not found`);
+  }
+
+  if (direction === 'down') {
+    if (index >= order.length - 1) return; // already at bottom
+    const target = order[index + 1];
+    await dragStepToPosition(page, stepId, target, true);
+  } else if (direction === 'up') {
+    if (index === 0) return; // already at top
+    const target = order[index - 1];
+    await dragStepToPosition(page, stepId, target, false);
+  }
+
+  await page.waitForTimeout(500);
 };
 
 /**
